@@ -36,9 +36,9 @@ export default function Landing() {
   const router = useRouter();
 
   const handleGetStarted = useCallback(() => {
-    // replace (not push) so the back button/gesture on Home exits the app
+    // replace (not push) so the back button/gesture on Auth exits the app
     // instead of returning to the landing screen.
-    router.replace('/home');
+    router.replace('/auth');
   }, [router]);
 
   return (
