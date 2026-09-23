@@ -32,6 +32,12 @@
         }
       ]
     ],
-    "scheme": "sihconnect"
+    "scheme": "sihconnect",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "5a71188d-d500-45ce-944d-a0dcabd344c6"
+      }
+    }
   }
 }
