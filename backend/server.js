@@ -6,6 +6,7 @@ require('dotenv').config();
 
 const authRoutes = require('./routes/auth'); // Existing app routes
 const webAuthRoutes = require('./routes/webAuth'); // New web routes
+const federationRoutes = require('./routes/federation'); // Federation management routes
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use(cookieParser()); // <-- Allows reading HTTP-only cookies
 // ── Routes ──────────────────────────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
 app.use('/api/web-auth', webAuthRoutes);
+app.use('/api/federation', federationRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -24,8 +26,10 @@ app.get('/api/health', (req, res) => {
 });
 
 // ── MongoDB Connection ───────────────────────────────────────────────────────
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/sih-database';
+
 mongoose
-  .connect(process.env.MONGODB_URI)
+  .connect(MONGODB_URI)
   .then(() => {
     console.log('✅ Connected to MongoDB');
     const PORT = process.env.PORT || 5000;
