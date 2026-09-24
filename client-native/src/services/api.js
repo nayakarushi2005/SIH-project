@@ -31,21 +31,20 @@ export async function googleSignIn(idToken) {
 }
 
 /**
- * Initiate Aadhaar OTP — returns { transactionId, message }
+ * Initiate Digilocker URL — returns { url, clientToken, state }
  */
-export async function initiateAadhaarOTP(aadhaarNumber) {
-  const res = await api.post('/auth/aadhaar/initiate', { aadhaarNumber });
+export async function initiateDigilocker() {
+  const res = await api.post('/auth/aadhaar/initiate');
   return res.data;
 }
 
 /**
- * Verify Aadhaar OTP — updates user doc and returns updated user
+ * Verify Digilocker Data — updates user doc and returns updated user
  */
-export async function verifyAadhaarOTP(transactionId, otp, aadhaarLastFour) {
+export async function verifyDigilocker(clientToken, state) {
   const res = await api.post('/auth/aadhaar/verify', {
-    transactionId,
-    otp,
-    aadhaarLastFour,
+    clientToken,
+    state,
   });
   return res.data;
 }
