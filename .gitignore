@@ -42,3 +42,19 @@ android
 
 # AI tool settings (local only)
 .claude/
+CLAUDE.md
+AGENTS.md
+.cursor/
+.cursorrules
+.windsurf/
+.gemini/
+GEMINI.md
+.aider*
+.continue/
+.idx/
+.github/copilot-instructions.md
+.clinerules
+.roo/
+.codeium/
+.kiro/
+.junie/
