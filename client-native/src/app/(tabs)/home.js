@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import Avatar from '../../components/Avatar';
 import BannerCarousel from '../../components/BannerCarousel';
 import EmptyState from '../../components/EmptyState';
+import LocationSheet from '../../components/LocationSheet';
 import { colors, radius, spacing, typography } from '../../constants/theme';
 import { BANNERS, MOST_BOOKED_SLUGS } from '../../constants/services';
 import useCategories from '../../hooks/useCategories';
@@ -28,6 +29,7 @@ export default function Home() {
   const router = useRouter();
   const { t, i18n } = useTranslation();
   const { user, refreshing, refresh } = useProfile();
+  const [locationOpen, setLocationOpen] = useState(false);
   const { bySlug } = useCategories(i18n.language);
   const mostBooked = MOST_BOOKED_SLUGS.map(bySlug).filter(Boolean);
 
@@ -55,7 +57,7 @@ export default function Home() {
       {/* ── Header: location + actions ─────────────────────────────── */}
       <View style={styles.header}>
         <Pressable
-          onPress={() => router.push('/edit-profile')}
+          onPress={() => setLocationOpen(true)}
           style={styles.location}
           accessibilityRole="button"
           accessibilityLabel={location ? t('home.locationA11y', { location }) : t('home.setLocation')}
@@ -149,6 +151,7 @@ export default function Home() {
           body={t('home.bookAgainEmpty')}
         />
       </ScrollView>
+      <LocationSheet visible={locationOpen} onClose={() => setLocationOpen(false)} />
     </SafeAreaView>
   );
 }
