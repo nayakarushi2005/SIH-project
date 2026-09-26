@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import useFetchWithAuth from '../../hooks/useFetchWithAuth';
 import { useAuth } from '../../context/AuthContext';
+import CityPinFields from '../../components/CityPinFields';
 import { 
   Building2, 
   Clock, 
@@ -13,6 +14,7 @@ import {
   Mail,
   Users,
   IndianRupee,
+  Pencil,
   Sparkles
 } from 'lucide-react';
 
@@ -48,6 +50,37 @@ export default function FederationStatus() {
       setFederation(null);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const [editingLocation, setEditingLocation] = useState(false);
+  const [locationDraft, setLocationDraft] = useState({ city: '', pincode: '' });
+  const [savingLocation, setSavingLocation] = useState(false);
+  const [locationError, setLocationError] = useState(null);
+
+  const startEditingLocation = () => {
+    setLocationDraft({ city: federation.city || '', pincode: federation.pincode || '' });
+    setLocationError(null);
+    setEditingLocation(true);
+  };
+
+  const saveLocation = async (e) => {
+    e.preventDefault();
+    setSavingLocation(true);
+    setLocationError(null);
+    try {
+      const res = await authFetch('/api/federation/me/location', {
+        method: 'PATCH',
+        body: JSON.stringify({ city: locationDraft.city.trim(), pincode: locationDraft.pincode }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.fields?.city || data.fields?.pincode || data.message || 'Could not save location');
+      setFederation(data.federation);
+      setEditingLocation(false);
+    } catch (err) {
+      setLocationError(err.message || 'Could not save location');
+    } finally {
+      setSavingLocation(false);
     }
   };
 
@@ -175,11 +208,50 @@ export default function FederationStatus() {
                 </span>
               </div>
 
-              {(federation.city || federation.pincode) && (
-                <div className="flex justify-between items-center">
+              {editingLocation ? (
+                <form onSubmit={saveLocation} className="space-y-3 pt-1">
                   <span className="text-xs font-semibold text-slate-400 uppercase">City / PIN:</span>
-                  <span className="text-sm text-slate-300">
-                    {[federation.city, federation.pincode].filter(Boolean).join(' · ')}
+                  <CityPinFields
+                    city={locationDraft.city}
+                    pincode={locationDraft.pincode}
+                    onChange={(loc) => setLocationDraft((prev) => ({ ...prev, ...loc }))}
+                    autoDetect={!federation.city && !federation.pincode}
+                  />
+                  {locationError && <p className="text-xs text-rose-400">{locationError}</p>}
+                  <div className="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setEditingLocation(false)}
+                      disabled={savingLocation}
+                      className="px-4 py-2 border border-slate-700 text-slate-300 hover:bg-slate-800 rounded-xl text-sm font-bold disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={savingLocation}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-bold disabled:opacity-50"
+                    >
+                      {savingLocation ? 'Saving…' : 'Save'}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="flex justify-between items-center gap-3">
+                  <span className="text-xs font-semibold text-slate-400 uppercase">City / PIN:</span>
+                  <span className="text-sm text-slate-300 flex items-center gap-3">
+                    {federation.city || federation.pincode ? (
+                      [federation.city, federation.pincode].filter(Boolean).join(' · ')
+                    ) : (
+                      <span className="text-amber-400">Not added — workers can&apos;t find you</span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={startEditingLocation}
+                      className="text-blue-400 hover:text-blue-300 text-xs font-bold flex items-center gap-1"
+                    >
+                      <Pencil className="w-3.5 h-3.5" /> Edit
+                    </button>
                   </span>
                 </div>
               )}

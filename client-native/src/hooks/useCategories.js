@@ -18,6 +18,10 @@ export default function useCategories(lang = 'en') {
   const load = useCallback(async () => {
     try {
       const data = await getCategories(lang);
+      // An empty catalogue (e.g. an unseeded database) is not an answer:
+      // keep the fallback and ask again on the next screen instead of
+      // caching nothing for the rest of the session.
+      if (!data?.groups?.length) throw new Error('The job category list is empty.');
       cache.set(lang, data.groups);
       setErrors((e) => ({ ...e, [lang]: null }));
       bump();

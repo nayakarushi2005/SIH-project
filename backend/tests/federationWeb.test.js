@@ -150,3 +150,38 @@ test('check-email only answers a federation about its own email', async () => {
   expect(own.status).toBe(200);
   expect(own.body.exists).toBe(true);
 });
+
+test('a federation edits only its own city and PIN, keeping its status', async () => {
+  const mine = await fed({ status: 'verified', city: '', pincode: '' });
+  const other = await fed();
+  const res = await request(app)
+    .patch('/api/federation/me/location')
+    .set(as(mine, 'Federation'))
+    .send({ city: '  Prayagraj ', pincode: '211004', name: 'Renamed', status: 'unverified', _id: String(other._id) });
+  expect(res.status).toBe(200);
+  expect(res.body.federation).toMatchObject({ _id: String(mine._id), city: 'Prayagraj', pincode: '211004', status: 'verified' });
+  const saved = await Federation.findById(mine._id);
+  expect(saved).toMatchObject({ name: mine.name, status: 'verified', city: 'Prayagraj', pincode: '211004' });
+  expect((await Federation.findById(other._id)).city).toBe('Pune');
+});
+
+test('editing location validates city and PIN like registration', async () => {
+  const f = await fed();
+  const res = await request(app).patch('/api/federation/me/location').set(as(f, 'Federation')).send({ city: 'P', pincode: '011004' });
+  expect(res.status).toBe(400);
+  expect(Object.keys(res.body.fields).sort()).toEqual(['city', 'pincode']);
+  expect(await Federation.findById(f._id)).toMatchObject({ city: 'Pune', pincode: '411001' });
+});
+
+test('only federation accounts can edit a federation location', async () => {
+  const user = await createUser();
+  const res = await request(app).patch('/api/federation/me/location').set(authHeader(user)).send({ city: 'Pune', pincode: '411001' });
+  expect(res.status).toBe(403);
+});
+
+test('register works without a number of workers', async () => {
+  const f = await fed({ status: 'unverified', city: '', pincode: '' });
+  const res = await request(app).post('/api/federation/register').set(as(f, 'Federation')).send({ name: 'Mine', city: 'Pune', pincode: '411001' });
+  expect(res.status).toBe(200);
+  expect(res.body.federation.noOfWorkers).toBe(0);
+});

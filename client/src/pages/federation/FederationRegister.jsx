@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import useFetchWithAuth from '../../hooks/useFetchWithAuth';
 import { useAuth } from '../../context/AuthContext';
+import CityPinFields from '../../components/CityPinFields';
 import { 
   Building2, 
   Users, 
@@ -45,8 +46,7 @@ export default function FederationRegister() {
   const [error, setError] = useState(null);
 
   const handleInputChange = (e) => {
-    const { name } = e.target;
-    const value = name === 'pincode' ? e.target.value.replace(/\D/g, '').slice(0, 6) : e.target.value;
+    const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -154,50 +154,11 @@ export default function FederationRegister() {
             </div>
           </div>
 
-          {/* Workers see federations with their PIN code, or in their city. */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
-                City *
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  name="city"
-                  required
-                  minLength={2}
-                  maxLength={60}
-                  value={formData.city}
-                  onChange={handleInputChange}
-                  placeholder="e.g. Pune"
-                  className="w-full pl-11 pr-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 text-sm"
-                />
-                <MapPin className="w-5 h-5 text-slate-500 absolute left-3.5 top-3.5" />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
-                PIN Code *
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  name="pincode"
-                  required
-                  inputMode="numeric"
-                  pattern="[1-9][0-9]{5}"
-                  maxLength={6}
-                  title="6-digit PIN code"
-                  value={formData.pincode}
-                  onChange={handleInputChange}
-                  placeholder="e.g. 411001"
-                  className="w-full pl-11 pr-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 text-sm"
-                />
-                <MapPin className="w-5 h-5 text-slate-500 absolute left-3.5 top-3.5" />
-              </div>
-            </div>
-          </div>
+          <CityPinFields
+            city={formData.city}
+            pincode={formData.pincode}
+            onChange={(loc) => setFormData((prev) => ({ ...prev, ...loc }))}
+          />
 
           <div>
             <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
@@ -238,14 +199,13 @@ export default function FederationRegister() {
 
             <div>
               <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
-                No. of Workers *
+                No. of Workers
               </label>
               <div className="relative">
                 <input
                   type="number"
                   name="noOfWorkers"
-                  required
-                  min="1"
+                  min="0"
                   value={formData.noOfWorkers}
                   onChange={handleInputChange}
                   placeholder="e.g. 100"

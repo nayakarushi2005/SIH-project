@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {
   registerFederation,
+  updateMyLocation,
   checkFederationByEmail,
   getAllFederations,
   getFederationById,
@@ -18,6 +19,9 @@ router.use(ensureAuth);
 
 // A federation fills in / updates its own details
 router.post('/register', requireRole('Federation'), registerFederation);
+
+// A federation moves its city / PIN without re-registering
+router.patch('/me/location', requireRole('Federation'), updateMyLocation);
 
 // Check if federation exists by email
 router.get('/check-email/:email', requireRole('Federation'), checkFederationByEmail);

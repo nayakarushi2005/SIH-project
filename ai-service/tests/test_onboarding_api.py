@@ -32,6 +32,19 @@ async def test_start_speaks_hindi_and_skips_name_for_verified(client, node_ok):
     assert body["filled"]["name"] == "Sita"
 
 
+async def test_start_uses_the_language_the_app_is_in(client, node_ok):
+    # Profile says Hindi, but the phone is in Tamil: speak what the phone speaks.
+    res = await client.post("/v1/onboarding/sessions", headers=H, json={"lang": "ta"})
+    body = res.json()
+    assert res.status_code == 201 and body["lang"] == "ta"
+    assert "வருமானம்" in body["speak"]
+
+
+async def test_start_ignores_an_unknown_language(client, node_ok):
+    res = await client.post("/v1/onboarding/sessions", headers=H, json={"lang": "xx"})
+    assert res.status_code == 201 and res.json()["lang"] == "hi"
+
+
 async def test_turns_progress_and_get_resumes(client, node_ok):
     sid = (await start(client))["sessionId"]
     res = await client.post(f"/v1/onboarding/sessions/{sid}/turns", headers=H, json={"transcript": "2 लाख साल"})

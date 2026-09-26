@@ -189,6 +189,47 @@ async def test_yes_with_a_field_at_confirm_means_change():
     assert s["step"] == "income" and s["done"] is False
 
 
+@pytest.mark.parametrize(
+    "lang,reply",
+    [
+        ("hi", "हाँ, नाम सही है"),
+        ("hi", "हाँ ठीक है काम सब सही है"),
+        ("en", "yes the name is correct"),
+        ("en", "yes, my work details are right"),
+        ("mr", "हो, नाव बरोबर आहे"),
+    ],
+)
+async def test_yes_that_mentions_a_field_without_a_change_is_still_yes(lang, reply):
+    c = Convo(lang=lang, feds=[])
+    await c.start()
+    await c.say("Ramesh Kumar")
+    await c.tap(yes=True)
+    await c.say("2 lakh saal")
+    await c.tap(categories=["cook"], confirm=True)
+    s = await c.say(reply)
+    assert s["step"] == "done" and s["done"] is True
+
+
+@pytest.mark.parametrize(
+    "lang,reply,step",
+    [
+        ("hi", "नाम गलत है", "name"),
+        ("en", "yes but change the income", "income"),
+        ("en", "the work is wrong", "categories"),
+        ("ta", "ஆம், வருமானம் மாற்ற வேண்டும்", "income"),
+    ],
+)
+async def test_naming_a_field_to_change_at_confirm_goes_to_it(lang, reply, step):
+    c = Convo(lang=lang, feds=[])
+    await c.start()
+    await c.say("Ramesh Kumar")
+    await c.tap(yes=True)
+    await c.say("2 lakh saal")
+    await c.tap(categories=["cook"], confirm=True)
+    s = await c.say(reply)
+    assert s["step"] == step and s["done"] is False
+
+
 async def test_no_union_declines_the_federation():
     c = Convo(verified=True, feds=[{"id": "f1", "name": "Pune Workers Union"}])
     await c.start()

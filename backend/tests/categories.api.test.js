@@ -58,3 +58,10 @@ test('sets a cache header', async () => {
   const res = await request(app).get('/api/categories');
   expect(res.headers['cache-control']).toBe('public, max-age=3600');
 });
+
+test('an empty catalogue is never cached, so clients pick up a later seed', async () => {
+  await Category.updateMany({}, { $set: { isActive: false } });
+  const res = await request(app).get('/api/categories');
+  expect(res.body.groups).toEqual([]);
+  expect(res.headers['cache-control']).toBe('no-store');
+});

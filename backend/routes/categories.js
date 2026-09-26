@@ -15,7 +15,9 @@ router.get('/', async (req, res) => {
       city: req.query.city,
       withSynonyms: req.query.withSynonyms === '1',
     });
-    res.set('Cache-Control', 'public, max-age=3600');
+    // An empty list means the catalogue isn't seeded yet; caching it would
+    // leave phones with no categories for an hour after it is.
+    res.set('Cache-Control', result.groups.length ? 'public, max-age=3600' : 'no-store');
     return res.status(200).json(result);
   } catch (err) {
     console.error('List categories error:', err.message);

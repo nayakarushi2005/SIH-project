@@ -78,3 +78,36 @@ test('PATCH /me accepts numeric strings for a location', async () => {
   expect(res.status).toBe(200);
   expect(res.body.location).toEqual({ lat: 18.52, lng: 73.85 });
 });
+
+test('PATCH /me lets an unverified user edit personal and contact details', async () => {
+  const user = await createUser();
+  const res = await request(app)
+    .patch('/api/auth/me')
+    .set(authHeader(user))
+    .send({ name: 'Sita Devi', dob: '01/02/1990', gender: 'F', address: '12 MG Road, Pune', phone: '9876543210' });
+  expect(res.status).toBe(200);
+  expect(res.body).toMatchObject({ name: 'Sita Devi', gender: 'F', phone: '9876543210', detailsSource: 'manual' });
+});
+
+test('PATCH /me locks the DigiLocker details once Aadhaar is verified', async () => {
+  const user = await createUser({ isAadhaarVerified: true, name: 'Sita Devi', dob: '01/02/1990' });
+  const res = await request(app)
+    .patch('/api/auth/me')
+    .set(authHeader(user))
+    .send({ name: 'Someone Else', dob: '05/05/1995', gender: 'M', address: '1 New Street, Delhi' });
+  expect(res.status).toBe(400);
+  expect(Object.keys(res.body.fields).sort()).toEqual(['address', 'dob', 'gender', 'name']);
+  const saved = await User.findById(user._id);
+  expect(saved.name).toBe('Sita Devi');
+  expect(saved.dob).toBe('01/02/1990');
+});
+
+test('PATCH /me still lets a verified user edit contact details', async () => {
+  const user = await createUser({ isAadhaarVerified: true, name: 'Sita Devi' });
+  const res = await request(app)
+    .patch('/api/auth/me')
+    .set(authHeader(user))
+    .send({ phone: '9876543210', city: 'Pune', pincode: '411001' });
+  expect(res.status).toBe(200);
+  expect(res.body).toMatchObject({ name: 'Sita Devi', phone: '9876543210', city: 'Pune', pincode: '411001' });
+});

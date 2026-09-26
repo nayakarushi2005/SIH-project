@@ -1,6 +1,7 @@
 import axios from 'axios';
 import Constants from 'expo-constants';
 
+import i18n from '../i18n';
 import { getToken } from './session';
 
 const AI_PORT = 8000;
@@ -33,7 +34,9 @@ ai.interceptors.request.use(async (config) => {
  * { speak, ui, step, done, handoff, filled, lang } (+ sessionId on start).
  */
 export async function startOnboarding() {
-  const res = await ai.post('/v1/onboarding/sessions');
+  // Speak the language the app is in (the phone's TTS reads it aloud in
+  // that language), not whatever the profile last saved.
+  const res = await ai.post('/v1/onboarding/sessions', { lang: i18n.language });
   return res.data;
 }
 
