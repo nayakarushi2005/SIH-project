@@ -93,16 +93,22 @@ const validators = {
   },
 };
 
+// A real number, or a numeric string — never '', null, true or [18],
+// which Number() would quietly turn into coordinates.
+function toCoordinate(v) {
+  if (typeof v === 'number') return v;
+  if (typeof v === 'string' && /^\s*-?\d+(\.\d+)?\s*$/.test(v)) return Number(v);
+  return NaN;
+}
+
 // { lat, lng } from the app → GeoJSON Point, or null to clear.
 function parseLocation(raw) {
   if (raw === null) return null;
-  const lat = Number(raw?.lat);
-  const lng = Number(raw?.lng);
+  const lat = toCoordinate(raw?.lat);
+  const lng = toCoordinate(raw?.lng);
   const ok =
     raw &&
     typeof raw === 'object' &&
-    raw.lat !== undefined &&
-    raw.lng !== undefined &&
     Number.isFinite(lat) &&
     Number.isFinite(lng) &&
     Math.abs(lat) <= 90 &&

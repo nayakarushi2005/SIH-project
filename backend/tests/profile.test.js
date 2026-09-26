@@ -56,3 +56,25 @@ test('PATCH /me with location null clears it', async () => {
   expect(res.status).toBe(200);
   expect(res.body.location).toBeNull();
 });
+
+test.each([
+  [{ lat: '', lng: '' }],
+  [{ lat: null, lng: null }],
+  [{ lat: true, lng: false }],
+  [{ lat: [18], lng: [73] }],
+])('PATCH /me rejects a location that only looks numeric %p', async (location) => {
+  const user = await createUser();
+  const res = await request(app).patch('/api/auth/me').set(authHeader(user)).send({ location });
+  expect(res.status).toBe(400);
+  expect(res.body.fields.location).toBeTruthy();
+});
+
+test('PATCH /me accepts numeric strings for a location', async () => {
+  const user = await createUser();
+  const res = await request(app)
+    .patch('/api/auth/me')
+    .set(authHeader(user))
+    .send({ location: { lat: '18.52', lng: '73.85' } });
+  expect(res.status).toBe(200);
+  expect(res.body.location).toEqual({ lat: 18.52, lng: 73.85 });
+});

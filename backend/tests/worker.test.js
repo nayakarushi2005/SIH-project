@@ -103,3 +103,18 @@ test('worker routes require a token', async () => {
   const res = await request(app).post('/api/worker/register').send(valid);
   expect(res.status).toBe(401);
 });
+
+test('deregistering also stops the register-as-worker prompt', async () => {
+  const user = await createUser();
+  await register(user, valid);
+  const res = await request(app).post('/api/worker/deregister').set(authHeader(user));
+  expect(res.body.workerPromptDismissed).toBe(true);
+});
+
+test('a database error during register is a 500, not a crash', async () => {
+  const spy = jest.spyOn(Category, 'countDocuments').mockRejectedValueOnce(new Error('db down'));
+  const user = await createUser();
+  const res = await register(user, valid);
+  expect(res.status).toBe(500);
+  spy.mockRestore();
+});
