@@ -30,7 +30,9 @@ test('an unverified user without a name gets a field error', async () => {
   const user = await createUser();
   const res = await register(user, { ...valid, name: '' });
   expect(res.status).toBe(400);
+  expect(res.body.code).toBe('validation');
   expect(res.body.fields.name).toBeTruthy();
+  expect(res.body.fieldCodes.name).toBe('worker_name_required');
   expect((await User.findById(user._id)).isWorker).toBe(false);
 });
 
@@ -43,16 +45,17 @@ test('a verified user keeps their Aadhaar name even if one is sent', async () =>
 });
 
 test.each([
-  ['unknown bracket', { incomeBracket: 'lots' }, 'incomeBracket'],
-  ['no categories', { categories: [] }, 'categories'],
-  ['too many categories', { categories: data.categories.slice(0, 11).map((c) => c.slug) }, 'categories'],
-  ['unknown category', { categories: ['astronaut'] }, 'categories'],
-  ['categories not an array', { categories: 'electrician' }, 'categories'],
-])('rejects %s', async (_, patch, field) => {
+  ['unknown bracket', { incomeBracket: 'lots' }, 'incomeBracket', 'worker_income_required'],
+  ['no categories', { categories: [] }, 'categories', 'worker_categories_required'],
+  ['too many categories', { categories: data.categories.slice(0, 11).map((c) => c.slug) }, 'categories', 'worker_categories_max'],
+  ['unknown category', { categories: ['astronaut'] }, 'categories', 'worker_categories_unavailable'],
+  ['categories not an array', { categories: 'electrician' }, 'categories', 'worker_categories_required'],
+])('rejects %s', async (_, patch, field, expectedCode) => {
   const user = await createUser();
   const res = await register(user, { ...valid, ...patch });
   expect(res.status).toBe(400);
   expect(res.body.fields[field]).toBeTruthy();
+  expect(res.body.fieldCodes[field]).toBe(expectedCode);
 });
 
 test('rejects a retired category', async () => {

@@ -34,3 +34,24 @@ feedback_not_completed — You can rate the worker once the job is completed.
 worker_busy — Finish your current job before accepting another.
 worker_not_registered — Not registered as a worker
 offer_closed — This offer is no longer open.
+worker_name_required — Enter your full name.
+worker_income_required — Choose your yearly income.
+worker_categories_required — Choose at least one kind of work.
+worker_categories_max — Choose up to {max} kinds of work. (params: max)
+worker_categories_unavailable — Some of the chosen work types are not available.
+profile_name_invalid — Enter your full name (letters only).
+profile_dob_invalid — Enter a valid date as DD/MM/YYYY.
+profile_gender_invalid — Choose a gender.
+profile_address_length — Enter your full address.
+profile_phone_invalid — Enter a valid 10-digit mobile number.
+profile_city_length — Enter your city.
+profile_pincode_invalid — Enter a valid 6-digit PIN code.
+profile_language_invalid — Choose a supported language.
+profile_location_invalid — Could not read your location. Please try again.
+profile_identity_locked — Verified from Aadhaar — this can’t be changed.
+feedback_rating_invalid — Choose a rating from 1 to 5 stars.
+feedback_praised_invalid — Choose what went well from the list.
+feedback_criticized_invalid — Choose what could be better from the list.
+feedback_traits_conflict — Something can’t be both good and bad — pick one.
+feedback_rehire_invalid — Answer yes or no.
+feedback_comment_length — Keep your comment under 500 characters.
