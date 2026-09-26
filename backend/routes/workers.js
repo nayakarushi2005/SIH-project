@@ -2,6 +2,7 @@ const express = require('express');
 const Job = require('../models/Job');
 const WorkerProfile = require('../models/WorkerProfile');
 const verifyToken = require('../middleware/verifyToken');
+const { splitFieldErrors } = require('../services/errors');
 const { workerInsights } = require('../services/graph');
 const { toGeoPoint, toOffer } = require('../services/job');
 const {
@@ -26,8 +27,14 @@ function requireAadhaar(req, res, next) {
 function readLocation(body, res) {
   try {
     return toGeoPoint(body?.location);
-  } catch (message) {
-    res.status(400).json({ error: message, fields: { location: message } });
+  } catch (thrown) {
+    const { fields, fieldCodes } = splitFieldErrors({ location: thrown });
+    res.status(400).json({
+      error: fields.location,
+      code: 'validation',
+      fields,
+      fieldCodes,
+    });
     return null;
   }
 }
