@@ -100,9 +100,12 @@ export default function useFetchWithAuth() {
         logout();
       }
 
-      // ── 403 — refresh token also gone ───────────────────────────
+      // ── 403 — only a dead session logs out ──────────────────────
+      // Other 403s (e.g. "federation not verified yet", wrong role) are
+      // normal answers the page shows; ensureAuth marks session ones.
       if (response.status === 403) {
-        logout();
+        const body = await response.clone().json().catch(() => ({}));
+        if (body.code === 'session_expired') logout();
       }
 
       return response;
