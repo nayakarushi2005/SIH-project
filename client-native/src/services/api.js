@@ -3,7 +3,7 @@ import Constants from 'expo-constants';
 
 import { getToken } from './session';
 
-const API_PORT = 5000;
+const API_PORT = 3000;
 
 // EXPO_PUBLIC_API_BASE_URL wins when set (staging/production). In development
 // we otherwise reuse the IP the phone already reaches Metro on, so the API URL

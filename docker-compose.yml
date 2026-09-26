@@ -16,13 +16,13 @@ services:
     container_name: sih-backend
     restart: unless-stopped
     ports:
-      - "${BACKEND_PORT:-5000}:5000"
+      - "${BACKEND_PORT:-3000}:3000"
     env_file:
       - ./backend/.env
     environment:
       - NODE_ENV=production
     healthcheck:
-      test: ["CMD", "node", "-e", "const http = require('http'); http.get('http://localhost:5000/api/health', (r) => { process.exit(r.statusCode === 200 ? 0 : 1); }).on('error', () => process.exit(1));"]
+      test: ["CMD", "node", "-e", "const http = require('http'); http.get('http://localhost:3000/api/health', (r) => { process.exit(r.statusCode === 200 ? 0 : 1); }).on('error', () => process.exit(1));"]
       interval: 30s
       timeout: 5s
       retries: 3
