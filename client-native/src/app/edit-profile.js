@@ -11,18 +11,20 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import Button from '../components/Button';
 import OptionGroup from '../components/OptionGroup';
 import ScreenHeader from '../components/ScreenHeader';
 import TextField from '../components/TextField';
 import { colors, radius, spacing, typography } from '../constants/theme';
+import { useUser } from '../context/UserContext';
 import { getErrorMessage, getFieldErrors, updateMe } from '../services/api';
 import { getUser, saveUser } from '../services/session';
-import { formatDOB, GENDERS, genderLabel, LANGUAGES, maskDOB } from '../utils/profile';
+import { formatDOB, genderLabel, genderOptions, maskDOB } from '../utils/profile';
 
 const IDENTITY_FIELDS = ['name', 'dob', 'gender', 'address'];
-const CONTACT_FIELDS = ['phone', 'city', 'pincode', 'preferredLanguage'];
+const CONTACT_FIELDS = ['phone', 'city', 'pincode'];
 
 function toForm(user) {
   return {
@@ -33,21 +35,23 @@ function toForm(user) {
     phone: user?.phone ?? '',
     city: user?.city ?? '',
     pincode: user?.pincode ?? '',
-    preferredLanguage: user?.preferredLanguage ?? 'en',
   };
 }
 
 function ReadOnlyRow({ label, value, last }) {
+  const { t } = useTranslation();
   return (
     <View style={[styles.readOnlyRow, last && styles.readOnlyRowLast]}>
       <Text style={styles.readOnlyLabel}>{label}</Text>
-      <Text style={styles.readOnlyValue}>{value || 'Not available'}</Text>
+      <Text style={styles.readOnlyValue}>{value || t('common.notAvailable')}</Text>
     </View>
   );
 }
 
 export default function EditProfile() {
   const router = useRouter();
+  const { t } = useTranslation();
+  const { setUser: setSharedUser } = useUser();
   const [user, setUser] = useState(null);
   const [form, setForm] = useState(toForm(null));
   const [errors, setErrors] = useState({});
@@ -85,23 +89,24 @@ export default function EditProfile() {
     try {
       const updated = await updateMe(changes);
       await saveUser(updated);
+      setSharedUser(updated);
       router.back();
     } catch (err) {
       const fieldErrors = getFieldErrors(err);
       if (Object.keys(fieldErrors).length > 0) {
         setErrors(fieldErrors);
       } else {
-        Alert.alert('Could not save', getErrorMessage(err));
+        Alert.alert(t('editProfile.saveFailed'), getErrorMessage(err));
       }
     } finally {
       setSaving(false);
     }
-  }, [form, router, user, verified]);
+  }, [form, router, setSharedUser, t, user, verified]);
 
   if (!user) {
     return (
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-        <ScreenHeader title="Edit profile" fallbackHref="/profile" />
+        <ScreenHeader title={t('editProfile.title')} fallbackHref="/profile" />
         <View style={styles.centered}>
           <ActivityIndicator color={colors.primary} />
         </View>
@@ -112,7 +117,7 @@ export default function EditProfile() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <StatusBar style="dark" />
-      <ScreenHeader title="Edit profile" fallbackHref="/profile" />
+      <ScreenHeader title={t('editProfile.title')} fallbackHref="/profile" />
 
       <KeyboardAvoidingView style={styles.flex} behavior="padding">
         <ScrollView
@@ -120,29 +125,28 @@ export default function EditProfile() {
           keyboardShouldPersistTaps="handled"
         >
           {/* ── Personal details ───────────────────────────────────── */}
-          <Text style={styles.sectionTitle}>Personal details</Text>
+          <Text style={styles.sectionTitle}>{t('profile.personal')}</Text>
 
           {verified ? (
             <>
               <Text style={styles.note}>
-                These details are verified from your Aadhaar and can’t be edited.
+                {t('editProfile.verifiedNote')}
               </Text>
               <View style={styles.readOnly}>
-                <ReadOnlyRow label="Full name" value={user.name} />
-                <ReadOnlyRow label="Date of birth" value={formatDOB(user.dob)} />
-                <ReadOnlyRow label="Gender" value={genderLabel(user.gender)} />
-                <ReadOnlyRow label="Address" value={user.address} last />
+                <ReadOnlyRow label={t('profile.fullName')} value={user.name} />
+                <ReadOnlyRow label={t('profile.dob')} value={formatDOB(user.dob)} />
+                <ReadOnlyRow label={t('profile.gender')} value={genderLabel(user.gender)} />
+                <ReadOnlyRow label={t('profile.address')} value={user.address} last />
               </View>
             </>
           ) : (
             <>
               <Text style={styles.note}>
-                These details are self-declared until you verify with DigiLocker, which will
-                replace them with your Aadhaar details.
+                {t('editProfile.selfNote')}
               </Text>
               <TextField
-                label="Full name"
-                placeholder="As on your government ID"
+                label={t('profile.fullName')}
+                placeholder={t('editProfile.namePlaceholder')}
                 value={form.name}
                 onChangeText={(v) => setField('name', v)}
                 error={errors.name}
@@ -151,8 +155,8 @@ export default function EditProfile() {
                 textContentType="name"
               />
               <TextField
-                label="Date of birth"
-                placeholder="DD/MM/YYYY"
+                label={t('profile.dob')}
+                placeholder={t('editProfile.dobPlaceholder')}
                 value={form.dob}
                 onChangeText={(v) => setField('dob', maskDOB(v))}
                 error={errors.dob}
@@ -160,15 +164,15 @@ export default function EditProfile() {
                 maxLength={10}
               />
               <OptionGroup
-                label="Gender"
-                options={GENDERS}
+                label={t('profile.gender')}
+                options={genderOptions()}
                 value={form.gender}
                 onChange={(v) => setField('gender', v)}
                 error={errors.gender}
               />
               <TextField
-                label="Address"
-                placeholder="House no., street, area"
+                label={t('profile.address')}
+                placeholder={t('editProfile.addressPlaceholder')}
                 value={form.address}
                 onChangeText={(v) => setField('address', v)}
                 error={errors.address}
@@ -179,15 +183,15 @@ export default function EditProfile() {
           )}
 
           {/* ── Contact ────────────────────────────────────────────── */}
-          <Text style={[styles.sectionTitle, styles.sectionSpacing]}>Contact</Text>
+          <Text style={[styles.sectionTitle, styles.sectionSpacing]}>{t('profile.contact')}</Text>
           <TextField
-            label="Mobile number"
+            label={t('profile.mobile')}
             prefix="+91"
-            placeholder="10-digit number"
+            placeholder={t('editProfile.mobilePlaceholder')}
             value={form.phone}
             onChangeText={(v) => setField('phone', v.replace(/\D/g, '').slice(0, 10))}
             error={errors.phone}
-            hint="Workers use this to reach you about a job."
+            hint={t('editProfile.mobileHint')}
             keyboardType="phone-pad"
             autoComplete="tel"
             textContentType="telephoneNumber"
@@ -195,8 +199,8 @@ export default function EditProfile() {
           />
           <View style={styles.inline}>
             <TextField
-              label="City"
-              placeholder="e.g. Jaipur"
+              label={t('profile.city')}
+              placeholder={t('editProfile.cityPlaceholder')}
               value={form.city}
               onChangeText={(v) => setField('city', v)}
               error={errors.city}
@@ -204,7 +208,7 @@ export default function EditProfile() {
               style={styles.inlineWide}
             />
             <TextField
-              label="PIN code"
+              label={t('profile.pincode')}
               placeholder="302001"
               value={form.pincode}
               onChangeText={(v) => setField('pincode', v.replace(/\D/g, '').slice(0, 6))}
@@ -215,20 +219,10 @@ export default function EditProfile() {
               style={styles.inlineNarrow}
             />
           </View>
-
-          {/* ── Preferences ────────────────────────────────────────── */}
-          <Text style={[styles.sectionTitle, styles.sectionSpacing]}>Preferences</Text>
-          <OptionGroup
-            label="App language"
-            options={LANGUAGES}
-            value={form.preferredLanguage}
-            onChange={(v) => setField('preferredLanguage', v)}
-            error={errors.preferredLanguage}
-          />
         </ScrollView>
 
         <View style={styles.footer}>
-          <Button label="Save changes" onPress={handleSave} loading={saving} />
+          <Button label={t('common.saveChanges')} onPress={handleSave} loading={saving} />
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>

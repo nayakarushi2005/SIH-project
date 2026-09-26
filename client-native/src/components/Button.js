@@ -3,7 +3,8 @@ import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
 import { colors, radius, spacing, typography } from '../constants/theme';
 
 /**
- * variant: 'primary' (filled), 'secondary' (outlined) or 'text' (link-style).
+ * variant: 'primary' (filled), 'secondary' (outlined), 'danger' (red outline,
+ * for destructive actions) or 'text' (link-style).
  */
 export default function Button({ label, onPress, variant = 'primary', loading = false, disabled = false, style }) {
   const isDisabled = disabled || loading;
@@ -23,13 +24,15 @@ export default function Button({ label, onPress, variant = 'primary', loading = 
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'primary' ? colors.textOnPrimary : colors.primary} />
+        <ActivityIndicator color={SPINNER[variant] ?? colors.primary} />
       ) : (
         <Text style={[styles.label, styles[`${variant}Label`]]}>{label}</Text>
       )}
     </Pressable>
   );
 }
+
+const SPINNER = { primary: colors.textOnPrimary, danger: colors.danger };
 
 const styles = StyleSheet.create({
   base: {
@@ -45,6 +48,11 @@ const styles = StyleSheet.create({
   secondary: {
     borderWidth: 1.5,
     borderColor: colors.border,
+    backgroundColor: colors.background,
+  },
+  danger: {
+    borderWidth: 1.5,
+    borderColor: colors.danger,
     backgroundColor: colors.background,
   },
   text: {
@@ -66,6 +74,9 @@ const styles = StyleSheet.create({
   },
   secondaryLabel: {
     color: colors.text,
+  },
+  dangerLabel: {
+    color: colors.danger,
   },
   textLabel: {
     color: colors.primary,

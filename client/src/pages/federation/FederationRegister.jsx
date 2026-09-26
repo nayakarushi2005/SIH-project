@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import useFetchWithAuth from '../../hooks/useFetchWithAuth';
 import { useAuth } from '../../context/AuthContext';
+import CityPinFields from '../../components/CityPinFields';
 import { 
   Building2, 
   Users, 
@@ -25,6 +26,8 @@ export default function FederationRegister() {
     name: user?.name || location.state?.user?.name || '',
     email: user?.email || location.state?.user?.email || '',
     area: '',
+    city: '',
+    pincode: '',
     amount: '',
     noOfWorkers: '',
   });
@@ -61,13 +64,15 @@ export default function FederationRegister() {
           amount: Number(formData.amount) || 0,
           noOfWorkers: Number(formData.noOfWorkers) || 0,
           area: formData.area,
+          city: formData.city.trim(),
+          pincode: formData.pincode,
         })
       });
       
       const data = await res.json();
       
       if (!res.ok) {
-        throw new Error(data.message || 'Failed to submit registration');
+        throw new Error(data.fields?.pincode || data.fields?.city || data.message || 'Failed to submit registration');
       }
 
       // Save details in DB -> Directly redirect to Federation Status page
@@ -149,6 +154,12 @@ export default function FederationRegister() {
             </div>
           </div>
 
+          <CityPinFields
+            city={formData.city}
+            pincode={formData.pincode}
+            onChange={(loc) => setFormData((prev) => ({ ...prev, ...loc }))}
+          />
+
           <div>
             <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
               Official Email *
@@ -188,14 +199,13 @@ export default function FederationRegister() {
 
             <div>
               <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
-                No. of Workers *
+                No. of Workers
               </label>
               <div className="relative">
                 <input
                   type="number"
                   name="noOfWorkers"
-                  required
-                  min="1"
+                  min="0"
                   value={formData.noOfWorkers}
                   onChange={handleInputChange}
                   placeholder="e.g. 100"

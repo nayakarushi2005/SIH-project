@@ -27,6 +27,20 @@ function toProfile(user) {
     detailsSource: user.detailsSource,
     isAadhaarVerified: user.isAadhaarVerified,
     aadhaarVerifiedAt: user.aadhaarVerifiedAt,
+    isWorker: user.isWorker,
+    workerPromptDismissed: user.workerPromptDismissed,
+    worker: {
+      incomeBracket: user.worker?.incomeBracket ?? null,
+      categories: user.worker?.categories ?? [],
+      registeredAt: user.worker?.registeredAt ?? null,
+      deregisteredAt: user.worker?.deregisteredAt ?? null,
+      onboardedVia: user.worker?.onboardedVia ?? null,
+    },
+    location:
+      user.location?.coordinates?.length === 2
+        ? { lat: user.location.coordinates[1], lng: user.location.coordinates[0] }
+        : null,
+    locationUpdatedAt: user.locationUpdatedAt,
     createdAt: user.createdAt,
   };
 }
@@ -79,6 +93,35 @@ const validators = {
   },
 };
 
+// A real number, or a numeric string — never '', null, true or [18],
+// which Number() would quietly turn into coordinates.
+function toCoordinate(v) {
+  if (typeof v === 'number') return v;
+  if (typeof v === 'string' && /^\s*-?\d+(\.\d+)?\s*$/.test(v)) return Number(v);
+  return NaN;
+}
+
+// { lat, lng } from the app → GeoJSON Point, or null to clear.
+function parseLocation(raw) {
+  if (raw === null) return null;
+  const lat = toCoordinate(raw?.lat);
+  const lng = toCoordinate(raw?.lng);
+  const ok =
+    raw &&
+    typeof raw === 'object' &&
+    Number.isFinite(lat) &&
+    Number.isFinite(lng) &&
+    Math.abs(lat) <= 90 &&
+    Math.abs(lng) <= 180;
+  if (!ok) throw 'Could not read your location. Please try again.';
+  return { type: 'Point', coordinates: [lng, lat] };
+}
+
+/** Normalised name, or throws a message for the user. */
+function validateName(v) {
+  return validators.name(String(v).trim());
+}
+
 /**
  * Validates a PATCH body against the user's current state.
  * Returns { updates, errors } — errors is keyed by field name.
@@ -91,6 +134,15 @@ function validateProfileUpdate(user, body) {
 
   const updates = {};
   const errors = {};
+
+  if (body && 'location' in body) {
+    try {
+      updates.location = parseLocation(body.location);
+      updates.locationUpdatedAt = updates.location ? new Date() : null;
+    } catch (message) {
+      errors.location = message;
+    }
+  }
 
   for (const [field, raw] of Object.entries(body || {})) {
     if (!validators[field]) continue; // ignore unknown keys
@@ -116,5 +168,6 @@ module.exports = {
   IDENTITY_FIELDS,
   LANGUAGES,
   toProfile,
+  validateName,
   validateProfileUpdate,
 };
