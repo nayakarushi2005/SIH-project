@@ -181,5 +181,30 @@
     "servicesOff": "Turn on location (GPS) on your phone, or type your city and PIN code.",
     "unavailable": "We couldn't find your location. Please type your city and PIN code.",
     "saveFailed": "Could not save your location."
+  },
+  "onboarding": {
+    "title": "Register as a worker",
+    "intro": "Tell us a little about your work. You can change it any time.",
+    "voiceTitle": "Talk to the assistant",
+    "voiceBody": "Answer a few questions by speaking.",
+    "comingSoon": "Coming soon",
+    "formTitle": "Fill the form",
+    "formBody": "Choose your answers on screen.",
+    "nameLabel": "Your name",
+    "nameFromAadhaar": "From Aadhaar",
+    "incomeLabel": "Yearly income",
+    "categoriesLabel": "What work do you do?",
+    "categoriesHint": "Choose up to {{max}}.",
+    "selectedCount": "{{count}} selected",
+    "submit": "Register",
+    "done": "You're registered as a worker!",
+    "failed": "Could not register you. Please try again."
+  },
+  "income": {
+    "lt_1l": "Under ₹1 lakh",
+    "1l_2_5l": "₹1 – 2.5 lakh",
+    "2_5l_5l": "₹2.5 – 5 lakh",
+    "5l_10l": "₹5 – 10 lakh",
+    "gt_10l": "Over ₹10 lakh"
   }
 }
