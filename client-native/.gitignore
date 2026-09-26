@@ -3,8 +3,6 @@
 # dependencies
 node_modules/
 
-.env
-
 # Expo
 .expo/
 dist/
@@ -41,24 +39,8 @@ backend/.env
 *.tsbuildinfo
 
 # generated native folders
-ios
-android
+/ios
+/android
 
 # AI tool settings (local only)
 .claude/
-CLAUDE.md
-AGENTS.md
-.cursor/
-.cursorrules
-.windsurf/
-.gemini/
-GEMINI.md
-.aider*
-.continue/
-.idx/
-.github/copilot-instructions.md
-.clinerules
-.roo/
-.codeium/
-.kiro/
-.junie/

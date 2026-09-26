@@ -1,5 +1,6 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Image,
   Pressable,
   StyleSheet,
@@ -9,9 +10,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { useRouter } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
 
 import { colors, radius, spacing, typography } from '../constants/theme';
+import { getToken } from '../services/session';
 
 const subjectImage = require('../../assets/images/subject.webp');
 // Derived from the bundled file so swapping the image never distorts it.
@@ -28,6 +30,27 @@ const MAX_FONT_SCALE = 1.4;
 
 export default function Landing() {
   const { width } = useWindowDimensions();
+  // null while we check SecureStore, then the route to send the user to
+  // (or false to show the landing screen).
+  const [sessionRoute, setSessionRoute] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      let route = false;
+      try {
+        // Signed-in users go straight home; unverified ones are nudged to
+        // verify from their profile rather than blocked at launch.
+        if (await getToken()) route = '/home';
+      } catch {
+        // Unreadable storage — fall through to the landing screen.
+      }
+      if (!cancelled) setSessionRoute(route);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Scale the decorative word with screen width so it fits on small phones
   // and doesn't look tiny on tablets.
@@ -36,10 +59,20 @@ export default function Landing() {
   const router = useRouter();
 
   const handleGetStarted = useCallback(() => {
-    // replace (not push) so the back button/gesture on Home exits the app
+    // replace (not push) so the back button/gesture on Auth exits the app
     // instead of returning to the landing screen.
-    router.replace('/home');
+    router.replace('/auth');
   }, [router]);
+
+  if (sessionRoute) return <Redirect href={sessionRoute} />;
+
+  if (sessionRoute === null) {
+    return (
+      <View style={styles.checking}>
+        <ActivityIndicator color={colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -101,6 +134,12 @@ export default function Landing() {
 }
 
 const styles = StyleSheet.create({
+  checking: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.background,
+  },
   container: {
     flex: 1,
     backgroundColor: colors.background,
