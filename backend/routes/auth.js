@@ -137,7 +137,8 @@ router.get('/me', verifyToken, async (req, res) => {
 // Updates the user's own profile. Contact fields are always editable;
 // name/dob/gender/address only until Aadhaar verification locks them.
 // Body: any of { name, dob, gender, address, phone, city, pincode,
-//               preferredLanguage } — empty string clears a field.
+//               preferredLanguage, location: { lat, lng } | null }
+//       — empty string (or null location) clears a field.
 // 400 → { error, fields: { [field]: message } }
 // ────────────────────────────────────────────────────────────────────────────
 router.patch('/me', verifyToken, async (req, res) => {
@@ -150,6 +151,7 @@ router.patch('/me', verifyToken, async (req, res) => {
 
   try {
     Object.assign(user, updates);
+    if (updates.location === null) user.location = undefined;
     if (IDENTITY_FIELDS.some((f) => f in updates)) {
       user.detailsSource = 'manual';
     }
