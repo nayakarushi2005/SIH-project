@@ -2,7 +2,7 @@
 
 from typing import TypedDict
 
-from app.agents.onboarding.lexicon import LANGS
+from app.agents.common.state import pick_lang  # noqa: F401
 
 MAX_CATEGORIES = 10
 BUTTONS_AFTER = 3  # failed tries on a step before tap choices are offered
@@ -39,11 +39,6 @@ class OnboardingState(TypedDict, total=False):
     ui: dict | None
     done: bool
     handoff: bool
-
-
-def pick_lang(*candidates: str | None) -> str:
-    """The first supported language code among `candidates`, else English."""
-    return next((c for c in candidates if c in LANGS), "en")
 
 
 def initial_state(
