@@ -7,6 +7,9 @@ const KEYS = {
   pendingDigilocker: 'pendingDigilocker',
 };
 
+// Outside KEYS on purpose: the app language should survive sign-out.
+const LANGUAGE_KEY = 'appLanguage';
+
 async function readJSON(key) {
   const raw = await SecureStore.getItemAsync(key);
   if (!raw) return null;
@@ -21,6 +24,14 @@ async function readJSON(key) {
 
 export function getToken() {
   return SecureStore.getItemAsync(KEYS.token);
+}
+
+export function getLanguage() {
+  return SecureStore.getItemAsync(LANGUAGE_KEY);
+}
+
+export function saveLanguage(code) {
+  return SecureStore.setItemAsync(LANGUAGE_KEY, code);
 }
 
 export function getUser() {

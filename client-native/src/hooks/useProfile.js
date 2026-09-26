@@ -1,50 +1,20 @@
-import { useCallback, useState } from 'react';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback } from 'react';
+import { useFocusEffect } from 'expo-router';
 
-import { getErrorMessage, getMe, isUnauthorized } from '../services/api';
-import { clearSession, getUser, saveUser } from '../services/session';
+import { useUser } from '../context/UserContext';
 
 /**
- * The signed-in user's profile: shows the cached copy instantly, then
- * refreshes from the server every time the screen gains focus. An expired
- * session sends the user back to sign-in.
+ * The signed-in user's profile, refreshed every time the screen gains focus.
+ * State lives in UserProvider so all screens stay in sync.
  */
 export default function useProfile() {
-  const router = useRouter();
-  const [user, setUser] = useState(null);
-  const [error, setError] = useState(null);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const load = useCallback(async () => {
-    try {
-      const cached = await getUser();
-      if (cached) setUser((current) => current ?? cached);
-
-      const fresh = await getMe();
-      setUser(fresh);
-      setError(null);
-      await saveUser(fresh);
-    } catch (err) {
-      if (isUnauthorized(err)) {
-        await clearSession();
-        router.replace('/auth');
-        return;
-      }
-      setError(getErrorMessage(err));
-    }
-  }, [router]);
+  const { user, setUser, error, refreshing, reload, refresh } = useUser();
 
   useFocusEffect(
     useCallback(() => {
-      load();
-    }, [load])
+      reload();
+    }, [reload])
   );
 
-  const refresh = useCallback(async () => {
-    setRefreshing(true);
-    await load();
-    setRefreshing(false);
-  }, [load]);
-
-  return { user, error, refreshing, refresh, reload: load };
+  return { user, setUser, error, refreshing, refresh, reload };
 }
