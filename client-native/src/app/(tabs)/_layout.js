@@ -111,14 +111,10 @@ export default function TabsLayout() {
         }}
       >
         <Tabs.Screen name="home" options={{ title: t('tabs.home'), tabBarIcon: tabIcon('home') }} />
-        {/* Workers get jobs, not bookings — hide the tab for them. */}
+        {/* Everyone can book — workers too; their own jobs live in Worker mode. */}
         <Tabs.Screen
           name="bookings"
-          options={{
-            title: t('tabs.bookings'),
-            tabBarIcon: tabIcon('calendar'),
-            href: user?.isWorker ? null : undefined,
-          }}
+          options={{ title: t('tabs.bookings'), tabBarIcon: tabIcon('calendar') }}
         />
         <Tabs.Screen
           name="messages"
