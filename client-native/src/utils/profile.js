@@ -1,11 +1,13 @@
 // Display helpers and option lists for the user profile. Keep the value lists
 // in sync with backend/services/profile.js.
+import i18n from '../i18n';
+import { localeTag } from '../i18n/language';
 
-export const GENDERS = [
-  { value: 'M', label: 'Male' },
-  { value: 'F', label: 'Female' },
-  { value: 'T', label: 'Transgender' },
-];
+export const GENDER_VALUES = ['M', 'F', 'T'];
+
+export function genderOptions() {
+  return GENDER_VALUES.map((value) => ({ value, label: i18n.t(`gender.${value}`) }));
+}
 
 export const LANGUAGES = [
   { value: 'en', label: 'English' },
@@ -19,23 +21,20 @@ export const LANGUAGES = [
 // What we need before a user can post a job.
 export const REQUIRED_FIELDS = ['name', 'phone', 'address', 'city', 'pincode'];
 
-const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-
-// Format DOB nicely if it's DD/MM/YYYY (or DD-MM-YYYY); otherwise show as-is.
+// Format DOB in the app language if it's DD/MM/YYYY (or DD-MM-YYYY);
+// otherwise show as-is.
 export function formatDOB(dob) {
   if (!dob) return null;
-  const parts = String(dob).split(/[/-]/);
-  if (parts.length === 3) {
-    const day = parseInt(parts[0], 10);
-    const month = MONTHS[parseInt(parts[1], 10) - 1];
-    if (day && month) return `${day} ${month} ${parts[2]}`;
-  }
-  return String(dob);
+  const [d, m, y] = String(dob).split(/[/-]/).map((n) => parseInt(n, 10));
+  const date = new Date(y, m - 1, d);
+  if (!d || !m || !y || date.getMonth() !== m - 1) return String(dob);
+  return date.toLocaleDateString(localeTag(), { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 export function genderLabel(g) {
   if (!g) return null;
-  return GENDERS.find((o) => o.value === g.toUpperCase())?.label || g;
+  const key = g.toUpperCase();
+  return GENDER_VALUES.includes(key) ? i18n.t(`gender.${key}`) : g;
 }
 
 export function languageLabel(code) {
