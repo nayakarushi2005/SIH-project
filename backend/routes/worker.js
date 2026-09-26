@@ -19,11 +19,11 @@ router.use(verifyToken);
 // ────────────────────────────────────────────────────────────────────────────
 router.post('/register', async (req, res) => {
   const user = req.user;
-  const { updates, errors } = await validateRegistration(user, req.body);
-  if (Object.keys(errors).length > 0) {
-    return res.status(400).json({ error: 'Please fix the highlighted fields.', fields: errors });
-  }
   try {
+    const { updates, errors } = await validateRegistration(user, req.body);
+    if (Object.keys(errors).length > 0) {
+      return res.status(400).json({ error: 'Please fix the highlighted fields.', fields: errors });
+    }
     if (updates.name) {
       user.name = updates.name;
       user.detailsSource = 'manual';
@@ -48,6 +48,9 @@ router.post('/deregister', async (req, res) => {
   try {
     await leaveMembership(req.user, { quiet: true });
     req.user.isWorker = false;
+    // They chose to stop — don't ask "Looking for work?" again. They can
+    // still register from Profile.
+    req.user.workerPromptDismissed = true;
     req.user.worker.deregisteredAt = new Date();
     await req.user.save();
     return res.status(200).json(await buildProfile(req.user));
