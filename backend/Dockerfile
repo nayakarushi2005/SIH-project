@@ -28,6 +28,7 @@ COPY --from=builder /app/node_modules ./node_modules
 # Copy application source
 COPY package.json ./
 COPY server.js ./
+COPY dispatcher.js ./
 COPY routes/ ./routes/
 COPY models/ ./models/
 COPY middleware/ ./middleware/

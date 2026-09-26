@@ -1,5 +1,6 @@
 import axios from 'axios';
 import Constants from 'expo-constants';
+import { File } from 'expo-file-system';
 
 import { getToken } from './session';
 
@@ -101,9 +102,158 @@ export async function updateMe(fields) {
   return res.data;
 }
 
-/** Per-field validation messages from a failed updateMe, or {}. */
+/** Per-field validation messages from a failed updateMe or createJob, or {}. */
 export function getFieldErrors(err) {
   return err?.response?.data?.fields || {};
+}
+
+// ── Job API calls ────────────────────────────────────────────────────────────
+
+/**
+ * Uploads one picked image straight to Cloudinary using a signature from the
+ * backend, and returns its secure URL for createJob.
+ * photo: { uri } — an ImagePicker asset.
+ */
+export async function uploadJobPhoto({ uri }) {
+  const { data: sig } = await api.post('/uploads/job-photo/sign');
+
+  const form = new FormData();
+  // Expo's fetch can't send React Native's { uri, name, type } file parts;
+  // an expo-file-system File is a Blob it can read the bytes from.
+  form.append('file', new File(uri));
+  form.append('api_key', sig.apiKey);
+  form.append('timestamp', String(sig.timestamp));
+  form.append('folder', sig.folder);
+  form.append('signature', sig.signature);
+
+  const res = await fetch(sig.uploadUrl, { method: 'POST', body: form });
+  const body = await res.json().catch(() => null);
+  if (!res.ok || !body?.secure_url) {
+    throw new Error(body?.error?.message || 'Photo upload failed.');
+  }
+  return body.secure_url;
+}
+
+/**
+ * Posts a job. Body: { category, description, photos: [url], price,
+ * expectedDurationMins, location: { lat, lng }, address? }
+ * On a 400 the backend sends { error, fields } — see getFieldErrors.
+ */
+export async function createJob(job) {
+  const res = await api.post('/jobs', job);
+  return res.data;
+}
+
+/** The current user's posted jobs, newest first. */
+export async function listJobs() {
+  const res = await api.get('/jobs');
+  return res.data;
+}
+
+/**
+ * Rates the worker who completed a job (once per job).
+ * Body: { rating: 1-5, praised?: [traitId], criticized?: [traitId],
+ *         rehire?: boolean, block?: boolean, comment? }
+ * On a 400 the backend sends { error, fields } — see getFieldErrors.
+ */
+export async function submitFeedback(jobId, feedback) {
+  const res = await api.post(`/jobs/${jobId}/feedback`, feedback);
+  return res.data;
+}
+
+/** A job the current user posted or is assigned to as the worker. */
+export async function getJob(jobId) {
+  const res = await api.get(`/jobs/${jobId}`);
+  return res.data;
+}
+
+// ── Worker API calls ─────────────────────────────────────────────────────────
+
+/** The current user's worker profile, or null if they haven't registered. */
+export async function getWorkerProfile() {
+  try {
+    const res = await api.get('/workers/me');
+    return res.data;
+  } catch (err) {
+    if (err?.response?.status === 404) return null;
+    throw err;
+  }
+}
+
+/**
+ * Registers as a worker or updates the worker profile.
+ * Body: { skills: [serviceId], bio?, experienceYears?, serviceRadiusKm? }
+ * 403 with code AADHAAR_REQUIRED → the user must verify first.
+ */
+export async function saveWorkerProfile(fields) {
+  const res = await api.put('/workers/me', fields);
+  return res.data;
+}
+
+/** True when the backend refused because the user isn't Aadhaar-verified. */
+export function isAadhaarRequired(err) {
+  return err?.response?.data?.code === 'AADHAAR_REQUIRED';
+}
+
+export async function goOnline(location) {
+  const res = await api.post('/workers/me/online', { location });
+  return res.data;
+}
+
+export async function goOffline() {
+  const res = await api.post('/workers/me/offline');
+  return res.data;
+}
+
+/** Location heartbeat while online. Returns false if the server says we're offline. */
+export async function sendWorkerLocation(location) {
+  try {
+    await api.post('/workers/me/location', { location });
+    return true;
+  } catch (err) {
+    if (err?.response?.status === 409) return false;
+    throw err;
+  }
+}
+
+/**
+ * What clients' feedback says about this worker: { rating, completedJobs,
+ * strengths, improve, skills } — see GET /api/workers/me/insights.
+ */
+export async function getWorkerInsights() {
+  const res = await api.get('/workers/me/insights');
+  return res.data;
+}
+
+/** Job offers waiting for this worker's answer. */
+export async function getOffers() {
+  const res = await api.get('/workers/me/offers');
+  return res.data;
+}
+
+export async function acceptJob(jobId) {
+  const res = await api.post(`/jobs/${jobId}/accept`);
+  return res.data;
+}
+
+export async function rejectJob(jobId) {
+  await api.post(`/jobs/${jobId}/reject`);
+}
+
+/** Starts an assigned job with the client's 4-digit code. */
+export async function startJob(jobId, code) {
+  const res = await api.post(`/jobs/${jobId}/start`, { code });
+  return res.data;
+}
+
+export async function completeJob(jobId) {
+  const res = await api.post(`/jobs/${jobId}/complete`);
+  return res.data;
+}
+
+/** Backs out of an assigned job before starting; it goes to another worker. */
+export async function withdrawJob(jobId) {
+  await api.post(`/jobs/${jobId}/withdraw`);
 }
 
 export default api;
