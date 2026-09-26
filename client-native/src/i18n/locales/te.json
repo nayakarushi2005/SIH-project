@@ -1,167 +1,158 @@
 {
   "common": {
-    "tryAgain": "Try again",
-    "cancel": "Cancel",
-    "saveChanges": "Save changes",
-    "notAdded": "Not added",
-    "notAvailable": "Not available",
-    "goBack": "Go back",
-    "error": "Error"
+    "tryAgain": "మళ్లీ ప్రయత్నించండి",
+    "cancel": "రద్దు చేయి",
+    "saveChanges": "మార్పులను సేవ్ చేయండి",
+    "notAdded": "జోడించలేదు",
+    "notAvailable": "అందుబాటులో లేదు",
+    "goBack": "వెనక్కి వెళ్ళు",
+    "error": "లోపం"
   },
   "errors": {
-    "generic": "Something went wrong. Please try again.",
-    "timeout": "The server took too long to respond.",
-    "network": "Can't reach the server at {{url}}. Is the backend running and on the same network?"
+    "generic": "ఏదో తప్పు జరిగింది. దయచేసి మళ్లీ ప్రయత్నించండి.",
+    "timeout": "సర్వర్ స్పందించడానికి చాలా సమయం తీసుకుంది.",
+    "network": "సర్వర్ {{url}} కి కనెక్ట్ కాలేకపోతున్నాం. బ్యాకెండ్ నడుస్తోందా, అదే నెట్‌వర్క్‌లో ఉందా?"
   },
-  "tabs": {
-    "home": "Home",
-    "bookings": "Bookings",
-    "messages": "Messages",
-    "profile": "Profile"
-  },
+  "tabs": { "home": "హోమ్", "bookings": "బుకింగ్‌లు", "messages": "సందేశాలు", "profile": "ప్రొఫైల్" },
   "landing": {
-    "heading": "<b>Every Skill,</b>\nOne <b>App</b>",
-    "subtitle": "From quick fixes to big projects, find verified local professionals ready to help.",
-    "cta": "Get Started"
+    "heading": "<b>ప్రతి నైపుణ్యానికి,</b>\nఒకే <b>యాప్</b>",
+    "subtitle": "చిన్న రిపేర్ల నుంచి పెద్ద పనుల వరకు, నమ్మకమైన స్థానిక పనివారు సాయానికి సిద్ధంగా ఉన్నారు.",
+    "cta": "ప్రారంభించండి"
   },
   "auth": {
-    "tagline": "Verified professionals, trusted services",
-    "login": "Login",
-    "signup": "Sign Up",
-    "loginDescription": "Welcome back! Sign in to continue.",
-    "signupDescription": "Create your account. We'll verify your identity with Aadhaar.",
-    "continueWithGoogle": "Continue with Google",
-    "signupWithGoogle": "Sign up with Google",
-    "loginA11y": "Login with Google",
-    "signupA11y": "Sign up with Google",
-    "signupNote": "🔐 New accounts verify their identity through DigiLocker",
-    "loginNote": "🔒 Your credentials are secured and never stored",
-    "terms": "By continuing, you agree to our <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>",
-    "failedTitle": "Authentication Failed",
-    "inProgress": "A sign-in is already in progress.",
-    "playServices": "Google Play Services is missing or out of date on this device.",
-    "misconfigured": "Google Sign-In is misconfigured for this build (check the Android OAuth client SHA-1).",
-    "noIdToken": "Google did not return an ID token."
+    "tagline": "ధృవీకరించిన పనివారు, నమ్మకమైన సేవలు",
+    "login": "లాగిన్",
+    "signup": "సైన్ అప్",
+    "loginDescription": "మళ్లీ స్వాగతం! కొనసాగించడానికి సైన్ ఇన్ చేయండి.",
+    "signupDescription": "మీ ఖాతాను సృష్టించండి. Aadhaar ద్వారా మీ గుర్తింపును ధృవీకరిస్తాం.",
+    "continueWithGoogle": "Google తో కొనసాగండి",
+    "signupWithGoogle": "Google తో సైన్ అప్ చేయండి",
+    "loginA11y": "Google తో లాగిన్ చేయండి",
+    "signupA11y": "Google తో సైన్ అప్ చేయండి",
+    "signupNote": "🔐 కొత్త ఖాతాలు DigiLocker ద్వారా గుర్తింపును ధృవీకరిస్తాయి",
+    "loginNote": "🔒 మీ వివరాలు సురక్షితం, ఎప్పుడూ నిల్వ చేయబడవు",
+    "terms": "కొనసాగడం ద్వారా మీరు మా <terms>సేవా నిబంధనలు</terms> మరియు <privacy>గోప్యతా విధానానికి</privacy> అంగీకరిస్తున్నారు",
+    "failedTitle": "లాగిన్ కాలేదు",
+    "inProgress": "ఒక సైన్-ఇన్ ఇప్పటికే జరుగుతోంది.",
+    "playServices": "ఈ ఫోన్‌లో Google Play సేవలు లేవు లేదా పాతవి.",
+    "misconfigured": "ఈ బిల్డ్‌లో Google సైన్-ఇన్ సరిగా సెట్ చేయలేదు (Android OAuth క్లయింట్ SHA-1 చూడండి).",
+    "noIdToken": "Google నుంచి ID టోకెన్ రాలేదు."
   },
   "aadhaar": {
-    "title": "DigiLocker Verification",
-    "subtitle": "We securely verify your identity using the official Govt. of India DigiLocker service.",
-    "cardTitle": "Verify your identity",
-    "cardDescription": "You will be redirected to DigiLocker to authorize the sharing of your Aadhaar details securely.",
-    "privacy": "We do not store your full Aadhaar number. We strictly comply with UIDAI and Government data privacy guidelines.",
-    "verifyButton": "Verify with DigiLocker →",
-    "later": "I'll do this later",
-    "poweredBy": "Secured by Meon eKYC · UIDAI Authorized",
-    "startFailed": "Could not start DigiLocker verification.",
-    "verifying": "Verifying with DigiLocker…",
-    "verifyingBody": "Fetching your details securely. This takes a few seconds.",
-    "failedTitle": "Verification failed",
-    "fetchFailed": "Could not fetch your Aadhaar details.",
-    "startOver": "Start over"
+    "title": "DigiLocker ధృవీకరణ",
+    "subtitle": "భారత ప్రభుత్వ అధికారిక DigiLocker సేవ ద్వారా మీ గుర్తింపును సురక్షితంగా ధృవీకరిస్తాం.",
+    "cardTitle": "మీ గుర్తింపును ధృవీకరించండి",
+    "cardDescription": "మిమ్మల్ని DigiLocker కి తీసుకెళ్తాం, అక్కడ మీ Aadhaar వివరాలను సురక్షితంగా పంచుకోవడానికి అనుమతి ఇస్తారు.",
+    "privacy": "మీ పూర్తి Aadhaar నంబర్‌ను మేము నిల్వ చేయం. UIDAI మరియు ప్రభుత్వ డేటా గోప్యతా నియమాలను కచ్చితంగా పాటిస్తాం.",
+    "verifyButton": "DigiLocker తో ధృవీకరించండి →",
+    "later": "దీన్ని తర్వాత చేస్తాను",
+    "poweredBy": "Meon eKYC ద్వారా సురక్షితం · UIDAI అధీకృతం",
+    "startFailed": "DigiLocker ధృవీకరణ ప్రారంభించలేకపోయాం.",
+    "verifying": "DigiLocker తో ధృవీకరిస్తోంది…",
+    "verifyingBody": "మీ వివరాలు సురక్షితంగా తెస్తున్నాం. కొన్ని సెకన్లు పడుతుంది.",
+    "failedTitle": "ధృవీకరణ విఫలమైంది",
+    "fetchFailed": "మీ Aadhaar వివరాలు తేలేకపోయాం.",
+    "startOver": "మళ్లీ మొదలుపెట్టండి"
   },
   "home": {
-    "yourLocation": "Your location",
-    "setLocation": "Set your location",
-    "locationA11y": "Location: {{location}}. Change",
-    "notifications": "Notifications",
-    "profile": "Profile",
-    "createJob": "Create a new job",
-    "createJobBody": "Describe the work, we find nearby workers",
-    "mostBooked": "Most booked",
-    "bookA11y": "Book {{name}}",
-    "trending": "Trending",
-    "bookAgain": "Book again",
-    "bookAgainEmpty": "Services you book will show up here so you can rebook in one tap."
+    "yourLocation": "మీ లొకేషన్",
+    "setLocation": "మీ లొకేషన్ ఎంచుకోండి",
+    "locationA11y": "లొకేషన్: {{location}}. మార్చండి",
+    "notifications": "నోటిఫికేషన్లు",
+    "profile": "ప్రొఫైల్",
+    "createJob": "కొత్త పని పోస్ట్ చేయండి",
+    "createJobBody": "పని చెప్పండి, దగ్గర్లోని పనివారిని కనుగొంటాం",
+    "mostBooked": "ఎక్కువగా బుక్ చేసినవి",
+    "bookA11y": "{{name}} బుక్ చేయండి",
+    "trending": "ట్రెండింగ్",
+    "bookAgain": "మళ్లీ బుక్ చేయండి",
+    "bookAgainEmpty": "మీరు బుక్ చేసే సేవలు ఇక్కడ కనిపిస్తాయి, ఒక్క ట్యాప్‌తో మళ్లీ బుక్ చేయవచ్చు."
   },
   "banners": {
     "emergency": {
-      "title": "Emergency repairs",
-      "body": "Power cut or a burst pipe? Get a verified worker at your door fast.",
-      "cta": "Book now"
+      "title": "అత్యవసర రిపేర్లు",
+      "body": "కరెంటు పోయిందా లేదా పైపు పగిలిందా? ధృవీకరించిన పనివారిని వెంటనే ఇంటికి పిలవండి.",
+      "cta": "ఇప్పుడే బుక్ చేయండి"
     },
     "deep-clean": {
-      "title": "Festive deep cleaning",
-      "body": "Whole-home cleaning by cooperative teams, priced fairly.",
-      "cta": "Book cleaning"
+      "title": "పండగ పూర్తి శుభ్రత",
+      "body": "సహకార బృందాలతో ఇల్లంతా శుభ్రత, న్యాయమైన ధరకే.",
+      "cta": "శుభ్రత బుక్ చేయండి"
     },
     "verified": {
-      "title": "Every worker is verified",
-      "body": "Cooperative members with checked identity and fair wages.",
-      "cta": "Find a worker"
+      "title": "ప్రతి పనివారు ధృవీకరించబడ్డారు",
+      "body": "తనిఖీ చేసిన గుర్తింపు, న్యాయమైన కూలీ ఉన్న సహకార సభ్యులు.",
+      "cta": "పనివారిని కనుగొనండి"
     }
   },
   "bookings": {
-    "title": "Bookings",
-    "emptyTitle": "No bookings yet",
-    "emptyBody": "Jobs you post and the workers you book will appear here.",
-    "createJob": "Create a new job"
+    "title": "బుకింగ్‌లు",
+    "emptyTitle": "ఇంకా బుకింగ్‌లు లేవు",
+    "emptyBody": "మీరు పోస్ట్ చేసిన పనులు, బుక్ చేసిన పనివారు ఇక్కడ కనిపిస్తారు.",
+    "createJob": "కొత్త పని పోస్ట్ చేయండి"
   },
   "messages": {
-    "title": "Messages",
-    "emptyTitle": "No messages yet",
-    "emptyBody": "Once a worker accepts your job, you can chat with them here."
+    "title": "సందేశాలు",
+    "emptyTitle": "ఇంకా సందేశాలు లేవు",
+    "emptyBody": "ఎవరైనా పనివారు మీ పనిని అంగీకరించాక, ఇక్కడ వారితో మాట్లాడవచ్చు."
   },
   "notifications": {
-    "title": "Notifications",
-    "emptyTitle": "You're all caught up",
-    "emptyBody": "Updates about your jobs, workers and payments will show up here."
+    "title": "నోటిఫికేషన్లు",
+    "emptyTitle": "కొత్త నోటిఫికేషన్లు లేవు",
+    "emptyBody": "మీ పనులు, పనివారు, చెల్లింపుల సమాచారం ఇక్కడ కనిపిస్తుంది."
   },
   "createJob": {
-    "title": "New job",
-    "comingTitle": "Job posting is coming next",
-    "comingBody": "You'll describe the work here and we'll match you with verified workers nearby."
+    "title": "కొత్త పని",
+    "comingTitle": "పని పోస్ట్ చేసే సౌకర్యం త్వరలో",
+    "comingBody": "ఇక్కడ మీరు పనిని వివరిస్తారు, దగ్గర్లోని ధృవీకరించిన పనివారితో మిమ్మల్ని కలుపుతాం."
   },
   "profile": {
-    "title": "Profile",
-    "edit": "Edit",
-    "addName": "Add your name",
-    "completeTitle": "Complete your profile",
-    "completeCount": "{{done}} of {{total}}",
-    "completeBody": "Add your phone number and address so workers can find and reach you.",
-    "verifiedTitle": "Aadhaar verified",
-    "verifiedVia": "Verified via DigiLocker",
-    "verifiedOn": "Verified via DigiLocker on {{date}}",
-    "notVerifiedTitle": "Aadhaar not verified",
-    "notVerifiedManual": "Your details are self-declared. Verify with DigiLocker to confirm them and get a verified badge.",
-    "notVerifiedEmpty": "Verify with DigiLocker to get a verified badge, or add your details manually for now.",
-    "verifyButton": "Verify with DigiLocker",
-    "enterManually": "Enter details manually",
-    "tagAadhaar": "From Aadhaar",
-    "tagSelf": "Self-declared",
-    "personal": "Personal details",
-    "contact": "Contact",
-    "preferences": "Preferences",
-    "fullName": "Full name",
-    "dob": "Date of birth",
-    "gender": "Gender",
-    "address": "Address",
-    "mobile": "Mobile number",
-    "city": "City",
-    "pincode": "PIN code",
-    "appLanguage": "App language",
-    "signOut": "Sign out",
-    "signOutConfirm": "Are you sure you want to sign out?",
-    "memberSince": "Member since {{date}}"
+    "title": "ప్రొఫైల్",
+    "edit": "మార్చు",
+    "addName": "మీ పేరు జోడించండి",
+    "completeTitle": "మీ ప్రొఫైల్ పూర్తి చేయండి",
+    "completeCount": "{{total}} లో {{done}}",
+    "completeBody": "పనివారు మిమ్మల్ని కనుగొని సంప్రదించడానికి మీ ఫోన్ నంబర్, చిరునామా జోడించండి.",
+    "verifiedTitle": "Aadhaar ధృవీకరించబడింది",
+    "verifiedVia": "DigiLocker ద్వారా ధృవీకరించబడింది",
+    "verifiedOn": "{{date}} న DigiLocker ద్వారా ధృవీకరించబడింది",
+    "notVerifiedTitle": "Aadhaar ధృవీకరించలేదు",
+    "notVerifiedManual": "మీ వివరాలు మీరే ఇచ్చినవి. నిర్ధారించి ధృవీకరణ బ్యాడ్జ్ పొందడానికి DigiLocker తో ధృవీకరించండి.",
+    "notVerifiedEmpty": "ధృవీకరణ బ్యాడ్జ్ కోసం DigiLocker తో ధృవీకరించండి, లేదా ప్రస్తుతానికి వివరాలు మీరే నమోదు చేయండి.",
+    "verifyButton": "DigiLocker తో ధృవీకరించండి",
+    "enterManually": "వివరాలు మీరే నమోదు చేయండి",
+    "tagAadhaar": "Aadhaar నుంచి",
+    "tagSelf": "మీరే ఇచ్చినవి",
+    "personal": "వ్యక్తిగత వివరాలు",
+    "contact": "సంప్రదింపు",
+    "preferences": "ప్రాధాన్యతలు",
+    "fullName": "పూర్తి పేరు",
+    "dob": "పుట్టిన తేదీ",
+    "gender": "లింగం",
+    "address": "చిరునామా",
+    "mobile": "మొబైల్ నంబర్",
+    "city": "నగరం",
+    "pincode": "పిన్ కోడ్",
+    "appLanguage": "యాప్ భాష",
+    "signOut": "సైన్ అవుట్",
+    "signOutConfirm": "మీరు నిజంగా సైన్ అవుట్ చేయాలనుకుంటున్నారా?",
+    "memberSince": "{{date}} నుంచి సభ్యులు"
   },
   "editProfile": {
-    "title": "Edit profile",
-    "verifiedNote": "These details are verified from your Aadhaar and can't be edited.",
-    "selfNote": "These details are self-declared until you verify with DigiLocker, which will replace them with your Aadhaar details.",
-    "namePlaceholder": "As on your government ID",
-    "dobPlaceholder": "DD/MM/YYYY",
-    "addressPlaceholder": "House no., street, area",
-    "mobilePlaceholder": "10-digit number",
-    "mobileHint": "Workers use this to reach you about a job.",
-    "cityPlaceholder": "e.g. Jaipur",
-    "saveFailed": "Could not save"
+    "title": "ప్రొఫైల్ మార్చండి",
+    "verifiedNote": "ఈ వివరాలు మీ Aadhaar నుంచి ధృవీకరించబడ్డాయి, మార్చలేరు.",
+    "selfNote": "DigiLocker తో ధృవీకరించే వరకు ఇవి మీరే ఇచ్చిన వివరాలు; తర్వాత మీ Aadhaar వివరాలతో మారుతాయి.",
+    "namePlaceholder": "ప్రభుత్వ గుర్తింపు కార్డులో ఉన్నట్లు",
+    "dobPlaceholder": "రోజు/నెల/సంవత్సరం",
+    "addressPlaceholder": "ఇంటి నం., వీధి, ప్రాంతం",
+    "mobilePlaceholder": "10 అంకెల నంబర్",
+    "mobileHint": "పని గురించి పనివారు ఈ నంబర్‌లో మిమ్మల్ని సంప్రదిస్తారు.",
+    "cityPlaceholder": "ఉదా. హైదరాబాద్",
+    "saveFailed": "సేవ్ చేయలేకపోయాం"
   },
-  "gender": {
-    "M": "Male",
-    "F": "Female",
-    "T": "Transgender"
-  },
+  "gender": { "M": "పురుషుడు", "F": "స్త్రీ", "T": "ట్రాన్స్‌జెండర్" },
   "language": {
-    "title": "App language",
-    "saveFailed": "Could not change the language. Please try again."
+    "title": "యాప్ భాష",
+    "saveFailed": "భాష మార్చలేకపోయాం. దయచేసి మళ్లీ ప్రయత్నించండి."
   }
 }

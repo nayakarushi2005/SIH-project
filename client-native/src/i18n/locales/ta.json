@@ -1,167 +1,158 @@
 {
   "common": {
-    "tryAgain": "Try again",
-    "cancel": "Cancel",
-    "saveChanges": "Save changes",
-    "notAdded": "Not added",
-    "notAvailable": "Not available",
-    "goBack": "Go back",
-    "error": "Error"
+    "tryAgain": "மீண்டும் முயலவும்",
+    "cancel": "ரத்து செய்",
+    "saveChanges": "மாற்றங்களைச் சேமி",
+    "notAdded": "சேர்க்கப்படவில்லை",
+    "notAvailable": "கிடைக்கவில்லை",
+    "goBack": "பின் செல்",
+    "error": "பிழை"
   },
   "errors": {
-    "generic": "Something went wrong. Please try again.",
-    "timeout": "The server took too long to respond.",
-    "network": "Can't reach the server at {{url}}. Is the backend running and on the same network?"
+    "generic": "ஏதோ தவறு நடந்தது. மீண்டும் முயலவும்.",
+    "timeout": "சர்வர் பதிலளிக்க அதிக நேரம் எடுத்தது.",
+    "network": "சர்வர் {{url}} உடன் இணைக்க முடியவில்லை. பேக்எண்ட் இயங்குகிறதா, அதே நெட்வொர்க்கில் உள்ளதா?"
   },
-  "tabs": {
-    "home": "Home",
-    "bookings": "Bookings",
-    "messages": "Messages",
-    "profile": "Profile"
-  },
+  "tabs": { "home": "முகப்பு", "bookings": "முன்பதிவுகள்", "messages": "செய்திகள்", "profile": "சுயவிவரம்" },
   "landing": {
-    "heading": "<b>Every Skill,</b>\nOne <b>App</b>",
-    "subtitle": "From quick fixes to big projects, find verified local professionals ready to help.",
-    "cta": "Get Started"
+    "heading": "<b>ஒவ்வொரு திறமைக்கும்,</b>\nஒரே <b>ஆப்</b>",
+    "subtitle": "சிறிய பழுதுகள் முதல் பெரிய வேலைகள் வரை, நம்பகமான உள்ளூர் தொழிலாளர்கள் உதவத் தயார்.",
+    "cta": "தொடங்குங்கள்"
   },
   "auth": {
-    "tagline": "Verified professionals, trusted services",
-    "login": "Login",
-    "signup": "Sign Up",
-    "loginDescription": "Welcome back! Sign in to continue.",
-    "signupDescription": "Create your account. We'll verify your identity with Aadhaar.",
-    "continueWithGoogle": "Continue with Google",
-    "signupWithGoogle": "Sign up with Google",
-    "loginA11y": "Login with Google",
-    "signupA11y": "Sign up with Google",
-    "signupNote": "🔐 New accounts verify their identity through DigiLocker",
-    "loginNote": "🔒 Your credentials are secured and never stored",
-    "terms": "By continuing, you agree to our <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>",
-    "failedTitle": "Authentication Failed",
-    "inProgress": "A sign-in is already in progress.",
-    "playServices": "Google Play Services is missing or out of date on this device.",
-    "misconfigured": "Google Sign-In is misconfigured for this build (check the Android OAuth client SHA-1).",
-    "noIdToken": "Google did not return an ID token."
+    "tagline": "சரிபார்க்கப்பட்ட தொழிலாளர்கள், நம்பகமான சேவைகள்",
+    "login": "உள்நுழை",
+    "signup": "பதிவு செய்",
+    "loginDescription": "மீண்டும் வருக! தொடர உள்நுழையவும்.",
+    "signupDescription": "உங்கள் கணக்கை உருவாக்குங்கள். Aadhaar மூலம் உங்கள் அடையாளத்தைச் சரிபார்ப்போம்.",
+    "continueWithGoogle": "Google மூலம் தொடரவும்",
+    "signupWithGoogle": "Google மூலம் பதிவு செய்யவும்",
+    "loginA11y": "Google மூலம் உள்நுழையவும்",
+    "signupA11y": "Google மூலம் பதிவு செய்யவும்",
+    "signupNote": "🔐 புதிய கணக்குகள் DigiLocker மூலம் அடையாளத்தைச் சரிபார்க்கின்றன",
+    "loginNote": "🔒 உங்கள் தகவல்கள் பாதுகாப்பானவை, ஒருபோதும் சேமிக்கப்படுவதில்லை",
+    "terms": "தொடர்வதன் மூலம் எங்கள் <terms>சேவை விதிமுறைகள்</terms> மற்றும் <privacy>தனியுரிமைக் கொள்கையை</privacy> ஏற்கிறீர்கள்",
+    "failedTitle": "உள்நுழைய முடியவில்லை",
+    "inProgress": "ஒரு உள்நுழைவு ஏற்கனவே நடந்து கொண்டிருக்கிறது.",
+    "playServices": "இந்த போனில் Google Play சேவைகள் இல்லை அல்லது பழையவை.",
+    "misconfigured": "இந்த பில்டில் Google உள்நுழைவு சரியாக அமைக்கப்படவில்லை (Android OAuth கிளையன்ட் SHA-1 ஐச் சரிபார்க்கவும்).",
+    "noIdToken": "Google இலிருந்து ID டோக்கன் கிடைக்கவில்லை."
   },
   "aadhaar": {
-    "title": "DigiLocker Verification",
-    "subtitle": "We securely verify your identity using the official Govt. of India DigiLocker service.",
-    "cardTitle": "Verify your identity",
-    "cardDescription": "You will be redirected to DigiLocker to authorize the sharing of your Aadhaar details securely.",
-    "privacy": "We do not store your full Aadhaar number. We strictly comply with UIDAI and Government data privacy guidelines.",
-    "verifyButton": "Verify with DigiLocker →",
-    "later": "I'll do this later",
-    "poweredBy": "Secured by Meon eKYC · UIDAI Authorized",
-    "startFailed": "Could not start DigiLocker verification.",
-    "verifying": "Verifying with DigiLocker…",
-    "verifyingBody": "Fetching your details securely. This takes a few seconds.",
-    "failedTitle": "Verification failed",
-    "fetchFailed": "Could not fetch your Aadhaar details.",
-    "startOver": "Start over"
+    "title": "DigiLocker சரிபார்ப்பு",
+    "subtitle": "இந்திய அரசின் அதிகாரப்பூர்வ DigiLocker சேவை மூலம் உங்கள் அடையாளத்தைப் பாதுகாப்பாகச் சரிபார்க்கிறோம்.",
+    "cardTitle": "உங்கள் அடையாளத்தைச் சரிபார்க்கவும்",
+    "cardDescription": "நீங்கள் DigiLocker க்கு அனுப்பப்படுவீர்கள், அங்கு உங்கள் Aadhaar விவரங்களைப் பாதுகாப்பாகப் பகிர அனுமதி அளிப்பீர்கள்.",
+    "privacy": "உங்கள் முழு Aadhaar எண்ணை நாங்கள் சேமிப்பதில்லை. UIDAI மற்றும் அரசின் தரவு தனியுரிமை விதிகளைக் கண்டிப்பாகப் பின்பற்றுகிறோம்.",
+    "verifyButton": "DigiLocker மூலம் சரிபார் →",
+    "later": "இதைப் பிறகு செய்கிறேன்",
+    "poweredBy": "Meon eKYC மூலம் பாதுகாக்கப்பட்டது · UIDAI அங்கீகாரம் பெற்றது",
+    "startFailed": "DigiLocker சரிபார்ப்பைத் தொடங்க முடியவில்லை.",
+    "verifying": "DigiLocker மூலம் சரிபார்க்கிறது…",
+    "verifyingBody": "உங்கள் விவரங்கள் பாதுகாப்பாகப் பெறப்படுகின்றன. சில வினாடிகள் ஆகும்.",
+    "failedTitle": "சரிபார்ப்பு தோல்வியடைந்தது",
+    "fetchFailed": "உங்கள் Aadhaar விவரங்களைப் பெற முடியவில்லை.",
+    "startOver": "மீண்டும் தொடங்கு"
   },
   "home": {
-    "yourLocation": "Your location",
-    "setLocation": "Set your location",
-    "locationA11y": "Location: {{location}}. Change",
-    "notifications": "Notifications",
-    "profile": "Profile",
-    "createJob": "Create a new job",
-    "createJobBody": "Describe the work, we find nearby workers",
-    "mostBooked": "Most booked",
-    "bookA11y": "Book {{name}}",
-    "trending": "Trending",
-    "bookAgain": "Book again",
-    "bookAgainEmpty": "Services you book will show up here so you can rebook in one tap."
+    "yourLocation": "உங்கள் இருப்பிடம்",
+    "setLocation": "உங்கள் இருப்பிடத்தை அமைக்கவும்",
+    "locationA11y": "இருப்பிடம்: {{location}}. மாற்று",
+    "notifications": "அறிவிப்புகள்",
+    "profile": "சுயவிவரம்",
+    "createJob": "புதிய வேலையைப் பதிவிடுங்கள்",
+    "createJobBody": "வேலையைச் சொல்லுங்கள், அருகிலுள்ள தொழிலாளர்களைக் கண்டுபிடிப்போம்",
+    "mostBooked": "அதிகம் முன்பதிவு செய்யப்பட்டவை",
+    "bookA11y": "{{name}} முன்பதிவு செய்",
+    "trending": "பிரபலமானவை",
+    "bookAgain": "மீண்டும் முன்பதிவு செய்",
+    "bookAgainEmpty": "நீங்கள் முன்பதிவு செய்யும் சேவைகள் இங்கே தோன்றும், ஒரே தட்டலில் மீண்டும் முன்பதிவு செய்யலாம்."
   },
   "banners": {
     "emergency": {
-      "title": "Emergency repairs",
-      "body": "Power cut or a burst pipe? Get a verified worker at your door fast.",
-      "cta": "Book now"
+      "title": "அவசரப் பழுது நீக்கம்",
+      "body": "மின்தடையா அல்லது குழாய் உடைந்ததா? சரிபார்க்கப்பட்ட தொழிலாளரை உடனே வீட்டுக்கு அழையுங்கள்.",
+      "cta": "இப்போதே முன்பதிவு"
     },
     "deep-clean": {
-      "title": "Festive deep cleaning",
-      "body": "Whole-home cleaning by cooperative teams, priced fairly.",
-      "cta": "Book cleaning"
+      "title": "பண்டிகைக்கால முழு சுத்தம்",
+      "body": "கூட்டுறவுக் குழுக்களால் முழு வீடும் சுத்தம், நியாயமான விலையில்.",
+      "cta": "சுத்தம் முன்பதிவு"
     },
     "verified": {
-      "title": "Every worker is verified",
-      "body": "Cooperative members with checked identity and fair wages.",
-      "cta": "Find a worker"
+      "title": "ஒவ்வொரு தொழிலாளரும் சரிபார்க்கப்பட்டவர்",
+      "body": "சரிபார்க்கப்பட்ட அடையாளமும் நியாயமான கூலியும் கொண்ட கூட்டுறவு உறுப்பினர்கள்.",
+      "cta": "தொழிலாளரைக் கண்டறி"
     }
   },
   "bookings": {
-    "title": "Bookings",
-    "emptyTitle": "No bookings yet",
-    "emptyBody": "Jobs you post and the workers you book will appear here.",
-    "createJob": "Create a new job"
+    "title": "முன்பதிவுகள்",
+    "emptyTitle": "இன்னும் முன்பதிவுகள் இல்லை",
+    "emptyBody": "நீங்கள் பதிவிடும் வேலைகளும் முன்பதிவு செய்யும் தொழிலாளர்களும் இங்கே தோன்றுவார்கள்.",
+    "createJob": "புதிய வேலையைப் பதிவிடுங்கள்"
   },
   "messages": {
-    "title": "Messages",
-    "emptyTitle": "No messages yet",
-    "emptyBody": "Once a worker accepts your job, you can chat with them here."
+    "title": "செய்திகள்",
+    "emptyTitle": "இன்னும் செய்திகள் இல்லை",
+    "emptyBody": "ஒரு தொழிலாளர் உங்கள் வேலையை ஏற்றதும், இங்கே அவருடன் பேசலாம்."
   },
   "notifications": {
-    "title": "Notifications",
-    "emptyTitle": "You're all caught up",
-    "emptyBody": "Updates about your jobs, workers and payments will show up here."
+    "title": "அறிவிப்புகள்",
+    "emptyTitle": "புதிய அறிவிப்புகள் இல்லை",
+    "emptyBody": "உங்கள் வேலைகள், தொழிலாளர்கள், பணம் செலுத்துதல் பற்றிய தகவல்கள் இங்கே தோன்றும்."
   },
   "createJob": {
-    "title": "New job",
-    "comingTitle": "Job posting is coming next",
-    "comingBody": "You'll describe the work here and we'll match you with verified workers nearby."
+    "title": "புதிய வேலை",
+    "comingTitle": "வேலை பதிவிடும் வசதி விரைவில்",
+    "comingBody": "இங்கே வேலையை விவரிப்பீர்கள், அருகிலுள்ள சரிபார்க்கப்பட்ட தொழிலாளர்களுடன் இணைப்போம்."
   },
   "profile": {
-    "title": "Profile",
-    "edit": "Edit",
-    "addName": "Add your name",
-    "completeTitle": "Complete your profile",
-    "completeCount": "{{done}} of {{total}}",
-    "completeBody": "Add your phone number and address so workers can find and reach you.",
-    "verifiedTitle": "Aadhaar verified",
-    "verifiedVia": "Verified via DigiLocker",
-    "verifiedOn": "Verified via DigiLocker on {{date}}",
-    "notVerifiedTitle": "Aadhaar not verified",
-    "notVerifiedManual": "Your details are self-declared. Verify with DigiLocker to confirm them and get a verified badge.",
-    "notVerifiedEmpty": "Verify with DigiLocker to get a verified badge, or add your details manually for now.",
-    "verifyButton": "Verify with DigiLocker",
-    "enterManually": "Enter details manually",
-    "tagAadhaar": "From Aadhaar",
-    "tagSelf": "Self-declared",
-    "personal": "Personal details",
-    "contact": "Contact",
-    "preferences": "Preferences",
-    "fullName": "Full name",
-    "dob": "Date of birth",
-    "gender": "Gender",
-    "address": "Address",
-    "mobile": "Mobile number",
-    "city": "City",
-    "pincode": "PIN code",
-    "appLanguage": "App language",
-    "signOut": "Sign out",
-    "signOutConfirm": "Are you sure you want to sign out?",
-    "memberSince": "Member since {{date}}"
+    "title": "சுயவிவரம்",
+    "edit": "திருத்து",
+    "addName": "உங்கள் பெயரைச் சேர்க்கவும்",
+    "completeTitle": "உங்கள் சுயவிவரத்தை நிறைவு செய்யுங்கள்",
+    "completeCount": "{{total}} இல் {{done}}",
+    "completeBody": "தொழிலாளர்கள் உங்களைக் கண்டறிந்து தொடர்புகொள்ள, உங்கள் போன் எண்ணையும் முகவரியையும் சேர்க்கவும்.",
+    "verifiedTitle": "Aadhaar சரிபார்க்கப்பட்டது",
+    "verifiedVia": "DigiLocker மூலம் சரிபார்க்கப்பட்டது",
+    "verifiedOn": "{{date}} அன்று DigiLocker மூலம் சரிபார்க்கப்பட்டது",
+    "notVerifiedTitle": "Aadhaar சரிபார்க்கப்படவில்லை",
+    "notVerifiedManual": "உங்கள் விவரங்கள் நீங்களே அளித்தவை. உறுதிசெய்து சரிபார்ப்பு பேட்ஜ் பெற DigiLocker மூலம் சரிபார்க்கவும்.",
+    "notVerifiedEmpty": "சரிபார்ப்பு பேட்ஜ் பெற DigiLocker மூலம் சரிபார்க்கவும், அல்லது இப்போதைக்கு விவரங்களை நீங்களே உள்ளிடவும்.",
+    "verifyButton": "DigiLocker மூலம் சரிபார்",
+    "enterManually": "விவரங்களை நீங்களே உள்ளிடவும்",
+    "tagAadhaar": "Aadhaar இலிருந்து",
+    "tagSelf": "நீங்களே அளித்தது",
+    "personal": "தனிப்பட்ட விவரங்கள்",
+    "contact": "தொடர்பு",
+    "preferences": "விருப்பங்கள்",
+    "fullName": "முழுப் பெயர்",
+    "dob": "பிறந்த தேதி",
+    "gender": "பாலினம்",
+    "address": "முகவரி",
+    "mobile": "மொபைல் எண்",
+    "city": "நகரம்",
+    "pincode": "அஞ்சல் குறியீடு",
+    "appLanguage": "ஆப் மொழி",
+    "signOut": "வெளியேறு",
+    "signOutConfirm": "நிச்சயமாக வெளியேற விரும்புகிறீர்களா?",
+    "memberSince": "{{date}} முதல் உறுப்பினர்"
   },
   "editProfile": {
-    "title": "Edit profile",
-    "verifiedNote": "These details are verified from your Aadhaar and can't be edited.",
-    "selfNote": "These details are self-declared until you verify with DigiLocker, which will replace them with your Aadhaar details.",
-    "namePlaceholder": "As on your government ID",
-    "dobPlaceholder": "DD/MM/YYYY",
-    "addressPlaceholder": "House no., street, area",
-    "mobilePlaceholder": "10-digit number",
-    "mobileHint": "Workers use this to reach you about a job.",
-    "cityPlaceholder": "e.g. Jaipur",
-    "saveFailed": "Could not save"
+    "title": "சுயவிவரத்தைத் திருத்து",
+    "verifiedNote": "இந்த விவரங்கள் உங்கள் Aadhaar மூலம் சரிபார்க்கப்பட்டவை, மாற்ற முடியாது.",
+    "selfNote": "DigiLocker மூலம் சரிபார்க்கும் வரை இவை நீங்களே அளித்த விவரங்கள்; பின்னர் உங்கள் Aadhaar விவரங்களால் மாற்றப்படும்.",
+    "namePlaceholder": "அரசு அடையாள அட்டையில் உள்ளபடி",
+    "dobPlaceholder": "நாள்/மாதம்/ஆண்டு",
+    "addressPlaceholder": "வீட்டு எண், தெரு, பகுதி",
+    "mobilePlaceholder": "10 இலக்க எண்",
+    "mobileHint": "வேலை தொடர்பாக தொழிலாளர்கள் இந்த எண்ணில் உங்களைத் தொடர்புகொள்வார்கள்.",
+    "cityPlaceholder": "எ.கா. சென்னை",
+    "saveFailed": "சேமிக்க முடியவில்லை"
   },
-  "gender": {
-    "M": "Male",
-    "F": "Female",
-    "T": "Transgender"
-  },
+  "gender": { "M": "ஆண்", "F": "பெண்", "T": "திருநர்" },
   "language": {
-    "title": "App language",
-    "saveFailed": "Could not change the language. Please try again."
+    "title": "ஆப் மொழி",
+    "saveFailed": "மொழியை மாற்ற முடியவில்லை. மீண்டும் முயலவும்."
   }
 }
