@@ -2,7 +2,7 @@ const express = require('express');
 const { OAuth2Client } = require('google-auth-library');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const { initiateAadhaarOTP, verifyAadhaarOTP } = require('../services/meonApi');
+const { initiateDigilocker, verifyDigilocker } = require('../services/meonApi');
 const verifyToken = require('../middleware/verifyToken');
 
 const router = express.Router();
@@ -78,41 +78,35 @@ router.post('/google', async (req, res) => {
 
 // ────────────────────────────────────────────────────────────────────────────
 // POST /api/auth/aadhaar/initiate
-// Sends OTP to Aadhaar-linked mobile via Meon API.
-// Requires: valid app JWT (user must be logged in via Google first)
-// Body: { aadhaarNumber: "XXXXXXXXXXXX" }
+// Generates a Digilocker URL for the user to authorize Aadhaar access.
+// Requires: valid app JWT
+// Body: none
 // ────────────────────────────────────────────────────────────────────────────
 router.post('/aadhaar/initiate', verifyToken, async (req, res) => {
-  const { aadhaarNumber } = req.body;
-
-  if (!aadhaarNumber || aadhaarNumber.replace(/\s/g, '').length !== 12) {
-    return res.status(400).json({ error: 'Valid 12-digit Aadhaar number is required' });
-  }
-
   try {
-    const result = await initiateAadhaarOTP(aadhaarNumber.replace(/\s/g, ''));
+    const result = await initiateDigilocker();
     return res.status(200).json(result);
   } catch (err) {
-    console.error('Aadhaar OTP initiate error:', err.message);
+    console.error('Digilocker initiate error:', err.message);
     return res.status(500).json({ error: err.message });
   }
 });
 
 // ────────────────────────────────────────────────────────────────────────────
 // POST /api/auth/aadhaar/verify
-// Verifies OTP, retrieves Aadhaar demographics, updates MongoDB user doc.
+// Fetches data from Digilocker after the user completes the browser flow.
 // Requires: valid app JWT
-// Body: { transactionId, otp, aadhaarLastFour }
+// Body: { clientToken, state }
 // ────────────────────────────────────────────────────────────────────────────
 router.post('/aadhaar/verify', verifyToken, async (req, res) => {
-  const { transactionId, otp, aadhaarLastFour } = req.body;
+  const { clientToken, state } = req.body;
 
-  if (!transactionId || !otp) {
-    return res.status(400).json({ error: 'transactionId and otp are required' });
+  if (!clientToken || !state) {
+    return res.status(400).json({ error: 'clientToken and state are required' });
   }
 
   try {
-    const kyc = await verifyAadhaarOTP(transactionId, otp);
+    const kyc = await verifyDigilocker(clientToken, state);
 
     // Update user with Aadhaar-sourced data
     const user = req.user;
@@ -120,8 +114,7 @@ router.post('/aadhaar/verify', verifyToken, async (req, res) => {
     user.dob = kyc.dob;
     user.gender = kyc.gender;
     user.address = kyc.address;
-    // Store only last 4 digits for privacy (UIDAI compliance)
-    user.aadhaarNumber = aadhaarLastFour || (kyc.maskedAadhaar ? kyc.maskedAadhaar.slice(-4) : null);
+    user.aadhaarNumber = kyc.maskedAadhaar ? kyc.maskedAadhaar.slice(-4) : null;
     user.isAadhaarVerified = true;
     user.aadhaarVerifiedAt = new Date();
     await user.save();
@@ -139,7 +132,7 @@ router.post('/aadhaar/verify', verifyToken, async (req, res) => {
       },
     });
   } catch (err) {
-    console.error('Aadhaar OTP verify error:', err.message);
+    console.error('Digilocker verify error:', err.message);
     return res.status(400).json({ error: err.message });
   }
 });
