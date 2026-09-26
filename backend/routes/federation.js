@@ -7,8 +7,12 @@ const {
   getFederationById,
   verifyFederation,
 } = require('../controllers/federationController');
+const { ensureAuth } = require('../middleware/authMiddleware');
 
-// Public route to register a new federation
+// Apply ensureAuth to all federation routes
+router.use(ensureAuth);
+
+// Route to register/update a new federation
 router.post('/register', registerFederation);
 
 // Check if federation exists by email

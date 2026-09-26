@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { registerFederationApi, checkFederationByEmailApi } from '../../services/api';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import useFetchWithAuth from '../../hooks/useFetchWithAuth';
+import { useAuth } from '../../context/AuthContext';
 import { 
   Building2, 
   Users, 
@@ -16,17 +17,28 @@ import {
 
 export default function FederationRegister() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const authFetch = useFetchWithAuth();
+  const { user } = useAuth();
 
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
+    name: user?.name || location.state?.user?.name || '',
+    email: user?.email || location.state?.user?.email || '',
     area: '',
     amount: '',
     noOfWorkers: '',
   });
 
-  const [checkEmail, setCheckEmail] = useState('');
-  const [checking, setChecking] = useState(false);
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        name: prev.name || user.name,
+        email: prev.email || user.email
+      }));
+    }
+  }, [user]);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -35,69 +47,35 @@ export default function FederationRegister() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Check if federation already exists by email
-  const handleEmailCheck = async (e) => {
-    if (e) e.preventDefault();
-    const emailToTest = checkEmail.trim() || formData.email.trim();
-    if (!emailToTest) return;
-
-    setChecking(true);
-    setError(null);
-    try {
-      const data = await checkFederationByEmailApi(emailToTest);
-      if (data.exists && data.federation) {
-        // Registered already -> Directly redirect to Federation Status page
-        navigate('/federation/status', {
-          state: { federation: data.federation },
-        });
-      } else {
-        setError('No federation found for this email. Please fill in the registration details below.');
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Error checking registration status');
-    } finally {
-      setChecking(false);
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
-      // First check if email already registered
-      const checkData = await checkFederationByEmailApi(formData.email);
-      if (checkData.exists && checkData.federation) {
-        // Already registered -> Directly redirect to Status page!
-        navigate('/federation/status', {
-          state: { federation: checkData.federation },
-        });
-        return;
+      const res = await authFetch('/api/federation/register', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          amount: Number(formData.amount) || 0,
+          noOfWorkers: Number(formData.noOfWorkers) || 0,
+          area: formData.area,
+        })
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to submit registration');
       }
 
-      // If not registered -> Register new federation
-      const data = await registerFederationApi({
-        name: formData.name,
-        email: formData.email,
-        amount: Number(formData.amount) || 0,
-        noOfWorkers: Number(formData.noOfWorkers) || 0,
-        area: formData.area,
-      });
-
-      // Save details in DB -> Directly redirect to Federation Status page showing verified/unverified
+      // Save details in DB -> Directly redirect to Federation Status page
       navigate('/federation/status', {
         state: { federation: data.federation },
       });
     } catch (err) {
-      // If error payload indicates existing federation, navigate to status screen
-      if (err.response?.data?.exists && err.response?.data?.federation) {
-        navigate('/federation/status', {
-          state: { federation: err.response.data.federation },
-        });
-      } else {
-        setError(err.response?.data?.message || err.message || 'Failed to submit registration');
-      }
+      setError(err.message || 'Failed to submit registration');
     } finally {
       setLoading(false);
     }
@@ -119,26 +97,7 @@ export default function FederationRegister() {
           </p>
         </div>
 
-        {/* Existing User Email Lookup Bar */}
-        <form onSubmit={handleEmailCheck} className="bg-slate-900/90 p-3 rounded-2xl border border-slate-800 shadow-xl flex flex-col sm:flex-row gap-2">
-          <div className="relative flex-1">
-            <input
-              type="email"
-              placeholder="Already registered? Enter your email..."
-              value={checkEmail}
-              onChange={(e) => setCheckEmail(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 placeholder-slate-500"
-            />
-            <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
-          </div>
-          <button
-            type="submit"
-            disabled={checking || !checkEmail.trim()}
-            className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-blue-400 font-bold rounded-xl text-xs transition-all border border-slate-700 disabled:opacity-50 flex items-center justify-center gap-1.5"
-          >
-            {checking ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <><Search className="w-3.5 h-3.5" /> Check Status</>}
-          </button>
-        </form>
+        {/* Removed Manual Email Check Form as we are properly authenticated */}
 
         {/* Main Registration Form */}
         <form onSubmit={handleSubmit} className="bg-slate-900 rounded-3xl p-8 shadow-2xl border border-slate-800 space-y-5">
@@ -199,12 +158,12 @@ export default function FederationRegister() {
                 type="email"
                 name="email"
                 required
+                disabled
                 value={formData.email}
                 onChange={handleInputChange}
-                placeholder="e.g. contact@federation.org"
-                className="w-full pl-11 pr-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 text-sm"
+                className="w-full pl-11 pr-4 py-3 bg-slate-900 border border-slate-800 rounded-xl text-slate-400 focus:outline-none text-sm cursor-not-allowed"
               />
-              <Mail className="w-5 h-5 text-slate-500 absolute left-3.5 top-3.5" />
+              <Mail className="w-5 h-5 text-slate-600 absolute left-3.5 top-3.5" />
             </div>
           </div>
 

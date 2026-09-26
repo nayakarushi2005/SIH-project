@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getAllFederationsApi, verifyFederationApi } from '../../services/api';
+import useFetchWithAuth from '../../hooks/useFetchWithAuth';
 import { 
   Building2, 
   CheckCircle2, 
@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 
 export default function GovernmentVerification() {
+  const authFetch = useFetchWithAuth();
+  
   const [federations, setFederations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -29,10 +31,12 @@ export default function GovernmentVerification() {
     setLoading(true);
     setError(null);
     try {
-      const data = await getAllFederationsApi();
+      const res = await authFetch('/api/federation/all');
+      if (!res.ok) throw new Error('Failed to fetch federations');
+      const data = await res.json();
       setFederations(data.federations || []);
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Failed to fetch federations');
+      setError(err.message || 'Failed to fetch federations');
     } finally {
       setLoading(false);
     }
@@ -45,7 +49,12 @@ export default function GovernmentVerification() {
   const handleVerification = async (id, status) => {
     setActionLoadingId(id);
     try {
-      const data = await verifyFederationApi(id, status);
+      const res = await authFetch(`/api/federation/${id}/verify`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status })
+      });
+      if (!res.ok) throw new Error('Failed to update status');
+      const data = await res.json();
 
       // Update local state instantly so UI matches DB state!
       setFederations((prev) =>
@@ -56,7 +65,7 @@ export default function GovernmentVerification() {
         setLastVerifiedFed(data.federation);
       }
     } catch (err) {
-      alert(`Error updating status: ${err.response?.data?.message || err.message}`);
+      alert(`Error updating status: ${err.message}`);
     } finally {
       setActionLoadingId(null);
     }

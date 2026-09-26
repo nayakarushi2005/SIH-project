@@ -20,6 +20,11 @@ const federationSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+    area: {
+      type: String,
+      default: '',
+      trim: true,
+    },
     amount: {
       type: Number,
       default: 0,
