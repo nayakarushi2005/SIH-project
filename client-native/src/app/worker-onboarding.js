@@ -8,8 +8,8 @@ import { useTranslation } from 'react-i18next';
 import ScreenHeader from '../components/ScreenHeader';
 import { colors, radius, spacing, typography } from '../constants/theme';
 
-// Flipped on when the voice assistant ships (Phase 6).
-const VOICE_ONBOARDING_ENABLED = false;
+// Turn off to hide the voice assistant (e.g. if the AI service is down).
+const VOICE_ONBOARDING_ENABLED = true;
 
 function Choice({ icon, title, body, badge, disabled, onPress }) {
   return (
