@@ -108,3 +108,45 @@ test('register updates the caller only and requires city and PIN', async () => {
   expect(ok.body.federation._id).toBe(String(mine._id));
   expect((await Federation.findById(victim._id)).name).toBe(victim.name);
 });
+
+test('a federation acting on a stale request never resurrects it (409, not 500)', async () => {
+  const f = await fed();
+  const other = await fed();
+  const m1 = await pendingRequest(f);
+  const stale = await FederationMembership.findById(m1._id); // federation's view: pending
+  await FederationMembership.updateOne({ _id: m1._id }, { $set: { status: 'left' } }); // worker cancels
+  await FederationMembership.create({ user: m1.user, federation: other._id, status: 'pending' }); // and joins another
+  const spy = jest.spyOn(FederationMembership, 'findOne').mockResolvedValueOnce(stale);
+  const res = await request(app).patch(`/api/federation/me/requests/${m1._id}`).set(as(f, 'Federation')).send({ action: 'accept' });
+  spy.mockRestore();
+  expect(res.status).toBe(409);
+  expect((await FederationMembership.findById(m1._id)).status).toBe('left');
+});
+
+test('session errors from ensureAuth carry code session_expired', async () => {
+  const res = await request(app).get('/api/federation/me/requests');
+  expect(res.status).toBe(403);
+  expect(res.body.code).toBe('session_expired');
+});
+
+test("federation details are only readable by the federation itself or a government official", async () => {
+  const f = await fed();
+  const other = await fed();
+  const user = await createUser();
+  expect((await request(app).get(`/api/federation/${f._id}`).set(authHeader(user))).status).toBe(403);
+  expect((await request(app).get(`/api/federation/${f._id}`).set(as(other, 'Federation'))).status).toBe(403);
+  expect((await request(app).get(`/api/federation/${f._id}`).set(as(f, 'Federation'))).status).toBe(200);
+  expect((await request(app).get(`/api/federation/${f._id}`).set(as({ _id: f._id }, 'GovOfficial'))).status).toBe(200);
+  expect((await request(app).get('/api/federation/not-an-id').set(as({ _id: f._id }, 'GovOfficial'))).status).toBe(404);
+});
+
+test('check-email only answers a federation about its own email', async () => {
+  const f = await fed();
+  const other = await fed();
+  const user = await createUser();
+  expect((await request(app).get(`/api/federation/check-email/${f.email}`).set(authHeader(user))).status).toBe(403);
+  expect((await request(app).get(`/api/federation/check-email/${other.email}`).set(as(f, 'Federation'))).status).toBe(403);
+  const own = await request(app).get(`/api/federation/check-email/${f.email}`).set(as(f, 'Federation'));
+  expect(own.status).toBe(200);
+  expect(own.body.exists).toBe(true);
+});

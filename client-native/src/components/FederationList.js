@@ -57,6 +57,7 @@ export default function FederationList({
   onJoin,
   onCancel,
   onLeave,
+  blocked = false, // an active membership exists outside this list
 }) {
   const { t } = useTranslation();
 
@@ -105,7 +106,7 @@ export default function FederationList({
               label={t('federation.join')}
               variant="secondary"
               onPress={() => onJoin(f)}
-              disabled={!!activeId || !!busyId}
+              disabled={blocked || !!activeId || !!busyId}
               style={styles.action}
             />
           );

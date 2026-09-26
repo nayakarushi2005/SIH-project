@@ -58,7 +58,11 @@ const checkFederationByEmail = async (req, res) => {
       return res.status(400).json({ message: 'Email parameter is required.' });
     }
 
+    // A federation may only look itself up.
     const federation = await Federation.findOne({ email: email.toLowerCase() });
+    if (federation && String(federation._id) !== String(req.user.userId)) {
+      return res.status(403).json({ message: 'You do not have access to this federation.' });
+    }
 
     if (federation) {
       return res.status(200).json({ exists: true, federation, memberCount: await memberCount(federation._id) });
@@ -97,12 +101,18 @@ const getAllFederations = async (req, res) => {
 const getFederationById = async (req, res) => {
   try {
     const { id } = req.params;
-    const federation = await Federation.findOne({
-      $or: [{ _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }, { fedId: id }],
-    });
+    const federation = await Federation.findOne(
+      /^[0-9a-fA-F]{24}$/.test(id) ? { $or: [{ _id: id }, { fedId: id }] } : { fedId: id }
+    );
 
     if (!federation) {
       return res.status(404).json({ message: 'Federation not found' });
+    }
+    // Government officials see every federation; a federation sees itself.
+    const isOwner =
+      req.user.userModel === 'Federation' && String(federation._id) === String(req.user.userId);
+    if (req.user.userModel !== 'GovOfficial' && !isOwner) {
+      return res.status(403).json({ message: 'You do not have access to this federation.' });
     }
 
     return res.status(200).json({ federation, memberCount: await memberCount(federation._id) });

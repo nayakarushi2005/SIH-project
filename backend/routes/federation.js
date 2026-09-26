@@ -20,7 +20,7 @@ router.use(ensureAuth);
 router.post('/register', requireRole('Federation'), registerFederation);
 
 // Check if federation exists by email
-router.get('/check-email/:email', checkFederationByEmail);
+router.get('/check-email/:email', requireRole('Federation'), checkFederationByEmail);
 
 // Government officials review every federation
 router.get('/all', requireRole('GovOfficial'), getAllFederations);
@@ -30,7 +30,7 @@ router.get('/me/requests', requireRole('Federation'), listMyRequests);
 router.patch('/me/requests/:id', requireRole('Federation'), decideMyRequest);
 router.delete('/me/members/:id', requireRole('Federation'), removeMyMember);
 
-// Route to get a specific federation by ID
+// A federation's own record, or any record for government officials
 router.get('/:id', getFederationById);
 
 // Only government officials can verify or reject a federation
