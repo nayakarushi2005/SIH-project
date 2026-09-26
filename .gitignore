@@ -3,6 +3,8 @@
 # dependencies
 node_modules/
 
+.env
+
 # Expo
 .expo/
 dist/
@@ -39,8 +41,8 @@ backend/.env
 *.tsbuildinfo
 
 # generated native folders
-/ios
-/android
+ios
+android
 
 # AI tool settings (local only)
 .claude/
