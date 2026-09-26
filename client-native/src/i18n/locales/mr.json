@@ -1,167 +1,158 @@
 {
   "common": {
-    "tryAgain": "Try again",
-    "cancel": "Cancel",
-    "saveChanges": "Save changes",
-    "notAdded": "Not added",
-    "notAvailable": "Not available",
-    "goBack": "Go back",
-    "error": "Error"
+    "tryAgain": "पुन्हा प्रयत्न करा",
+    "cancel": "रद्द करा",
+    "saveChanges": "बदल सेव्ह करा",
+    "notAdded": "जोडलेले नाही",
+    "notAvailable": "उपलब्ध नाही",
+    "goBack": "मागे जा",
+    "error": "त्रुटी"
   },
   "errors": {
-    "generic": "Something went wrong. Please try again.",
-    "timeout": "The server took too long to respond.",
-    "network": "Can't reach the server at {{url}}. Is the backend running and on the same network?"
+    "generic": "काहीतरी चुकले. कृपया पुन्हा प्रयत्न करा.",
+    "timeout": "सर्व्हरने उत्तर द्यायला खूप वेळ घेतला.",
+    "network": "सर्व्हर {{url}} शी जोडता येत नाही. बॅकएंड चालू आहे आणि त्याच नेटवर्कवर आहे का?"
   },
-  "tabs": {
-    "home": "Home",
-    "bookings": "Bookings",
-    "messages": "Messages",
-    "profile": "Profile"
-  },
+  "tabs": { "home": "होम", "bookings": "बुकिंग", "messages": "संदेश", "profile": "प्रोफाइल" },
   "landing": {
-    "heading": "<b>Every Skill,</b>\nOne <b>App</b>",
-    "subtitle": "From quick fixes to big projects, find verified local professionals ready to help.",
-    "cta": "Get Started"
+    "heading": "<b>प्रत्येक कौशल्य,</b>\nएक <b>ॲप</b>",
+    "subtitle": "छोट्या दुरुस्तीपासून मोठ्या कामांपर्यंत, विश्वासार्ह स्थानिक कारागीर मदतीसाठी तयार आहेत.",
+    "cta": "सुरू करा"
   },
   "auth": {
-    "tagline": "Verified professionals, trusted services",
-    "login": "Login",
-    "signup": "Sign Up",
-    "loginDescription": "Welcome back! Sign in to continue.",
-    "signupDescription": "Create your account. We'll verify your identity with Aadhaar.",
-    "continueWithGoogle": "Continue with Google",
-    "signupWithGoogle": "Sign up with Google",
-    "loginA11y": "Login with Google",
-    "signupA11y": "Sign up with Google",
-    "signupNote": "🔐 New accounts verify their identity through DigiLocker",
-    "loginNote": "🔒 Your credentials are secured and never stored",
-    "terms": "By continuing, you agree to our <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>",
-    "failedTitle": "Authentication Failed",
-    "inProgress": "A sign-in is already in progress.",
-    "playServices": "Google Play Services is missing or out of date on this device.",
-    "misconfigured": "Google Sign-In is misconfigured for this build (check the Android OAuth client SHA-1).",
-    "noIdToken": "Google did not return an ID token."
+    "tagline": "पडताळलेले कारागीर, विश्वासार्ह सेवा",
+    "login": "लॉगिन",
+    "signup": "साइन अप",
+    "loginDescription": "पुन्हा स्वागत आहे! पुढे जाण्यासाठी साइन इन करा.",
+    "signupDescription": "तुमचे खाते तयार करा. आम्ही Aadhaar ने तुमची ओळख पडताळू.",
+    "continueWithGoogle": "Google ने पुढे जा",
+    "signupWithGoogle": "Google ने साइन अप करा",
+    "loginA11y": "Google ने लॉगिन करा",
+    "signupA11y": "Google ने साइन अप करा",
+    "signupNote": "🔐 नवीन खाती DigiLocker द्वारे ओळख पडताळतात",
+    "loginNote": "🔒 तुमची माहिती सुरक्षित आहे आणि कधीही साठवली जात नाही",
+    "terms": "पुढे जाऊन तुम्ही आमच्या <terms>सेवा अटी</terms> आणि <privacy>गोपनीयता धोरणाला</privacy> सहमती देता",
+    "failedTitle": "लॉगिन होऊ शकले नाही",
+    "inProgress": "एक साइन-इन आधीच सुरू आहे.",
+    "playServices": "या फोनमध्ये Google Play सेवा नाहीत किंवा जुन्या आहेत.",
+    "misconfigured": "या बिल्डमध्ये Google साइन-इन योग्यरित्या सेट नाही (Android OAuth क्लायंटचा SHA-1 तपासा).",
+    "noIdToken": "Google कडून ID टोकन मिळाला नाही."
   },
   "aadhaar": {
-    "title": "DigiLocker Verification",
-    "subtitle": "We securely verify your identity using the official Govt. of India DigiLocker service.",
-    "cardTitle": "Verify your identity",
-    "cardDescription": "You will be redirected to DigiLocker to authorize the sharing of your Aadhaar details securely.",
-    "privacy": "We do not store your full Aadhaar number. We strictly comply with UIDAI and Government data privacy guidelines.",
-    "verifyButton": "Verify with DigiLocker →",
-    "later": "I'll do this later",
-    "poweredBy": "Secured by Meon eKYC · UIDAI Authorized",
-    "startFailed": "Could not start DigiLocker verification.",
-    "verifying": "Verifying with DigiLocker…",
-    "verifyingBody": "Fetching your details securely. This takes a few seconds.",
-    "failedTitle": "Verification failed",
-    "fetchFailed": "Could not fetch your Aadhaar details.",
-    "startOver": "Start over"
+    "title": "DigiLocker पडताळणी",
+    "subtitle": "आम्ही भारत सरकारच्या अधिकृत DigiLocker सेवेद्वारे तुमची ओळख सुरक्षितपणे पडताळतो.",
+    "cardTitle": "तुमची ओळख पडताळा",
+    "cardDescription": "तुम्हाला DigiLocker वर नेले जाईल, जिथे तुम्ही तुमची Aadhaar माहिती सुरक्षितपणे शेअर करण्याची परवानगी द्याल.",
+    "privacy": "आम्ही तुमचा पूर्ण Aadhaar क्रमांक साठवत नाही. आम्ही UIDAI आणि सरकारच्या डेटा गोपनीयता नियमांचे काटेकोर पालन करतो.",
+    "verifyButton": "DigiLocker ने पडताळा →",
+    "later": "मी हे नंतर करेन",
+    "poweredBy": "Meon eKYC द्वारे सुरक्षित · UIDAI अधिकृत",
+    "startFailed": "DigiLocker पडताळणी सुरू होऊ शकली नाही.",
+    "verifying": "DigiLocker ने पडताळणी सुरू आहे…",
+    "verifyingBody": "तुमची माहिती सुरक्षितपणे आणली जात आहे. यासाठी काही सेकंद लागतील.",
+    "failedTitle": "पडताळणी होऊ शकली नाही",
+    "fetchFailed": "तुमची Aadhaar माहिती मिळू शकली नाही.",
+    "startOver": "पुन्हा सुरू करा"
   },
   "home": {
-    "yourLocation": "Your location",
-    "setLocation": "Set your location",
-    "locationA11y": "Location: {{location}}. Change",
-    "notifications": "Notifications",
-    "profile": "Profile",
-    "createJob": "Create a new job",
-    "createJobBody": "Describe the work, we find nearby workers",
-    "mostBooked": "Most booked",
-    "bookA11y": "Book {{name}}",
-    "trending": "Trending",
-    "bookAgain": "Book again",
-    "bookAgainEmpty": "Services you book will show up here so you can rebook in one tap."
+    "yourLocation": "तुमचे ठिकाण",
+    "setLocation": "तुमचे ठिकाण निवडा",
+    "locationA11y": "ठिकाण: {{location}}. बदला",
+    "notifications": "सूचना",
+    "profile": "प्रोफाइल",
+    "createJob": "नवीन काम पोस्ट करा",
+    "createJobBody": "काम सांगा, आम्ही जवळचे कारागीर शोधू",
+    "mostBooked": "सर्वाधिक बुक केलेले",
+    "bookA11y": "{{name}} बुक करा",
+    "trending": "ट्रेंडिंग",
+    "bookAgain": "पुन्हा बुक करा",
+    "bookAgainEmpty": "तुम्ही बुक केलेल्या सेवा इथे दिसतील, म्हणजे एका टॅपमध्ये पुन्हा बुक करता येईल."
   },
   "banners": {
     "emergency": {
-      "title": "Emergency repairs",
-      "body": "Power cut or a burst pipe? Get a verified worker at your door fast.",
-      "cta": "Book now"
+      "title": "तातडीची दुरुस्ती",
+      "body": "वीज गेली किंवा पाईप फुटला? पडताळलेला कारागीर लगेच तुमच्या दारात बोलवा.",
+      "cta": "आता बुक करा"
     },
     "deep-clean": {
-      "title": "Festive deep cleaning",
-      "body": "Whole-home cleaning by cooperative teams, priced fairly.",
-      "cta": "Book cleaning"
+      "title": "सणासुदीची संपूर्ण साफसफाई",
+      "body": "सहकारी टीमकडून संपूर्ण घराची साफसफाई, योग्य दरात.",
+      "cta": "साफसफाई बुक करा"
     },
     "verified": {
-      "title": "Every worker is verified",
-      "body": "Cooperative members with checked identity and fair wages.",
-      "cta": "Find a worker"
+      "title": "प्रत्येक कारागीर पडताळलेला आहे",
+      "body": "तपासलेली ओळख आणि योग्य मजुरी असलेले सहकारी सदस्य.",
+      "cta": "कारागीर शोधा"
     }
   },
   "bookings": {
-    "title": "Bookings",
-    "emptyTitle": "No bookings yet",
-    "emptyBody": "Jobs you post and the workers you book will appear here.",
-    "createJob": "Create a new job"
+    "title": "बुकिंग",
+    "emptyTitle": "अजून कोणतेही बुकिंग नाही",
+    "emptyBody": "तुम्ही पोस्ट केलेली कामे आणि बुक केलेले कारागीर इथे दिसतील.",
+    "createJob": "नवीन काम पोस्ट करा"
   },
   "messages": {
-    "title": "Messages",
-    "emptyTitle": "No messages yet",
-    "emptyBody": "Once a worker accepts your job, you can chat with them here."
+    "title": "संदेश",
+    "emptyTitle": "अजून कोणतेही संदेश नाहीत",
+    "emptyBody": "एखाद्या कारागिराने तुमचे काम स्वीकारल्यावर तुम्ही इथे त्यांच्याशी बोलू शकाल."
   },
   "notifications": {
-    "title": "Notifications",
-    "emptyTitle": "You're all caught up",
-    "emptyBody": "Updates about your jobs, workers and payments will show up here."
+    "title": "सूचना",
+    "emptyTitle": "नवीन सूचना नाहीत",
+    "emptyBody": "तुमची कामे, कारागीर आणि पेमेंटबद्दलची माहिती इथे दिसेल."
   },
   "createJob": {
-    "title": "New job",
-    "comingTitle": "Job posting is coming next",
-    "comingBody": "You'll describe the work here and we'll match you with verified workers nearby."
+    "title": "नवीन काम",
+    "comingTitle": "काम पोस्ट करण्याची सुविधा लवकरच",
+    "comingBody": "इथे तुम्ही काम सांगाल आणि आम्ही तुम्हाला जवळच्या पडताळलेल्या कारागिरांशी जोडू."
   },
   "profile": {
-    "title": "Profile",
-    "edit": "Edit",
-    "addName": "Add your name",
-    "completeTitle": "Complete your profile",
-    "completeCount": "{{done}} of {{total}}",
-    "completeBody": "Add your phone number and address so workers can find and reach you.",
-    "verifiedTitle": "Aadhaar verified",
-    "verifiedVia": "Verified via DigiLocker",
-    "verifiedOn": "Verified via DigiLocker on {{date}}",
-    "notVerifiedTitle": "Aadhaar not verified",
-    "notVerifiedManual": "Your details are self-declared. Verify with DigiLocker to confirm them and get a verified badge.",
-    "notVerifiedEmpty": "Verify with DigiLocker to get a verified badge, or add your details manually for now.",
-    "verifyButton": "Verify with DigiLocker",
-    "enterManually": "Enter details manually",
-    "tagAadhaar": "From Aadhaar",
-    "tagSelf": "Self-declared",
-    "personal": "Personal details",
-    "contact": "Contact",
-    "preferences": "Preferences",
-    "fullName": "Full name",
-    "dob": "Date of birth",
-    "gender": "Gender",
-    "address": "Address",
-    "mobile": "Mobile number",
-    "city": "City",
-    "pincode": "PIN code",
-    "appLanguage": "App language",
-    "signOut": "Sign out",
-    "signOutConfirm": "Are you sure you want to sign out?",
-    "memberSince": "Member since {{date}}"
+    "title": "प्रोफाइल",
+    "edit": "बदला",
+    "addName": "तुमचे नाव जोडा",
+    "completeTitle": "तुमचे प्रोफाइल पूर्ण करा",
+    "completeCount": "{{total}} पैकी {{done}}",
+    "completeBody": "तुमचा फोन नंबर आणि पत्ता जोडा म्हणजे कारागीर तुम्हाला शोधू आणि संपर्क करू शकतील.",
+    "verifiedTitle": "Aadhaar पडताळलेले",
+    "verifiedVia": "DigiLocker द्वारे पडताळलेले",
+    "verifiedOn": "{{date}} रोजी DigiLocker द्वारे पडताळलेले",
+    "notVerifiedTitle": "Aadhaar पडताळलेले नाही",
+    "notVerifiedManual": "तुमची माहिती स्वतः दिलेली आहे. खात्री करण्यासाठी आणि पडताळणी बॅज मिळवण्यासाठी DigiLocker ने पडताळा.",
+    "notVerifiedEmpty": "पडताळणी बॅज मिळवण्यासाठी DigiLocker ने पडताळा, किंवा सध्या तुमची माहिती स्वतः भरा.",
+    "verifyButton": "DigiLocker ने पडताळा",
+    "enterManually": "माहिती स्वतः भरा",
+    "tagAadhaar": "Aadhaar मधून",
+    "tagSelf": "स्वतः दिलेली",
+    "personal": "वैयक्तिक माहिती",
+    "contact": "संपर्क",
+    "preferences": "पसंती",
+    "fullName": "पूर्ण नाव",
+    "dob": "जन्मतारीख",
+    "gender": "लिंग",
+    "address": "पत्ता",
+    "mobile": "मोबाईल नंबर",
+    "city": "शहर",
+    "pincode": "पिन कोड",
+    "appLanguage": "ॲपची भाषा",
+    "signOut": "साइन आउट",
+    "signOutConfirm": "तुम्हाला नक्की साइन आउट करायचे आहे का?",
+    "memberSince": "{{date}} पासून सदस्य"
   },
   "editProfile": {
-    "title": "Edit profile",
-    "verifiedNote": "These details are verified from your Aadhaar and can't be edited.",
-    "selfNote": "These details are self-declared until you verify with DigiLocker, which will replace them with your Aadhaar details.",
-    "namePlaceholder": "As on your government ID",
-    "dobPlaceholder": "DD/MM/YYYY",
-    "addressPlaceholder": "House no., street, area",
-    "mobilePlaceholder": "10-digit number",
-    "mobileHint": "Workers use this to reach you about a job.",
-    "cityPlaceholder": "e.g. Jaipur",
-    "saveFailed": "Could not save"
+    "title": "प्रोफाइल बदला",
+    "verifiedNote": "ही माहिती तुमच्या Aadhaar वरून पडताळलेली आहे आणि बदलता येत नाही.",
+    "selfNote": "DigiLocker ने पडताळणी होईपर्यंत ही माहिती स्वतः दिलेली मानली जाईल, नंतर ती तुमच्या Aadhaar माहितीने बदलली जाईल.",
+    "namePlaceholder": "सरकारी ओळखपत्रावर आहे तसे",
+    "dobPlaceholder": "दिवस/महिना/वर्ष",
+    "addressPlaceholder": "घर क्र., गल्ली, परिसर",
+    "mobilePlaceholder": "10 अंकी नंबर",
+    "mobileHint": "कारागीर कामाबद्दल तुमच्याशी याच नंबरवर संपर्क करतील.",
+    "cityPlaceholder": "उदा. पुणे",
+    "saveFailed": "सेव्ह होऊ शकले नाही"
   },
-  "gender": {
-    "M": "Male",
-    "F": "Female",
-    "T": "Transgender"
-  },
+  "gender": { "M": "पुरुष", "F": "स्त्री", "T": "तृतीयपंथी" },
   "language": {
-    "title": "App language",
-    "saveFailed": "Could not change the language. Please try again."
+    "title": "ॲपची भाषा",
+    "saveFailed": "भाषा बदलता आली नाही. कृपया पुन्हा प्रयत्न करा."
   }
 }
