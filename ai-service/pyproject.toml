@@ -14,3 +14,8 @@ asyncio_mode = "auto"
 testpaths = ["tests"]
 markers = ["live: calls real Vertex AI (needs credentials); run with -m live"]
 addopts = "-m 'not live'"
+
+[tool.ruff.lint.per-file-ignores]
+# Spoken sentences and test tables read better unwrapped.
+"app/agents/onboarding/messages.py" = ["E501"]
+"tests/*" = ["E501"]
