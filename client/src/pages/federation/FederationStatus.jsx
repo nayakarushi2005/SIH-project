@@ -24,6 +24,7 @@ export default function FederationStatus() {
   const initialFederation = location.state?.federation || null;
 
   const [federation, setFederation] = useState(initialFederation);
+  const [memberCount, setMemberCount] = useState(null);
   const [loading, setLoading] = useState(!initialFederation);
   const [error, setError] = useState(null);
 
@@ -38,6 +39,7 @@ export default function FederationStatus() {
       
       if (data.exists && data.federation) {
         setFederation(data.federation);
+        setMemberCount(data.memberCount ?? null);
       } else {
         throw new Error('No registered federation found for your account.');
       }
@@ -49,11 +51,12 @@ export default function FederationStatus() {
     }
   };
 
+  // Always refresh on open: status and connected-worker count change over time.
   useEffect(() => {
-    if (!federation && user?.email) {
+    if (user?.email) {
       fetchMyStatus();
     }
-  }, [federation, user?.email]);
+  }, [user?.email]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="min-h-screen bg-slate-950 text-white py-12 px-4 sm:px-6 lg:px-8">
@@ -166,12 +169,37 @@ export default function FederationStatus() {
               </div>
 
               <div className="flex justify-between items-center">
+                <span className="text-xs font-semibold text-slate-400 uppercase">Connected Workers:</span>
+                <span className="text-sm font-bold text-emerald-400 flex items-center gap-1.5">
+                  <Users className="w-3.5 h-3.5" /> {memberCount ?? '—'}
+                </span>
+              </div>
+
+              {(federation.city || federation.pincode) && (
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-semibold text-slate-400 uppercase">City / PIN:</span>
+                  <span className="text-sm text-slate-300">
+                    {[federation.city, federation.pincode].filter(Boolean).join(' · ')}
+                  </span>
+                </div>
+              )}
+
+              <div className="flex justify-between items-center">
                 <span className="text-xs font-semibold text-slate-400 uppercase">Fund Amount:</span>
                 <span className="text-sm font-bold text-emerald-400 flex items-center gap-1">
                   <IndianRupee className="w-3.5 h-3.5" /> ₹{federation.amount?.toLocaleString()}
                 </span>
               </div>
             </div>
+
+            {federation.status === 'verified' && (
+              <Link
+                to="/federation/workers"
+                className="block w-full text-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-blue-500/25"
+              >
+                Manage worker requests →
+              </Link>
+            )}
           </div>
         ) : (
           !loading && (
