@@ -27,6 +27,20 @@ function toProfile(user) {
     detailsSource: user.detailsSource,
     isAadhaarVerified: user.isAadhaarVerified,
     aadhaarVerifiedAt: user.aadhaarVerifiedAt,
+    isWorker: user.isWorker,
+    workerPromptDismissed: user.workerPromptDismissed,
+    worker: {
+      incomeBracket: user.worker?.incomeBracket ?? null,
+      categories: user.worker?.categories ?? [],
+      registeredAt: user.worker?.registeredAt ?? null,
+      deregisteredAt: user.worker?.deregisteredAt ?? null,
+      onboardedVia: user.worker?.onboardedVia ?? null,
+    },
+    location:
+      user.location?.coordinates?.length === 2
+        ? { lat: user.location.coordinates[1], lng: user.location.coordinates[0] }
+        : null,
+    locationUpdatedAt: user.locationUpdatedAt,
     createdAt: user.createdAt,
   };
 }
@@ -79,6 +93,24 @@ const validators = {
   },
 };
 
+// { lat, lng } from the app → GeoJSON Point, or null to clear.
+function parseLocation(raw) {
+  if (raw === null) return null;
+  const lat = Number(raw?.lat);
+  const lng = Number(raw?.lng);
+  const ok =
+    raw &&
+    typeof raw === 'object' &&
+    raw.lat !== undefined &&
+    raw.lng !== undefined &&
+    Number.isFinite(lat) &&
+    Number.isFinite(lng) &&
+    Math.abs(lat) <= 90 &&
+    Math.abs(lng) <= 180;
+  if (!ok) throw 'Could not read your location. Please try again.';
+  return { type: 'Point', coordinates: [lng, lat] };
+}
+
 /**
  * Validates a PATCH body against the user's current state.
  * Returns { updates, errors } — errors is keyed by field name.
@@ -91,6 +123,15 @@ function validateProfileUpdate(user, body) {
 
   const updates = {};
   const errors = {};
+
+  if (body && 'location' in body) {
+    try {
+      updates.location = parseLocation(body.location);
+      updates.locationUpdatedAt = updates.location ? new Date() : null;
+    } catch (message) {
+      errors.location = message;
+    }
+  }
 
   for (const [field, raw] of Object.entries(body || {})) {
     if (!validators[field]) continue; // ignore unknown keys
