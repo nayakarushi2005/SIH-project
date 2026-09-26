@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
+import { Sparkle } from 'lucide-react-native';
 import {
   GoogleSignin,
   isErrorWithCode,
@@ -22,7 +23,6 @@ import {
 import { getErrorMessage, googleSignIn } from '../services/api';
 import { saveSession } from '../services/session';
 
-// Configure Google Sign-In — webClientId from .env
 GoogleSignin.configure({
   webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
   offlineAccess: false,
@@ -41,7 +41,6 @@ function googleErrorMessage(err) {
         return 'Google Play Services is missing or out of date on this device.';
       case 'DEVELOPER_ERROR':
       case '10':
-        // Almost always a SHA-1 / package-name mismatch in Google Cloud Console.
         return 'Google Sign-In is misconfigured for this build (check the Android OAuth client SHA-1).';
     }
   }
@@ -49,9 +48,8 @@ function googleErrorMessage(err) {
 }
 
 export default function Auth() {
-  const [activeTab, setActiveTab] = useState('login'); // 'login' | 'signup'
+  const [activeTab, setActiveTab] = useState('login');
   const [loading, setLoading] = useState(false);
-  // Store Animated.Value in state to avoid accessing refs during render
   const [tabAnim] = useState(() => new Animated.Value(0));
 
   const switchTab = useCallback(
@@ -70,19 +68,24 @@ export default function Auth() {
   const { width } = useWindowDimensions();
   const router = useRouter();
 
-  // Derive interpolation
   const tabIndicatorLeft = tabAnim.interpolate({
     inputRange: [0, 1],
     outputRange: ['2%', '51%'],
   });
 
   const handleGoogleAuth = useCallback(async () => {
+    if (!process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID) {
+      Alert.alert(
+        'Google Sign-In not configured',
+        'EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID is missing from client-native/.env. Add it and restart Expo with --clear.'
+      );
+      return;
+    }
     setLoading(true);
     try {
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
       const response = await GoogleSignin.signIn();
 
-      // The user closed the account picker — not an error.
       if (!isSuccessResponse(response)) return;
 
       const idToken = response.data.idToken;
@@ -92,13 +95,11 @@ export default function Auth() {
       await saveSession(result.token, result.user);
 
       if (result.needsAadhaarVerification) {
-        // New user OR existing user without Aadhaar → go verify
         router.replace({
           pathname: '/aadhaar-verify',
           params: { isNewUser: result.isNewUser ? '1' : '0' },
         });
       } else {
-        // Returning verified user → straight to home
         router.replace('/home');
       }
     } catch (err) {
@@ -112,24 +113,20 @@ export default function Auth() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
 
-      {/* Background gradient blobs */}
       <View style={styles.blobTop} />
       <View style={styles.blobBottom} />
 
-      {/* Logo / Brand */}
       <View style={styles.brandSection}>
         <View style={styles.logoCircle}>
-          <Text style={styles.logoText}>✦</Text>
+          <Sparkle size={28} color="#fff" fill="#fff" />
         </View>
         <Text style={styles.brandName}>SIH Connect</Text>
         <Text style={styles.tagline}>Verified professionals, trusted services</Text>
       </View>
 
-      {/* Card */}
       <View style={[styles.card, { width: Math.min(width - 40, 400) }]}>
-        {/* Tab Switcher */}
         <View style={styles.tabContainer}>
           <Animated.View style={[styles.tabIndicator, { left: tabIndicatorLeft }]} />
           <Pressable
@@ -154,14 +151,12 @@ export default function Auth() {
           </Pressable>
         </View>
 
-        {/* Description */}
         <Text style={styles.description}>
           {activeTab === 'login'
             ? 'Welcome back! Sign in to continue.'
             : "Create your account. We'll verify your identity with Aadhaar."}
         </Text>
 
-        {/* Google Sign-In Button */}
         <Pressable
           style={({ pressed }) => [styles.googleButton, pressed && styles.googleButtonPressed]}
           onPress={handleGoogleAuth}
@@ -181,15 +176,13 @@ export default function Auth() {
           )}
         </Pressable>
 
-        {/* Info note */}
         <Text style={styles.note}>
           {activeTab === 'signup'
-            ? '🔐 New accounts verify their identity through DigiLocker'
-            : '🔒 Your credentials are secured and never stored'}
+            ? 'New accounts verify their identity through DigiLocker'
+            : 'Your credentials are secured and never stored'}
         </Text>
       </View>
 
-      {/* Terms */}
       <Text style={styles.terms}>
         By continuing, you agree to our{' '}
         <Text style={styles.termsLink}>Terms of Service</Text> and{' '}
@@ -202,13 +195,12 @@ export default function Auth() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0d0d1a',
+    backgroundColor: '#ffffff',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 20,
   },
 
-  // ── Decorative blobs ─────────────────────────────────────────────────────
   blobTop: {
     position: 'absolute',
     top: -100,
@@ -230,7 +222,6 @@ const styles = StyleSheet.create({
     opacity: 0.12,
   },
 
-  // ── Brand section ────────────────────────────────────────────────────────
   brandSection: {
     alignItems: 'center',
     marginBottom: 40,
@@ -249,14 +240,10 @@ const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 12,
   },
-  logoText: {
-    fontSize: 28,
-    color: '#fff',
-  },
   brandName: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#ffffff',
+    color: '#1a1a2e',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
@@ -266,20 +253,18 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // ── Card ────────────────────────────────────────────────────────────────
   card: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: 'rgba(0,0,0,0.05)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: 'rgba(0,0,0,0.08)',
     borderRadius: 24,
     padding: 24,
     alignSelf: 'center',
   },
 
-  // ── Tab switcher ─────────────────────────────────────────────────────────
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: 'rgba(0,0,0,0.08)',
     borderRadius: 12,
     padding: 3,
     marginBottom: 24,
@@ -308,7 +293,6 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
 
-  // ── Description ──────────────────────────────────────────────────────────
   description: {
     fontSize: 14,
     color: '#aaaacc',
@@ -317,7 +301,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 
-  // ── Google button ────────────────────────────────────────────────────────
   googleButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -349,7 +332,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
 
-  // ── Note ─────────────────────────────────────────────────────────────────
   note: {
     marginTop: 16,
     fontSize: 12,
@@ -358,7 +340,6 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
 
-  // ── Terms ─────────────────────────────────────────────────────────────────
   terms: {
     marginTop: 28,
     fontSize: 11,

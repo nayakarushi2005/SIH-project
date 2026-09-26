@@ -1,15 +1,8 @@
-/**
- * Profile helpers shared by the auth routes: one place that decides what a
- * user looks like to the app, and what the app is allowed to change.
- */
-
 const LANGUAGES = ['en', 'hi', 'mr', 'bn', 'ta', 'te'];
 
-// Filled in by DigiLocker once verified; editable by hand only before that.
 const IDENTITY_FIELDS = ['name', 'dob', 'gender', 'address'];
 const CONTACT_FIELDS = ['phone', 'city', 'pincode', 'preferredLanguage'];
 
-/** Shape returned to the app for the signed-in user. */
 function toProfile(user) {
   return {
     id: user._id,
@@ -41,8 +34,6 @@ function isValidDob(value) {
   return isRealDate && y >= 1900 && date < new Date();
 }
 
-// Each validator gets a trimmed, non-empty string and returns the value to
-// store, or throws a message for the user.
 const validators = {
   name(v) {
     if (!/^[\p{L}\p{M} .'-]{2,80}$/u.test(v)) throw 'Enter your full name (letters only).';
@@ -79,11 +70,6 @@ const validators = {
   },
 };
 
-/**
- * Validates a PATCH body against the user's current state.
- * Returns { updates, errors } — errors is keyed by field name.
- * Empty strings / null clear a field.
- */
 function validateProfileUpdate(user, body) {
   const editable = user.isAadhaarVerified
     ? CONTACT_FIELDS
@@ -93,7 +79,7 @@ function validateProfileUpdate(user, body) {
   const errors = {};
 
   for (const [field, raw] of Object.entries(body || {})) {
-    if (!validators[field]) continue; // ignore unknown keys
+    if (!validators[field]) continue;
     if (!editable.includes(field)) {
       errors[field] = 'Verified from Aadhaar — this can’t be changed.';
       continue;

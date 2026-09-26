@@ -1,10 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-/**
- * Middleware to verify JWT token from Authorization header.
- * Attaches `req.user` with the MongoDB user document on success.
- */
 async function verifyToken(req, res, next) {
   const authHeader = req.headers.authorization;
 

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 import { getErrorMessage, isUnauthorized, verifyDigilocker } from '../services/api';
 import {
@@ -13,9 +14,6 @@ import {
   saveUser,
 } from '../services/session';
 
-// Opened by the sihconnect://aadhaar-callback deep link once the user
-// finishes on DigiLocker. Reads the handshake saved by aadhaar-verify.js,
-// asks the backend to fetch the KYC data, then moves on to the home screen.
 export default function AadhaarCallback() {
   const router = useRouter();
   const [error, setError] = useState(null);
@@ -26,7 +24,6 @@ export default function AadhaarCallback() {
     try {
       const pending = await getPendingDigilocker();
       if (!pending) {
-        // Link opened without a verification in flight (e.g. tapped twice).
         router.replace('/aadhaar-verify');
         return;
       }
@@ -47,8 +44,6 @@ export default function AadhaarCallback() {
   }, [router]);
 
   useEffect(() => {
-    // Guard against the effect firing twice (dev StrictMode) — the
-    // DigiLocker handshake can only be redeemed once.
     if (started.current) return;
     started.current = true;
     runVerification();
@@ -61,11 +56,11 @@ export default function AadhaarCallback() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
 
       {error ? (
         <View style={styles.card}>
-          <Text style={styles.icon}>⚠️</Text>
+          <Ionicons name="warning" size={36} color="#F59E0B" />
           <Text style={styles.title}>Verification failed</Text>
           <Text style={styles.message}>{error}</Text>
 
@@ -98,7 +93,7 @@ export default function AadhaarCallback() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0d0d1a',
+    backgroundColor: '#ffffff',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 20,
@@ -108,14 +103,13 @@ const styles = StyleSheet.create({
     maxWidth: 400,
     alignItems: 'center',
     gap: 12,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: 'rgba(0,0,0,0.04)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.09)',
+    borderColor: 'rgba(0,0,0,0.09)',
     borderRadius: 24,
     padding: 24,
   },
-  icon: { fontSize: 36 },
-  title: { fontSize: 20, fontWeight: '700', color: '#ffffff', textAlign: 'center' },
+  title: { fontSize: 20, fontWeight: '700', color: '#1a1a2e', textAlign: 'center' },
   message: { fontSize: 14, color: '#9999bb', lineHeight: 20, textAlign: 'center' },
   primaryButton: {
     alignSelf: 'stretch',

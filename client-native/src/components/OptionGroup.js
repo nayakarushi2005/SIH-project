@@ -1,9 +1,10 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
-import { colors, radius, spacing, typography } from '../constants/theme';
+import { radius, spacing, typography } from '../constants/theme';
+import { makeStyles } from '../hooks/useTheme';
 
-/** Single-select row of chips. options: [{ value, label }]. */
 export default function OptionGroup({ label, options, value, onChange, error }) {
+  const styles = useStyles();
   return (
     <View style={styles.wrapper}>
       <Text style={styles.label}>{label}</Text>
@@ -34,7 +35,7 @@ export default function OptionGroup({ label, options, value, onChange, error }) 
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   wrapper: {
     marginBottom: spacing.md,
   },
@@ -78,4 +79,4 @@ const styles = StyleSheet.create({
     color: colors.danger,
     marginTop: spacing.xs,
   },
-});
+}));

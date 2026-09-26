@@ -1,13 +1,15 @@
 import { forwardRef, useState } from 'react';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { Text, TextInput, View } from 'react-native';
 
-import { colors, radius, spacing, typography } from '../constants/theme';
+import { radius, spacing, typography } from '../constants/theme';
+import { makeStyles, useTheme } from '../hooks/useTheme';
 
-/** Labelled text input with optional prefix, hint and error message. */
 const TextField = forwardRef(function TextField(
-  { label, error, hint, prefix, style, multiline, ...inputProps },
+  { label, error, hint, prefix, suffix, style, multiline, ...inputProps },
   ref
 ) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const [focused, setFocused] = useState(false);
 
   return (
@@ -32,6 +34,7 @@ const TextField = forwardRef(function TextField(
           accessibilityLabel={label}
           {...inputProps}
         />
+        {suffix}
       </View>
       {error ? (
         <Text style={styles.error}>{error}</Text>
@@ -44,7 +47,7 @@ const TextField = forwardRef(function TextField(
 
 export default TextField;
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   wrapper: {
     marginBottom: spacing.md,
   },
@@ -102,4 +105,4 @@ const styles = StyleSheet.create({
     color: colors.danger,
     marginTop: spacing.xs,
   },
-});
+}));

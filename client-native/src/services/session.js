@@ -1,11 +1,15 @@
 import * as SecureStore from 'expo-secure-store';
 
-// All SecureStore keys live here so screens never disagree on names.
 const KEYS = {
   token: 'authToken',
   user: 'user',
   pendingDigilocker: 'pendingDigilocker',
+  recentJobs: 'recentJobs',
+  workerMode: 'workerMode',
+  theme: 'theme',
 };
+
+const RECENT_JOBS_LIMIT = 4;
 
 async function readJSON(key) {
   const raw = await SecureStore.getItemAsync(key);
@@ -13,7 +17,6 @@ async function readJSON(key) {
   try {
     return JSON.parse(raw);
   } catch {
-    // Corrupt entry — drop it rather than crash every screen that reads it.
     await SecureStore.deleteItemAsync(key);
     return null;
   }
@@ -38,13 +41,12 @@ export async function saveSession(token, user) {
 
 export async function clearSession() {
   await Promise.all(
-    Object.values(KEYS).map((key) => SecureStore.deleteItemAsync(key))
+    Object.values(KEYS)
+      .filter((key) => key !== KEYS.theme)
+      .map((key) => SecureStore.deleteItemAsync(key))
   );
 }
 
-// The DigiLocker flow leaves the app for the browser, and Android may kill
-// the app while it's in the background. Persisting the handshake lets the
-// callback screen finish verification even after a cold start.
 export function savePendingDigilocker({ clientToken, state }) {
   return SecureStore.setItemAsync(
     KEYS.pendingDigilocker,
@@ -58,4 +60,33 @@ export function getPendingDigilocker() {
 
 export function clearPendingDigilocker() {
   return SecureStore.deleteItemAsync(KEYS.pendingDigilocker);
+}
+
+export async function getRecentJobs() {
+  const jobs = await readJSON(KEYS.recentJobs);
+  return Array.isArray(jobs) ? jobs : [];
+}
+
+export async function addRecentJob(job) {
+  const entry = { ...job, updatedAt: Date.now() };
+  const others = (await getRecentJobs()).filter((j) => j.id !== job.id);
+  const jobs = [entry, ...others].slice(0, RECENT_JOBS_LIMIT);
+  await SecureStore.setItemAsync(KEYS.recentJobs, JSON.stringify(jobs));
+  return jobs;
+}
+
+export async function getWorkerMode() {
+  return (await SecureStore.getItemAsync(KEYS.workerMode)) === 'on';
+}
+
+export function setWorkerMode(enabled) {
+  return SecureStore.setItemAsync(KEYS.workerMode, enabled ? 'on' : 'off');
+}
+
+export async function getThemePreference() {
+  return (await SecureStore.getItemAsync(KEYS.theme)) ?? 'light';
+}
+
+export function setThemePreference(value) {
+  return SecureStore.setItemAsync(KEYS.theme, value);
 }

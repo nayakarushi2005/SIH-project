@@ -1,10 +1,10 @@
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, Text, View } from 'react-native';
 
-import { colors } from '../constants/theme';
+import { makeStyles } from '../hooks/useTheme';
 import { initialsOf } from '../utils/profile';
 
-/** Round profile picture, falling back to the user's initials. */
 export default function Avatar({ user, size = 40 }) {
+  const styles = useStyles();
   const shape = { width: size, height: size, borderRadius: size / 2 };
 
   if (user?.googleAvatar) {
@@ -18,7 +18,7 @@ export default function Avatar({ user, size = 40 }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   image: {
     backgroundColor: colors.surface,
   },
@@ -31,4 +31,4 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.primary,
   },
-});
+}));

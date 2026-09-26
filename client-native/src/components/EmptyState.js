@@ -1,13 +1,12 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { colors, radius, spacing, typography } from '../constants/theme';
+import { radius, spacing, typography } from '../constants/theme';
+import { makeStyles, useTheme } from '../hooks/useTheme';
 
-/**
- * Placeholder for screens or sections with nothing to show yet.
- * `compact` renders an inline bordered row instead of a centred block.
- */
 export default function EmptyState({ icon, title, body, compact = false, children }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   if (compact) {
     return (
       <View style={styles.compact}>
@@ -29,7 +28,7 @@ export default function EmptyState({ icon, title, body, compact = false, childre
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   block: {
     flex: 1,
     alignItems: 'center',
@@ -73,4 +72,4 @@ const styles = StyleSheet.create({
     flex: 1,
     color: colors.textMuted,
   },
-});
+}));
