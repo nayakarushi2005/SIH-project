@@ -41,10 +41,15 @@ api.interceptors.request.use(async (config) => {
 
 /**
  * Turns an axios/network error into a message fit for an Alert.
- * The backend responds with { error: '...' } on failure.
+ * The backend responds with { error, code?, params? } on failure; a known
+ * code is translated, otherwise the server's own message is shown as-is.
  */
 export function getErrorMessage(err, fallback) {
-  if (err?.response?.data?.error) return err.response.data.error;
+  const data = err?.response?.data;
+  if (data?.code && i18n.exists(`serverErrors.${data.code}`)) {
+    return i18n.t(`serverErrors.${data.code}`, data.params || {});
+  }
+  if (data?.error) return data.error;
   if (err?.code === 'ECONNABORTED') return i18n.t('errors.timeout');
   if (err?.message === 'Network Error') {
     return i18n.t('errors.network', { url: API_BASE_URL });
@@ -149,9 +154,23 @@ export async function leaveFederation() {
   return res.data;
 }
 
-/** Per-field validation messages from a failed updateMe, registerWorker or createJob, or {}. */
+/**
+ * Per-field validation messages from a failed updateMe, registerWorker or
+ * createJob, or {}. A field with a known code is translated; otherwise the
+ * server's own message is used.
+ */
 export function getFieldErrors(err) {
-  return err?.response?.data?.fields || {};
+  const data = err?.response?.data;
+  const fields = data?.fields || {};
+  const result = {};
+  for (const [field, message] of Object.entries(fields)) {
+    const code = data?.fieldCodes?.[field];
+    result[field] =
+      code && i18n.exists(`serverErrors.${code}`)
+        ? i18n.t(`serverErrors.${code}`, data?.fieldParams?.[field] || {})
+        : message;
+  }
+  return result;
 }
 
 // ── Job API calls ────────────────────────────────────────────────────────────
@@ -176,7 +195,7 @@ export async function uploadJobPhoto({ uri }) {
   const res = await fetch(sig.uploadUrl, { method: 'POST', body: form });
   const body = await res.json().catch(() => null);
   if (!res.ok || !body?.secure_url) {
-    throw new Error(body?.error?.message || 'Photo upload failed.');
+    throw new Error(body?.error?.message || i18n.t('errors.photoUpload'));
   }
   return body.secure_url;
 }

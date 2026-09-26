@@ -11,7 +11,8 @@
   "errors": {
     "generic": "Something went wrong. Please try again.",
     "timeout": "The server took too long to respond.",
-    "network": "Can't reach the server at {{url}}. Is the backend running and on the same network?"
+    "network": "Can't reach the server at {{url}}. Is the backend running and on the same network?",
+    "photoUpload": "Photo upload failed."
   },
   "tabs": {
     "home": "Home",
@@ -271,5 +272,122 @@
   "workerMode": {
     "title": "Worker mode",
     "subtitle": "Go online and take jobs near you"
+  },
+  "serverErrors": {
+    "validation": "Please fix the highlighted fields.",
+    "job_category_required": "Choose a service.",
+    "job_description_length": "Describe the work in 10–500 characters.",
+    "job_photos_required": "Add at least one photo of the work.",
+    "job_photos_max": "Add at most {{max}} photos.",
+    "job_photos_invalid": "A photo didn't upload correctly. Please remove it and add it again.",
+    "job_price_range": "Enter a price between ₹50 and ₹1,00,000.",
+    "job_duration_range": "Enter a duration between 15 minutes and 7 days.",
+    "job_address_length": "Enter the address in 5–300 characters.",
+    "job_location_invalid": "We couldn't read your location. Please allow location access.",
+    "job_language_invalid": "Unsupported language.",
+    "job_not_found": "Job not found.",
+    "job_unavailable": "This job is no longer available.",
+    "job_cannot_start": "This job can't be started.",
+    "job_start_code_wrong": "Wrong code. Tries left: {{left}}.",
+    "job_start_code_too_many": "Too many wrong codes. Withdraw from this job so another worker can be found.",
+    "job_cannot_complete": "Only a job in progress can be completed.",
+    "job_cannot_withdraw": "You can only withdraw from a job you haven't started.",
+    "job_cannot_cancel": "This job can no longer be cancelled.",
+    "job_create_failed": "Could not post your job.",
+    "job_load_failed": "Could not load the job.",
+    "job_update_failed": "Could not update the job. Please try again.",
+    "feedback_already": "You've already rated this job.",
+    "feedback_not_completed": "You can rate the worker once the job is completed.",
+    "worker_busy": "Finish your current job before accepting another.",
+    "worker_not_registered": "Not registered as a worker.",
+    "offer_closed": "This offer is no longer open.",
+    "worker_name_required": "Enter your full name.",
+    "worker_income_required": "Choose your yearly income.",
+    "worker_categories_required": "Choose at least one kind of work.",
+    "worker_categories_max": "Choose up to {{max}} kinds of work.",
+    "worker_categories_unavailable": "Some of the chosen work types are not available.",
+    "profile_name_invalid": "Enter your full name (letters only).",
+    "profile_dob_invalid": "Enter a valid date as DD/MM/YYYY.",
+    "profile_gender_invalid": "Choose a gender.",
+    "profile_address_length": "Enter your full address.",
+    "profile_phone_invalid": "Enter a valid 10-digit mobile number.",
+    "profile_city_length": "Enter your city.",
+    "profile_pincode_invalid": "Enter a valid 6-digit PIN code.",
+    "profile_language_invalid": "Choose a supported language.",
+    "profile_location_invalid": "Could not read your location. Please try again.",
+    "profile_identity_locked": "Verified from Aadhaar — this can't be changed.",
+    "feedback_rating_invalid": "Choose a rating from 1 to 5 stars.",
+    "feedback_praised_invalid": "Choose what went well from the list.",
+    "feedback_criticized_invalid": "Choose what could be better from the list.",
+    "feedback_traits_conflict": "Something can't be both good and bad — pick one.",
+    "feedback_rehire_invalid": "Answer yes or no.",
+    "feedback_comment_length": "Keep your comment under 500 characters.",
+    "busy": "Still working on your last answer.",
+    "finished": "This conversation is already finished.",
+    "not_found": "This conversation has ended. Please start again.",
+    "forbidden": "This conversation belongs to someone else.",
+    "rate_limited": "Too many requests. Please slow down.",
+    "backend_unavailable": "The app server is not reachable right now. Please try again.",
+    "unauthorized": "Please sign in again."
+  },
+  "durations": {
+    "m30": "30 min",
+    "h1": "1 hr",
+    "h2": "2 hrs",
+    "halfDay": "Half day",
+    "fullDay": "Full day",
+    "d2": "2 days",
+    "minutes": "{{n}} min",
+    "hours": "{{n}} hrs",
+    "days": "{{n}} days"
+  },
+  "distance": {
+    "m": "{{n}} m",
+    "km": "{{n}} km"
+  },
+  "jobStatus": {
+    "SEARCHING": "Finding a worker",
+    "ASSIGNED": "Worker assigned",
+    "IN_PROGRESS": "In progress",
+    "COMPLETED": "Completed",
+    "CANCELLED": "Cancelled",
+    "EXPIRED": "No worker found"
+  },
+  "traits": {
+    "punctual": {
+      "good": "On time",
+      "bad": "Came late",
+      "improve": "Being on time"
+    },
+    "quality": {
+      "good": "Great work",
+      "bad": "Poor quality work",
+      "improve": "Quality of work"
+    },
+    "clean": {
+      "good": "Left it clean",
+      "bad": "Left a mess",
+      "improve": "Cleaning up after work"
+    },
+    "fair_price": {
+      "good": "Fair price",
+      "bad": "Asked for extra money",
+      "improve": "Fair, upfront pricing"
+    },
+    "polite": {
+      "good": "Polite & respectful",
+      "bad": "Rude behaviour",
+      "improve": "Behaviour with clients"
+    },
+    "communication": {
+      "good": "Explained clearly",
+      "bad": "Didn't explain the work",
+      "improve": "Explaining the work"
+    },
+    "safety": {
+      "good": "Worked safely",
+      "bad": "Unsafe practices",
+      "improve": "Safe work practices"
+    }
   }
 }
