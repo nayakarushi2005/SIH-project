@@ -163,5 +163,12 @@
   "language": {
     "title": "App language",
     "saveFailed": "Could not change the language. Please try again."
+  },
+  "worker": {
+    "promptTitle": "Looking for work?",
+    "promptBody": "Register as a worker to get jobs near you. It takes two minutes and is free.",
+    "promptRegister": "Register as a worker",
+    "promptNotWorker": "I'm not a worker",
+    "promptClose": "Close"
   }
 }
