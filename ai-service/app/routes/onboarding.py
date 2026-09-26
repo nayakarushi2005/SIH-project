@@ -5,6 +5,7 @@ POST /v1/onboarding/sessions/{sid}/turns   {transcript} or {selection} → next 
 GET  /v1/onboarding/sessions/{sid}         last thing said (resume)
 """
 
+import asyncio
 import time
 from uuid import uuid4
 
@@ -23,6 +24,18 @@ router = APIRouter(prefix="/v1/onboarding")
 
 def _now() -> float:
     return time.time()
+
+
+# One turn at a time per conversation: a second request while one is running
+# (double tap, retry) gets 409 instead of racing and losing an answer.
+_locks: dict[str, asyncio.Lock] = {}
+
+
+def session_lock(sid: str) -> asyncio.Lock:
+    if len(_locks) > 10_000:  # drop idle locks
+        for key in [k for k, lock in _locks.items() if not lock.locked()]:
+            del _locks[key]
+    return _locks.setdefault(sid, asyncio.Lock())
 
 
 class TurnIn(BaseModel):
@@ -72,6 +85,7 @@ async def start_session(request: Request, user: dict = Depends(current_user)):
         options = []  # no location / backend hiccup → skip the federation step
     sid = uuid4().hex
     state = {**initial_state(user, options, now=_now()), "turn": {"kind": "start"}}
+    await request.app.state.catalogs.get(state["lang"])
     values = await request.app.state.graph.ainvoke(state, _config(sid))
     return {"sessionId": sid, **_output(values)}
 
@@ -79,14 +93,21 @@ async def start_session(request: Request, user: dict = Depends(current_user)):
 @router.post("/sessions/{sid}/turns")
 async def take_turn(sid: str, body: TurnIn, request: Request, user: dict = Depends(current_user)):
     request.app.state.limiter.check(str(user["id"]))
-    values = await _load(request, sid, user)
-    if values.get("done") or values.get("handoff"):
-        raise ServiceError(409, "This conversation is already finished.", "finished")
-    if body.transcript is not None:
-        turn = {"kind": "speech", "transcript": body.transcript}
-    else:
-        turn = {"kind": "tap", "selection": body.selection}
-    values = await request.app.state.graph.ainvoke({"turn": turn}, _config(sid))
+    lock = session_lock(sid)
+    if lock.locked():
+        raise ServiceError(409, "Still working on your last answer.", "busy")
+    async with lock:
+        values = await _load(request, sid, user)
+        if values.get("done") or values.get("handoff"):
+            raise ServiceError(409, "This conversation is already finished.", "finished")
+        # Fetch the catalogue first: if the backend is down we fail here,
+        # before the graph has changed anything.
+        await request.app.state.catalogs.get(values["lang"])
+        if body.transcript is not None:
+            turn = {"kind": "speech", "transcript": body.transcript}
+        else:
+            turn = {"kind": "tap", "selection": body.selection}
+        values = await request.app.state.graph.ainvoke({"turn": turn}, _config(sid))
     return _output(values)
 
 
