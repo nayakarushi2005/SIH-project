@@ -65,12 +65,31 @@ function DetailRow({ label, value, last, onPress }) {
   );
 }
 
-function Section({ title, tag, children }) {
+/**
+ * A titled card. `onEdit` shows an Edit button; `locked` shows a lock
+ * instead (details verified from Aadhaar can't be changed).
+ */
+function Section({ title, tag, onEdit, locked, children }) {
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>{title}</Text>
-        {tag ? <Text style={styles.sectionTag}>{tag}</Text> : null}
+        <View style={styles.sectionRight}>
+          {locked ? <Ionicons name="lock-closed" size={13} color={colors.textMuted} /> : null}
+          {tag ? <Text style={styles.sectionTag}>{tag}</Text> : null}
+          {onEdit && !locked ? (
+            <Pressable
+              onPress={onEdit}
+              hitSlop={spacing.sm}
+              style={styles.sectionEdit}
+              accessibilityRole="button"
+              accessibilityLabel={`${i18n.t('profile.edit')}: ${title}`}
+            >
+              <Ionicons name="create-outline" size={15} color={colors.primary} />
+              <Text style={styles.sectionEditText}>{i18n.t('profile.edit')}</Text>
+            </Pressable>
+          ) : null}
+        </View>
       </View>
       <View style={styles.sectionBody}>{children}</View>
     </View>
@@ -240,7 +259,7 @@ export default function Profile() {
         )}
 
         {/* ── Details ────────────────────────────────────────────────── */}
-        <Section title={t('profile.personal')} tag={identityTag}>
+        <Section title={t('profile.personal')} tag={identityTag} locked={verified} onEdit={goToEdit}>
           <DetailRow label={t('profile.fullName')} value={user.name} />
           <DetailRow label={t('profile.dob')} value={formatDOB(user.dob)} />
           <DetailRow label={t('profile.gender')} value={genderLabel(user.gender)} />
@@ -274,7 +293,7 @@ export default function Profile() {
           </Section>
         ) : null}
 
-        <Section title={t('profile.contact')}>
+        <Section title={t('profile.contact')} onEdit={goToEdit}>
           <DetailRow label={t('profile.mobile')} value={formatPhone(user.phone)} />
           <DetailRow label={t('profile.city')} value={user.city} />
           <DetailRow label={t('profile.pincode')} value={user.pincode} last />
@@ -477,7 +496,7 @@ const styles = StyleSheet.create({
   },
   sectionHeader: {
     flexDirection: 'row',
-    alignItems: 'baseline',
+    alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: spacing.sm,
   },
@@ -488,9 +507,25 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.8,
   },
+  sectionRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
   sectionTag: {
     ...typography.label,
     color: colors.textMuted,
+  },
+  sectionEdit: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    marginLeft: spacing.sm,
+  },
+  sectionEditText: {
+    ...typography.label,
+    fontWeight: '700',
+    color: colors.primary,
   },
   sectionBody: {
     borderWidth: 1.5,

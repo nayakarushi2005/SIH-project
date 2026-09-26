@@ -7,18 +7,23 @@ const {
   sendMembershipError,
 } = require('../services/membership');
 
+// City and PIN decide which workers see this federation, so both are required.
+function readLocation(body) {
+  const city = String(body.city ?? '').trim();
+  const pincode = String(body.pincode ?? '').trim();
+  const fields = {};
+  if (city.length < 2 || city.length > 60) fields.city = 'Enter the city the federation works in.';
+  if (!/^[1-9]\d{5}$/.test(pincode)) fields.pincode = 'Enter a valid 6-digit PIN code.';
+  return { city, pincode, fields };
+}
+
 // ── Register / update the signed-in Federation's details ───────────────────
 // The record was created at Google sign-in; this fills in the form. Always
 // the caller's own record — never one looked up from the request body.
 const registerFederation = async (req, res) => {
   try {
     const { name, amount, noOfWorkers, area } = req.body;
-    const city = String(req.body.city ?? '').trim();
-    const pincode = String(req.body.pincode ?? '').trim();
-
-    const fields = {};
-    if (city.length < 2 || city.length > 60) fields.city = 'Enter the city the federation works in.';
-    if (!/^[1-9]\d{5}$/.test(pincode)) fields.pincode = 'Enter a valid 6-digit PIN code.';
+    const { city, pincode, fields } = readLocation(req.body);
     if (Object.keys(fields).length > 0) {
       return res.status(400).json({ message: 'Please fix the highlighted fields.', fields });
     }
@@ -47,6 +52,31 @@ const registerFederation = async (req, res) => {
   } catch (error) {
     console.error('Register Federation Error:', error);
     return res.status(500).json({ message: 'Failed to complete federation registration', error: error.message });
+  }
+};
+
+// ── Update only the signed-in Federation's city and PIN ─────────────────────
+// Status is untouched: moving the address does not send it back to review.
+const updateMyLocation = async (req, res) => {
+  try {
+    const { city, pincode, fields } = readLocation(req.body);
+    if (Object.keys(fields).length > 0) {
+      return res.status(400).json({ message: 'Please fix the highlighted fields.', fields });
+    }
+
+    const federation = await Federation.findByIdAndUpdate(
+      req.user.userId,
+      { $set: { city, pincode } },
+      { new: true, runValidators: true }
+    );
+    if (!federation) {
+      return res.status(404).json({ message: 'No federation account found. Please sign in with Google again.' });
+    }
+
+    return res.status(200).json({ message: 'Location updated.', federation });
+  } catch (error) {
+    console.error('Update Federation Location Error:', error);
+    return res.status(500).json({ message: 'Failed to update location', error: error.message });
   }
 };
 
@@ -189,6 +219,7 @@ const removeMyMember = async (req, res) => {
 
 module.exports = {
   registerFederation,
+  updateMyLocation,
   listMyRequests,
   decideMyRequest,
   removeMyMember,
