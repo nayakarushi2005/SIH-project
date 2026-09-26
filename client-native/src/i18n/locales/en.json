@@ -206,5 +206,16 @@
     "2_5l_5l": "₹2.5 – 5 lakh",
     "5l_10l": "₹5 – 10 lakh",
     "gt_10l": "Over ₹10 lakh"
+  },
+  "workerProfile": {
+    "section": "Worker",
+    "categories": "Work",
+    "income": "Yearly income",
+    "settings": "Worker settings",
+    "register": "Register as a worker",
+    "deregister": "Deregister as a worker",
+    "deregisterConfirmTitle": "Stop being a worker?",
+    "deregisterConfirmBody": "You will stop getting jobs. Your details are kept, so you can register again any time.",
+    "deregisterFailed": "Could not update your worker status."
   }
 }
