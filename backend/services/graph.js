@@ -15,10 +15,13 @@
 const Affinity = require('../models/Affinity');
 const Feedback = require('../models/Feedback');
 const GraphEdge = require('../models/GraphEdge');
+const Job = require('../models/Job');
 const WorkerProfile = require('../models/WorkerProfile');
 const WorkerStats = require('../models/WorkerStats');
+const llm = require('./llm');
 const { PRIORS } = require('./matching');
 const { getQueue, withTimeout } = require('./queue');
+const { extractRelations } = require('./relations');
 
 const QUEUE_NAME = 'graph';
 
@@ -31,6 +34,7 @@ const SKILL_FULL_AT = 20; // completed jobs in a trade for full experience
 const SKILL_GAP_MAX_RATING = 3; // average rating in a trade at or below this…
 const SKILL_GAP_MIN_RATINGS = 2; // …over at least this many ratings = needs improvement
 const CRITICISM_WEIGHT = 2; // a client's complaints say more about what they value than praise
+const SPECIALTY_FULL_AT = 5; // jobs showing a specialty for full weight
 // ────────────────────────────────────────────────────────────────────────────
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -41,6 +45,18 @@ function recency(date, now) {
 
 function round3(x) {
   return Math.round(x * 1000) / 1000;
+}
+
+/**
+ * A feedback's traits: the client's chips plus what the LLM read in their
+ * comment. The chips are the client's explicit answer, so they win conflicts.
+ */
+function traitsOf(f) {
+  const praised = new Set(f.praised);
+  const criticized = new Set(f.criticized);
+  for (const t of f.extracted?.praised ?? []) if (!criticized.has(t)) praised.add(t);
+  for (const t of f.extracted?.criticized ?? []) if (!praised.has(t)) criticized.add(t);
+  return { praised: [...praised], criticized: [...criticized] };
 }
 
 /**
@@ -96,11 +112,12 @@ async function rebuildWorker(workerId, now = Date.now()) {
   const entry = (trait) => (tally[trait] ??= { pos: 0, neg: 0, praised: 0, criticized: 0 });
   for (const f of feedback) {
     const w = recency(f.createdAt, now);
-    for (const t of f.praised) {
+    const { praised, criticized } = traitsOf(f);
+    for (const t of praised) {
       entry(t).pos += w;
       entry(t).praised += 1;
     }
-    for (const t of f.criticized) {
+    for (const t of criticized) {
       entry(t).neg += w;
       entry(t).criticized += 1;
     }
@@ -140,7 +157,27 @@ async function rebuildWorker(workerId, now = Date.now()) {
     }
   }
 
-  await replaceEdges('worker', id, ['HAS_TRAIT', 'NEEDS_IMPROVEMENT', 'HAS_SKILL'], edges);
+  // Specialties: specific work the LLM found in their jobs, e.g. "geyser repair".
+  const specialties = {};
+  for (const f of feedback) {
+    for (const s of f.extracted?.specialties ?? []) {
+      const entry = (specialties[s] ??= { jobs: 0, categories: new Set() });
+      entry.jobs += 1;
+      entry.categories.add(f.category);
+    }
+  }
+  for (const [specialty, s] of Object.entries(specialties)) {
+    edges.push({
+      rel: 'HAS_SPECIALTY',
+      toType: 'specialty',
+      toId: specialty,
+      weight: round3(Math.min(s.jobs / SPECIALTY_FULL_AT, 1)),
+      evidence: s.jobs,
+      props: { categories: [...s.categories] },
+    });
+  }
+
+  await replaceEdges('worker', id, ['HAS_TRAIT', 'NEEDS_IMPROVEMENT', 'HAS_SKILL', 'HAS_SPECIALTY'], edges);
 }
 
 /** Rebuilds what a client cares about from the feedback they've given. */
@@ -151,9 +188,10 @@ async function rebuildClient(clientId, now = Date.now()) {
   const mentions = {};
   for (const f of feedback) {
     const w = recency(f.createdAt, now);
-    for (const t of f.praised) values[t] = (values[t] ?? 0) + w;
-    for (const t of f.criticized) values[t] = (values[t] ?? 0) + CRITICISM_WEIGHT * w;
-    for (const t of [...f.praised, ...f.criticized]) mentions[t] = (mentions[t] ?? 0) + 1;
+    const { praised, criticized } = traitsOf(f);
+    for (const t of praised) values[t] = (values[t] ?? 0) + w;
+    for (const t of criticized) values[t] = (values[t] ?? 0) + CRITICISM_WEIGHT * w;
+    for (const t of [...praised, ...criticized]) mentions[t] = (mentions[t] ?? 0) + 1;
   }
   const max = Math.max(0, ...Object.values(values));
   const edges = Object.entries(values).map(([trait, v]) => ({
@@ -186,11 +224,34 @@ async function rebuildPair(clientId, workerId) {
   );
 }
 
-/** Background task: apply one piece of feedback to the graph. */
-async function processFeedback(feedbackId) {
+/**
+ * Runs LLM extraction for a feedback that hasn't had it yet, and stores the
+ * result. Never throws: if the LLM is down, the graph is still built from
+ * the client's chips, and `npm run graph:reprocess` retries later.
+ */
+async function extractOnce(feedback, extract) {
+  if (!extract || feedback.extracted) return;
+  try {
+    const job = await Job.findById(feedback.job).select('category description').lean();
+    const extracted = await extract(feedback, job);
+    await Feedback.updateOne({ _id: feedback._id }, { extracted, extractionError: null });
+    feedback.extracted = extracted;
+  } catch (err) {
+    console.error(`[graph] LLM extraction failed for feedback ${feedback._id}:`, err.message);
+    await Feedback.updateOne({ _id: feedback._id }, { extractionError: err.message.slice(0, 300) });
+  }
+}
+
+/**
+ * Background task: apply one piece of feedback to the graph.
+ * options.extract — relation extractor; defaults to the LLM when it's
+ * configured (injectable for tests, null to skip).
+ */
+async function processFeedback(feedbackId, { extract = llm.isConfigured() ? extractRelations : null } = {}) {
   const feedback = await Feedback.findById(feedbackId).lean();
   if (!feedback) return 'missing';
 
+  await extractOnce(feedback, extract);
   await rebuildWorker(feedback.worker);
   await rebuildClient(feedback.client);
   await rebuildPair(feedback.client, feedback.worker);
@@ -216,7 +277,7 @@ async function workerInsights(workerId) {
     GraphEdge.find({ fromType: 'worker', fromId: String(workerId) }).lean(),
     WorkerStats.findOne({ worker: workerId }).lean(),
   ]);
-  const byWeight = (a, b) => b.weight - a.weight;
+  const byWeight = (a, b) => b.weight - a.weight || a.toId.localeCompare(b.toId); // stable order on ties
 
   return {
     rating: {
@@ -236,6 +297,10 @@ async function workerInsights(workerId) {
       .filter((e) => e.rel === 'HAS_SKILL')
       .sort(byWeight)
       .map((e) => ({ skill: e.toId, level: e.weight, jobs: e.props?.jobs ?? 0, avgRating: e.props?.avgRating ?? null })),
+    specialties: edges
+      .filter((e) => e.rel === 'HAS_SPECIALTY')
+      .sort(byWeight)
+      .map((e) => ({ specialty: e.toId, jobs: e.evidence })),
   };
 }
 

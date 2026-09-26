@@ -7,6 +7,8 @@ const mongoose = require('mongoose');
  *   worker -HAS_TRAIT-> trait          weight 0..1: how strongly clients praise it
  *   worker -NEEDS_IMPROVEMENT-> trait  weight 0..1: repeated criticism
  *   worker -NEEDS_IMPROVEMENT-> skill  weight 0..1: repeatedly low-rated in a trade
+ *   worker -HAS_SPECIALTY-> specialty  weight 0..1: specific work they've done, e.g.
+ *                                      "ceiling fan repair" (LLM-extracted, see services/relations.js)
  *   client -VALUES-> trait             weight 0..1: how much this client cares
  *
  * Client↔worker history lives in Affinity, which ranking reads directly.
@@ -22,10 +24,10 @@ const graphEdgeSchema = new mongoose.Schema(
     fromId: { type: String, required: true },
     rel: {
       type: String,
-      enum: ['HAS_SKILL', 'HAS_TRAIT', 'NEEDS_IMPROVEMENT', 'VALUES'],
+      enum: ['HAS_SKILL', 'HAS_TRAIT', 'HAS_SPECIALTY', 'NEEDS_IMPROVEMENT', 'VALUES'],
       required: true,
     },
-    toType: { type: String, enum: ['skill', 'trait'], required: true },
+    toType: { type: String, enum: ['skill', 'trait', 'specialty'], required: true },
     toId: { type: String, required: true },
 
     weight: { type: Number, required: true },

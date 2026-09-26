@@ -46,3 +46,7 @@ android
 
 # AI tool settings (local only)
 .claude/
+
+# Google Cloud service account keys (Vertex AI) — never commit these
+backend/keys/
+*service-account*.json
