@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { getAllFederationsApi, checkFederationByEmailApi } from '../../services/api';
+import useFetchWithAuth from '../../hooks/useFetchWithAuth';
+import { useAuth } from '../../context/AuthContext';
 import { 
   Building2, 
   Clock, 
@@ -17,37 +18,28 @@ import {
 
 export default function FederationStatus() {
   const location = useLocation();
+  const authFetch = useFetchWithAuth();
+  const { user } = useAuth();
+  
   const initialFederation = location.state?.federation || null;
 
   const [federation, setFederation] = useState(initialFederation);
-  const [searchEmail, setSearchEmail] = useState(initialFederation?.email || '');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(!initialFederation);
   const [error, setError] = useState(null);
 
-  const handleLookup = async (e) => {
-    if (e) e.preventDefault();
-    if (!searchEmail.trim()) return;
-
+  const fetchMyStatus = async () => {
+    if (!user?.email) return;
     setLoading(true);
     setError(null);
     try {
-      const data = await checkFederationByEmailApi(searchEmail.trim());
-
+      const res = await authFetch(`/api/federation/check-email/${encodeURIComponent(user.email)}`);
+      if (!res.ok) throw new Error('Federation not found');
+      const data = await res.json();
+      
       if (data.exists && data.federation) {
         setFederation(data.federation);
       } else {
-        // Fallback check all
-        const allData = await getAllFederationsApi();
-        const match = allData.federations?.find(
-          (f) =>
-            f.fedId.toLowerCase() === searchEmail.trim().toLowerCase() ||
-            f.email.toLowerCase() === searchEmail.trim().toLowerCase()
-        );
-
-        if (!match) {
-          throw new Error('No registered federation found matching this Email or Fed ID.');
-        }
-        setFederation(match);
+        throw new Error('No registered federation found for your account.');
       }
     } catch (err) {
       setError(err.message || 'Federation not found');
@@ -56,6 +48,12 @@ export default function FederationStatus() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!federation && user?.email) {
+      fetchMyStatus();
+    }
+  }, [federation, user?.email]);
 
   return (
     <div className="min-h-screen bg-slate-950 text-white py-12 px-4 sm:px-6 lg:px-8">
@@ -83,26 +81,7 @@ export default function FederationStatus() {
           </p>
         </div>
 
-        {/* Lookup Bar */}
-        <form onSubmit={handleLookup} className="mb-8 bg-slate-900 p-2.5 rounded-2xl border border-slate-800 flex gap-2 shadow-xl">
-          <div className="relative flex-1">
-            <input
-              type="text"
-              placeholder="Enter Email or Fed ID..."
-              value={searchEmail}
-              onChange={(e) => setSearchEmail(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 placeholder-slate-500"
-            />
-            <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="px-5 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-sm transition-all flex items-center gap-2 disabled:opacity-50"
-          >
-            {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'Check Status'}
-          </button>
-        </form>
+        {/* Lookup Bar Removed - Status is automatically fetched using logged-in user email */}
 
         {error && (
           <div className="p-4 mb-6 bg-rose-500/10 text-rose-400 rounded-2xl border border-rose-500/20 text-sm font-medium text-center">

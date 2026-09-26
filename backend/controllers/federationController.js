@@ -3,43 +3,40 @@ const Federation = require('../models/Federation');
 // ── Register a new Federation ────────────────────────────────────────────────
 const registerFederation = async (req, res) => {
   try {
-    const { name, email, amount, noOfWorkers } = req.body;
+    const { name, email, amount, noOfWorkers, area } = req.body;
 
-    if (!name || !email) {
-      return res.status(400).json({ message: 'Name and email are required fields.' });
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required to complete registration.' });
     }
 
-    // Check if email already exists
-    const existing = await Federation.findOne({ email: email.toLowerCase() });
-    if (existing) {
-      return res.status(400).json({ 
-        message: 'A federation with this email already exists.',
-        exists: true,
-        federation: existing 
+    // 1. Find the federation created during Google OAuth
+    let federation = await Federation.findOne({ email: email.toLowerCase() });
+
+    if (!federation) {
+      // Reject if not found. We DO NOT fallback to creating here because 
+      // all new users must go through Google OAuth to be created securely.
+      return res.status(404).json({ 
+        message: 'No authenticated record found for this email. Please sign in with Google first.' 
       });
     }
 
-    // Auto-generate unique fedId (e.g., FED-1024)
-    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-    const fedId = `FED-${randomSuffix}`;
+    // 2. UPDATE existing record with the form details
+    federation.name = name || federation.name;
+    federation.amount = Number(amount) || federation.amount;
+    federation.noOfWorkers = Number(noOfWorkers) || federation.noOfWorkers;
+    federation.area = area || federation.area;
+    // Keep status as 'unverified' so government can review it
+    federation.status = 'unverified';
 
-    const federation = await Federation.create({
-      fedId,
-      name,
-      email: email.toLowerCase(),
-      amount: Number(amount) || 0,
-      noOfWorkers: Number(noOfWorkers) || 0,
-      workers: [], // Empty for now, to be added later
-      status: 'unverified',
-    });
+    await federation.save();
 
-    return res.status(201).json({
-      message: 'Federation registration submitted successfully!',
+    return res.status(200).json({
+      message: 'Federation registration completed successfully!',
       federation,
     });
   } catch (error) {
     console.error('Register Federation Error:', error);
-    return res.status(500).json({ message: 'Failed to register federation', error: error.message });
+    return res.status(500).json({ message: 'Failed to complete federation registration', error: error.message });
   }
 };
 

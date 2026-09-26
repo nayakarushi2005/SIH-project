@@ -8,11 +8,11 @@ const crypto = require('crypto');
  * @returns {String} - Signed JWT
  */
 const generateAccessToken = (userId, userModel) => {
-  // Ensure you add JWT_ACCESS_SECRET to your .env file
+  // Ensure you add JWT_SECRET to your .env file
   return jwt.sign(
     { userId, userModel },
-    process.env.JWT_ACCESS_SECRET || 'fallback_secret_for_dev',
-    { expiresIn: '15m' }
+    process.env.JWT_SECRET || 'fallback_secret_for_dev',
+    { expiresIn: process.env.JWT_EXPIRES_IN || '15m' }
   );
 };
 
@@ -31,7 +31,7 @@ const generateRefreshTokenString = () => {
  * @returns {Object} - Decoded payload
  */
 const verifyAccessToken = (token) => {
-  return jwt.verify(token, process.env.JWT_ACCESS_SECRET || 'fallback_secret_for_dev');
+  return jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret_for_dev');
 };
 
 module.exports = {

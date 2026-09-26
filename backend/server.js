@@ -11,7 +11,10 @@ const federationRoutes = require('./routes/federation'); // Federation managemen
 const app = express();
 
 // ── Middleware ──────────────────────────────────────────────────────────────
-app.use(cors());
+app.use(cors({
+  origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173',
+  credentials: true,
+}));
 app.use(express.json());
 app.use(cookieParser()); // <-- Allows reading HTTP-only cookies
 
