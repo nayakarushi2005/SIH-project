@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 import { colors } from '../../constants/theme';
 
@@ -12,6 +13,7 @@ function tabIcon(name) {
 }
 
 export default function TabsLayout() {
+  const { t } = useTranslation();
   return (
     <Tabs
       screenOptions={{
@@ -28,13 +30,13 @@ export default function TabsLayout() {
         },
       }}
     >
-      <Tabs.Screen name="home" options={{ title: 'Home', tabBarIcon: tabIcon('home') }} />
-      <Tabs.Screen name="bookings" options={{ title: 'Bookings', tabBarIcon: tabIcon('calendar') }} />
+      <Tabs.Screen name="home" options={{ title: t('tabs.home'), tabBarIcon: tabIcon('home') }} />
+      <Tabs.Screen name="bookings" options={{ title: t('tabs.bookings'), tabBarIcon: tabIcon('calendar') }} />
       <Tabs.Screen
         name="messages"
-        options={{ title: 'Messages', tabBarIcon: tabIcon('chatbubble-ellipses') }}
+        options={{ title: t('tabs.messages'), tabBarIcon: tabIcon('chatbubble-ellipses') }}
       />
-      <Tabs.Screen name="profile" options={{ title: 'Profile', tabBarIcon: tabIcon('person') }} />
+      <Tabs.Screen name="profile" options={{ title: t('tabs.profile'), tabBarIcon: tabIcon('person') }} />
     </Tabs>
   );
 }
