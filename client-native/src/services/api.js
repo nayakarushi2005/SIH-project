@@ -1,6 +1,7 @@
 import axios from 'axios';
 import Constants from 'expo-constants';
 
+import i18n from '../i18n';
 import { getToken } from './session';
 
 const API_PORT = 3000;
@@ -41,13 +42,13 @@ api.interceptors.request.use(async (config) => {
  * Turns an axios/network error into a message fit for an Alert.
  * The backend responds with { error: '...' } on failure.
  */
-export function getErrorMessage(err, fallback = 'Something went wrong. Please try again.') {
+export function getErrorMessage(err, fallback) {
   if (err?.response?.data?.error) return err.response.data.error;
-  if (err?.code === 'ECONNABORTED') return 'The server took too long to respond.';
+  if (err?.code === 'ECONNABORTED') return i18n.t('errors.timeout');
   if (err?.message === 'Network Error') {
-    return `Can't reach the server at ${API_BASE_URL}. Is the backend running and on the same network?`;
+    return i18n.t('errors.network', { url: API_BASE_URL });
   }
-  return err?.message || fallback;
+  return err?.message || fallback || i18n.t('errors.generic');
 }
 
 export function isUnauthorized(err) {

@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 
@@ -9,20 +10,21 @@ import { colors, spacing, typography } from '../../constants/theme';
 
 export default function Bookings() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar style="dark" />
       <View style={styles.header}>
-        <Text style={styles.title} accessibilityRole="header">Bookings</Text>
+        <Text style={styles.title} accessibilityRole="header">{t('bookings.title')}</Text>
       </View>
       <EmptyState
         icon="calendar-outline"
-        title="No bookings yet"
-        body="Jobs you post and the workers you book will appear here."
+        title={t('bookings.emptyTitle')}
+        body={t('bookings.emptyBody')}
       >
         <Button
-          label="Create a new job"
+          label={t('bookings.createJob')}
           onPress={() => router.push('/create-job')}
           style={styles.button}
         />

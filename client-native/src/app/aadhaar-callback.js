@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { getErrorMessage, isUnauthorized, verifyDigilocker } from '../services/api';
 import {
@@ -17,6 +18,7 @@ import {
 // finishes on DigiLocker. Reads the handshake saved by aadhaar-verify.js,
 // asks the backend to fetch the KYC data, then moves on to the home screen.
 export default function AadhaarCallback() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [error, setError] = useState(null);
   const started = useRef(false);
@@ -42,9 +44,9 @@ export default function AadhaarCallback() {
         router.replace('/auth');
         return;
       }
-      setError(getErrorMessage(err, 'Could not fetch your Aadhaar details.'));
+      setError(getErrorMessage(err, t('aadhaar.fetchFailed')));
     }
-  }, [router]);
+  }, [router, t]);
 
   useEffect(() => {
     // Guard against the effect firing twice (dev StrictMode) — the
@@ -66,7 +68,7 @@ export default function AadhaarCallback() {
       {error ? (
         <View style={styles.card}>
           <Text style={styles.icon}>⚠️</Text>
-          <Text style={styles.title}>Verification failed</Text>
+          <Text style={styles.title}>{t('aadhaar.failedTitle')}</Text>
           <Text style={styles.message}>{error}</Text>
 
           <Pressable
@@ -74,21 +76,21 @@ export default function AadhaarCallback() {
             onPress={runVerification}
             accessibilityRole="button"
           >
-            <Text style={styles.primaryButtonText}>Try again</Text>
+            <Text style={styles.primaryButtonText}>{t('common.tryAgain')}</Text>
           </Pressable>
           <Pressable
             style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}
             onPress={handleStartOver}
             accessibilityRole="button"
           >
-            <Text style={styles.secondaryButtonText}>Start over</Text>
+            <Text style={styles.secondaryButtonText}>{t('aadhaar.startOver')}</Text>
           </Pressable>
         </View>
       ) : (
         <View style={styles.card}>
           <ActivityIndicator color="#0B7A4B" size="large" />
-          <Text style={styles.title}>Verifying with DigiLocker…</Text>
-          <Text style={styles.message}>Fetching your details securely. This takes a few seconds.</Text>
+          <Text style={styles.title}>{t('aadhaar.verifying')}</Text>
+          <Text style={styles.message}>{t('aadhaar.verifyingBody')}</Text>
         </View>
       )}
     </SafeAreaView>
