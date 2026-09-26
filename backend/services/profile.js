@@ -111,6 +111,11 @@ function parseLocation(raw) {
   return { type: 'Point', coordinates: [lng, lat] };
 }
 
+/** Normalised name, or throws a message for the user. */
+function validateName(v) {
+  return validators.name(String(v).trim());
+}
+
 /**
  * Validates a PATCH body against the user's current state.
  * Returns { updates, errors } — errors is keyed by field name.
@@ -157,5 +162,6 @@ module.exports = {
   IDENTITY_FIELDS,
   LANGUAGES,
   toProfile,
+  validateName,
   validateProfileUpdate,
 };
