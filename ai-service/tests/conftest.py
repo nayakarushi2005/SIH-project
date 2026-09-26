@@ -31,3 +31,12 @@ async def client(app):
 def node():
     with respx.mock(base_url=NODE, assert_all_called=False) as mock:
         yield mock
+
+
+@pytest.fixture(autouse=True)
+def _clear_auth_cache():
+    from app import auth
+
+    auth._cache.clear()
+    yield
+    auth._cache.clear()
