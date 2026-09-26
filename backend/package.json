@@ -5,14 +5,19 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "dispatcher": "node dispatcher.js",
+    "dev:dispatcher": "nodemon dispatcher.js",
+    "seed:jobs": "node scripts/seed-jobs.js"
   },
   "dependencies": {
     "axios": "^1.7.2",
+    "bullmq": "^6.3.9",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "google-auth-library": "^9.11.0",
+    "ioredis": "^6.0.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.4.1"
   },

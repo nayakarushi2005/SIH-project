@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -11,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 import Avatar from '../../components/Avatar';
 import Button from '../../components/Button';
@@ -193,6 +195,19 @@ export default function Profile() {
         <Section title="Preferences">
           <DetailRow label="App language" value={languageLabel(user.preferredLanguage)} last />
         </Section>
+
+        <Pressable
+          onPress={() => router.push('/worker')}
+          style={({ pressed }) => [styles.workCard, pressed && styles.workCardPressed]}
+          accessibilityRole="button"
+        >
+          <Ionicons name="briefcase-outline" size={22} color={colors.primary} />
+          <View style={styles.workCardText}>
+            <Text style={styles.workCardTitle}>Worker mode</Text>
+            <Text style={styles.workCardBody}>Take jobs near you and earn</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+        </Pressable>
 
         <Button label="Sign out" variant="secondary" onPress={handleSignOut} style={styles.signOut} />
 
@@ -399,6 +414,32 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
 
+  workCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm + 4,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+  },
+  workCardPressed: {
+    opacity: 0.8,
+  },
+  workCardText: {
+    flex: 1,
+  },
+  workCardTitle: {
+    ...typography.body,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  workCardBody: {
+    ...typography.label,
+    color: colors.textMuted,
+    marginTop: 2,
+  },
   signOut: {
     marginBottom: spacing.md,
   },

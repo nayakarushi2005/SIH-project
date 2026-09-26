@@ -2,20 +2,36 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors, radius, spacing, typography } from '../constants/theme';
 
-/** Single-select row of chips. options: [{ value, label }]. */
-export default function OptionGroup({ label, options, value, onChange, error }) {
+/**
+ * Row of chips. options: [{ value, label }].
+ * Single-select by default; with `multiple`, `value` is an array and each
+ * chip toggles.
+ */
+export default function OptionGroup({ label, options, value, onChange, error, hint, multiple = false }) {
+  const isSelected = (v) => (multiple ? (value ?? []).includes(v) : v === value);
+
+  const press = (v) => {
+    if (!multiple) return onChange(v);
+    const current = value ?? [];
+    onChange(current.includes(v) ? current.filter((x) => x !== v) : [...current, v]);
+  };
+
   return (
     <View style={styles.wrapper}>
       <Text style={styles.label}>{label}</Text>
-      <View style={styles.row} accessibilityRole="radiogroup" accessibilityLabel={label}>
+      <View
+        style={styles.row}
+        accessibilityRole={multiple ? undefined : 'radiogroup'}
+        accessibilityLabel={label}
+      >
         {options.map((option) => {
-          const selected = option.value === value;
+          const selected = isSelected(option.value);
           return (
             <Pressable
               key={option.value}
-              onPress={() => onChange(option.value)}
-              accessibilityRole="radio"
-              accessibilityState={{ selected }}
+              onPress={() => press(option.value)}
+              accessibilityRole={multiple ? 'checkbox' : 'radio'}
+              accessibilityState={multiple ? { checked: selected } : { selected }}
               style={({ pressed }) => [
                 styles.chip,
                 selected && styles.chipSelected,
@@ -29,7 +45,11 @@ export default function OptionGroup({ label, options, value, onChange, error }) 
           );
         })}
       </View>
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? (
+        <Text style={styles.error}>{error}</Text>
+      ) : hint ? (
+        <Text style={styles.hint}>{hint}</Text>
+      ) : null}
     </View>
   );
 }
@@ -72,6 +92,11 @@ const styles = StyleSheet.create({
   chipTextSelected: {
     color: colors.primary,
     fontWeight: '600',
+  },
+  hint: {
+    ...typography.label,
+    color: colors.textMuted,
+    marginTop: spacing.xs,
   },
   error: {
     ...typography.label,

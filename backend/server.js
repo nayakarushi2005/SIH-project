@@ -4,22 +4,25 @@ const cors = require('cors');
 require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
+const jobRoutes = require('./routes/jobs');
+const uploadRoutes = require('./routes/uploads');
+const workerRoutes = require('./routes/workers');
 
 const app = express();
 
-// ── Middleware ──────────────────────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
 
-// ── Routes ──────────────────────────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
+app.use('/api/jobs', jobRoutes);
+app.use('/api/uploads', uploadRoutes);
+app.use('/api/workers', workerRoutes);
 
-// Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'SIH Backend is running' });
+  res.json({ status: 'ok', message: 'SIH Backend is running fine' });
 });
 
-// ── MongoDB Connection ───────────────────────────────────────────────────────
+
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => {
