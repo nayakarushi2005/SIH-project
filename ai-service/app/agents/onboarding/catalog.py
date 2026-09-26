@@ -48,7 +48,8 @@ class Catalog:
         for group in lang_payload.get("groups", []):
             for c in group.get("categories", []):
                 e = en.get(c["slug"], {})
-                labels = [c["name"], *c.get("synonyms", []), e.get("name", ""), *e.get("synonyms", [])]
+                labels = [c["name"], *c.get("synonyms", [])]
+                labels += [e.get("name", ""), *e.get("synonyms", [])]
                 words = []
                 for label in labels:
                     for v in _variants(label):
@@ -69,7 +70,8 @@ class Catalog:
         """Most plausible categories for `text`, for the LLM to choose from."""
         t = normalise(text)
         scored = [
-            (max((fuzz.token_set_ratio(w, t) for w in c.words), default=0), c) for c in self.categories
+            (max((fuzz.token_set_ratio(w, t) for w in c.words), default=0), c)
+            for c in self.categories
         ]
         scored.sort(key=lambda sc: -sc[0])
         return [{"slug": c.slug, "name": c.name, "en": c.en_name} for _, c in scored[:limit]]
