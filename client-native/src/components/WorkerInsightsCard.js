@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, spacing, typography } from '../constants/theme';
 import useCategories from '../hooks/useCategories';
 import { getWorkerInsights } from '../services/api';
-import { getTrait } from '../utils/traits';
+import { traitLabel } from '../utils/traits';
 
 function Chip({ label, tone }) {
   return (
@@ -19,14 +19,14 @@ function Chip({ label, tone }) {
   );
 }
 
-function improveLabel(item, bySlug) {
+function improveLabel(t, item, bySlug) {
   if (item.type === 'skill') return `${bySlug(item.id)?.name ?? item.id} skills`;
-  return getTrait(item.id)?.improve ?? item.id;
+  return traitLabel(t, item.id, 'improve');
 }
 
 /** What clients' feedback says about this worker (from the knowledge graph). */
 export default function WorkerInsightsCard() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { bySlug } = useCategories(i18n.language);
   const [insights, setInsights] = useState(null);
 
@@ -69,7 +69,7 @@ export default function WorkerInsightsCard() {
               <Text style={styles.label}>Clients appreciate</Text>
               <View style={styles.chips}>
                 {strengths.map((s) => (
-                  <Chip key={s.trait} label={getTrait(s.trait)?.good ?? s.trait} />
+                  <Chip key={s.trait} label={traitLabel(t, s.trait, 'good')} />
                 ))}
               </View>
             </>
@@ -91,7 +91,7 @@ export default function WorkerInsightsCard() {
               <Text style={styles.label}>Areas to improve</Text>
               <View style={styles.chips}>
                 {improve.map((i) => (
-                  <Chip key={`${i.type}-${i.id}`} label={improveLabel(i, bySlug)} tone="improve" />
+                  <Chip key={`${i.type}-${i.id}`} label={improveLabel(t, i, bySlug)} tone="improve" />
                 ))}
               </View>
               <Text style={styles.muted}>

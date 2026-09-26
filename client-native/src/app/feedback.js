@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -22,11 +22,9 @@ import TextField from '../components/TextField';
 import { colors, radius, spacing, typography } from '../constants/theme';
 import useCategories from '../hooks/useCategories';
 import { getErrorMessage, getFieldErrors, getJob, submitFeedback } from '../services/api';
-import { TRAITS } from '../utils/traits';
+import { TRAITS, traitLabel } from '../utils/traits';
 
 const RATING_LABELS = ['', 'Poor', 'Okay', 'Good', 'Very good', 'Excellent'];
-const GOOD_OPTIONS = TRAITS.map((t) => ({ value: t.id, label: t.good }));
-const BAD_OPTIONS = TRAITS.map((t) => ({ value: t.id, label: t.bad }));
 const REHIRE_OPTIONS = [
   { value: true, label: 'Yes' },
   { value: false, label: 'No' },
@@ -63,10 +61,18 @@ function StarRating({ value, onChange, error }) {
 
 /** Client rates the worker who completed their job. Route: /feedback?jobId=… */
 export default function Feedback() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { bySlug } = useCategories(i18n.language);
   const router = useRouter();
   const { jobId } = useLocalSearchParams();
+  const GOOD_OPTIONS = useMemo(
+    () => TRAITS.map((tr) => ({ value: tr.id, label: traitLabel(t, tr.id, 'good') })),
+    [t]
+  );
+  const BAD_OPTIONS = useMemo(
+    () => TRAITS.map((tr) => ({ value: tr.id, label: traitLabel(t, tr.id, 'bad') })),
+    [t]
+  );
   const [job, setJob] = useState(null);
   const [form, setForm] = useState({ rating: 0, praised: [], criticized: [], rehire: null, block: false, comment: '' });
   const [errors, setErrors] = useState({});

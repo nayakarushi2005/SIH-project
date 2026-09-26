@@ -27,7 +27,7 @@ import useCategories from '../hooks/useCategories';
 import useCurrentLocation from '../hooks/useCurrentLocation';
 import { createJob, getErrorMessage, getFieldErrors, uploadJobPhoto } from '../services/api';
 import { getUser } from '../services/session';
-import { DURATIONS, MAX_PHOTOS } from '../utils/job';
+import { MAX_PHOTOS, durationOptions } from '../utils/job';
 
 const LOCATION_MESSAGES = {
   denied: 'Location permission is off. Nearby workers can’t see your job without it.',
@@ -280,7 +280,7 @@ export default function CreateJob() {
           />
           <OptionGroup
             label="How long will it take?"
-            options={DURATIONS}
+            options={durationOptions(t)}
             value={form.expectedDurationMins}
             onChange={(v) => setField('expectedDurationMins', v)}
             error={errors.expectedDurationMins}

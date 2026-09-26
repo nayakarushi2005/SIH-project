@@ -6,6 +6,7 @@ import Button from './Button';
 import { colors, radius, spacing, typography } from '../constants/theme';
 import useCategories from '../hooks/useCategories';
 import { formatDuration, formatPrice, jobStatus, thumbnailUrl } from '../utils/job';
+import { localeTag } from '../i18n/language';
 
 const TONES = {
   primary: { bg: colors.primarySoft, fg: colors.primary },
@@ -16,10 +17,11 @@ const TONES = {
 
 /** Summary row for one of the client's posted jobs. `onRate(job)` rates a completed one. */
 export default function JobCard({ job, onRate }) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { bySlug } = useCategories(i18n.language);
   const service = bySlug(job.category);
   const status = jobStatus(job.status);
+  const statusLabel = status.key ? t(status.key) : status.label;
   const tone = TONES[status.tone];
   const photo = job.photos?.[0];
 
@@ -39,7 +41,7 @@ export default function JobCard({ job, onRate }) {
             {service?.name ?? job.category}
           </Text>
           <View style={[styles.badge, { backgroundColor: tone.bg }]}>
-            <Text style={[styles.badgeText, { color: tone.fg }]}>{status.label}</Text>
+            <Text style={[styles.badgeText, { color: tone.fg }]}>{statusLabel}</Text>
           </View>
         </View>
         <Text style={styles.description} numberOfLines={2}>
@@ -47,7 +49,7 @@ export default function JobCard({ job, onRate }) {
         </Text>
         <Text style={styles.meta}>
           {formatPrice(job.price)} · {formatDuration(job.expectedDurationMins)} ·{' '}
-          {new Date(job.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+          {new Date(job.createdAt).toLocaleDateString(localeTag(), { day: 'numeric', month: 'short' })}
         </Text>
         {job.startCode ? (
           <View style={styles.code} accessibilityLabel={`Start code ${job.startCode.split('').join(' ')}`}>
