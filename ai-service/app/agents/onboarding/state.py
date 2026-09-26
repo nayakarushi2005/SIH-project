@@ -41,8 +41,17 @@ class OnboardingState(TypedDict, total=False):
     handoff: bool
 
 
-def initial_state(user: dict, federation_options: list[dict], now: float) -> OnboardingState:
-    lang = user.get("preferredLanguage") if user.get("preferredLanguage") in LANGS else "en"
+def pick_lang(*candidates: str | None) -> str:
+    """The first supported language code among `candidates`, else English."""
+    return next((c for c in candidates if c in LANGS), "en")
+
+
+def initial_state(
+    user: dict, federation_options: list[dict], now: float, lang: str | None = None
+) -> OnboardingState:
+    # The language the app is showing wins over the profile: the phone reads
+    # our text aloud in its own language, so the two must match.
+    lang = pick_lang(lang, user.get("preferredLanguage"))
     verified_name = user.get("name") if user.get("isAadhaarVerified") and user.get("name") else None
     return {
         "owner": str(user["id"]),

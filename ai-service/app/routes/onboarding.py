@@ -1,6 +1,6 @@
 """HTTP API for the voice onboarding assistant.
 
-POST /v1/onboarding/sessions               start → first thing to say
+POST /v1/onboarding/sessions               {lang?} start → first thing to say
 POST /v1/onboarding/sessions/{sid}/turns   {transcript} or {selection} → next thing to say
 GET  /v1/onboarding/sessions/{sid}         last thing said (resume)
 """
@@ -36,6 +36,10 @@ def session_lock(sid: str) -> asyncio.Lock:
         for key in [k for k, lock in _locks.items() if not lock.locked()]:
             del _locks[key]
     return _locks.setdefault(sid, asyncio.Lock())
+
+
+class StartIn(BaseModel):
+    lang: str | None = Field(default=None, max_length=10)  # the app's current language
 
 
 class TurnIn(BaseModel):
@@ -76,7 +80,9 @@ async def _load(request: Request, sid: str, user: dict) -> dict:
 
 
 @router.post("/sessions", status_code=201)
-async def start_session(request: Request, user: dict = Depends(current_user)):
+async def start_session(
+    request: Request, body: StartIn | None = None, user: dict = Depends(current_user)
+):
     request.app.state.limiter.check(str(user["id"]))
     try:
         nearby = await get_node(request).get_nearby_federations(user["_token"])
@@ -84,7 +90,8 @@ async def start_session(request: Request, user: dict = Depends(current_user)):
     except ServiceError:
         options = []  # no location / backend hiccup → skip the federation step
     sid = uuid4().hex
-    state = {**initial_state(user, options, now=_now()), "turn": {"kind": "start"}}
+    lang = body.lang if body else None
+    state = {**initial_state(user, options, now=_now(), lang=lang), "turn": {"kind": "start"}}
     await request.app.state.catalogs.get(state["lang"])
     values = await request.app.state.graph.ainvoke(state, _config(sid))
     return {"sessionId": sid, **_output(values)}
