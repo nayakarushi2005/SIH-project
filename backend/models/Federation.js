@@ -25,6 +25,18 @@ const federationSchema = new mongoose.Schema(
       default: '',
       trim: true,
     },
+    // Where the federation works. Workers see federations with their PIN,
+    // or in their city when none share it.
+    city: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    pincode: {
+      type: String, // 6-digit Indian PIN code
+      default: '',
+      trim: true,
+    },
     amount: {
       type: Number,
       default: 0,
@@ -57,5 +69,7 @@ const federationSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+federationSchema.index({ status: 1, pincode: 1 });
 
 module.exports = mongoose.model('Federation', federationSchema);
