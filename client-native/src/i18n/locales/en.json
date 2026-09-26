@@ -217,5 +217,28 @@
     "deregisterConfirmTitle": "Stop being a worker?",
     "deregisterConfirmBody": "You will stop getting jobs. Your details are kept, so you can register again any time.",
     "deregisterFailed": "Could not update your worker status."
+  },
+  "federation": {
+    "stepTitle": "Join a federation (optional)",
+    "stepBody": "Federations are worker cooperatives. Joining one is optional — you can register now and decide later.",
+    "notNow": "Not now",
+    "none": "No verified federations near you yet.",
+    "noLocation": "Add your city or PIN code to see federations near you.",
+    "matchPincode": "In your PIN code",
+    "matchCity": "In your city",
+    "members": "{{count}} members",
+    "statusPending": "Request sent",
+    "statusVerified": "Connected",
+    "statusRejected": "Not accepted",
+    "statusRemoved": "Removed",
+    "statusNone": "Not connected",
+    "join": "Send request",
+    "cancel": "Cancel request",
+    "leave": "Leave",
+    "leaveConfirm": "Leave this federation? You can join another one afterwards.",
+    "manage": "Federation",
+    "manageTitle": "Federations near you",
+    "requestFailed": "Could not send the request.",
+    "leaveFailed": "Could not leave the federation."
   }
 }
