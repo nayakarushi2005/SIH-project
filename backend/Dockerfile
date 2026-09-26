@@ -27,11 +27,15 @@ COPY --from=builder /app/node_modules ./node_modules
 
 # Copy application source
 COPY package.json ./
-COPY server.js ./
+COPY server.js app.js ./
 COPY routes/ ./routes/
 COPY models/ ./models/
 COPY middleware/ ./middleware/
 COPY services/ ./services/
+COPY controllers/ ./controllers/
+COPY utils/ ./utils/
+COPY data/ ./data/
+COPY scripts/ ./scripts/
 
 # Switch to non-root user
 USER appuser
