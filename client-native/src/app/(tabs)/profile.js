@@ -21,6 +21,7 @@ import LanguageSheet from '../../components/LanguageSheet';
 import ScreenHeader from '../../components/ScreenHeader';
 import { colors, radius, spacing, typography } from '../../constants/theme';
 import useCategories from '../../hooks/useCategories';
+import { useUser } from '../../context/UserContext';
 import useProfile from '../../hooks/useProfile';
 import i18n from '../../i18n';
 import { localeTag, setAppLanguage } from '../../i18n/language';
@@ -80,6 +81,7 @@ export default function Profile() {
   const { t, i18n: i18next } = useTranslation();
   const { bySlug } = useCategories(i18next.language);
   const { user, setUser, error, refreshing, refresh: onRefresh, reload: load } = useProfile();
+  const { clear } = useUser();
   const [languageOpen, setLanguageOpen] = useState(false);
 
   const chooseLanguage = useCallback(
@@ -120,11 +122,12 @@ export default function Profile() {
         style: 'destructive',
         onPress: async () => {
           await signOut();
+          clear();
           router.replace('/auth');
         },
       },
     ]);
-  }, [router, t]);
+  }, [clear, router, t]);
 
   const goToEdit = useCallback(() => router.push('/edit-profile'), [router]);
   const goToVerify = useCallback(() => router.push('/aadhaar-verify'), [router]);

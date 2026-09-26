@@ -25,7 +25,7 @@ export default function WorkerForm() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const { user, setUser } = useUser();
-  const { groups } = useCategories(i18n.language);
+  const { groups, bySlug, loading: catalogLoading, error: catalogError } = useCategories(i18n.language);
 
   const verified = !!user?.isAadhaarVerified;
   const [name, setName] = useState(user?.name ?? '');
@@ -34,7 +34,12 @@ export default function WorkerForm() {
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
 
-  const ready = !!incomeBracket && categories.length > 0 && (verified || name.trim().length > 1);
+  // Once the real catalogue is here, drop prefilled work types that were
+  // retired since the last registration (they'd be invisible and rejected).
+  const catalogReady = !catalogLoading && !catalogError;
+  const chosen = catalogReady ? categories.filter((slug) => bySlug(slug)) : categories;
+
+  const ready = !!incomeBracket && chosen.length > 0 && (verified || name.trim().length > 1);
 
   const submit = useCallback(async () => {
     setSaving(true);
@@ -43,12 +48,13 @@ export default function WorkerForm() {
       const updated = await registerWorker({
         ...(verified ? {} : { name: name.trim() }),
         incomeBracket,
-        categories,
+        categories: chosen,
         onboardedVia: 'form',
       });
       setUser(updated);
       Alert.alert(t('onboarding.done'));
-      router.replace('/profile');
+      // Back from Profile shouldn't return to the registration screens.
+      router.dismissTo('/profile');
     } catch (err) {
       const fields = getFieldErrors(err);
       if (Object.keys(fields).length > 0) setErrors(fields);
@@ -56,7 +62,7 @@ export default function WorkerForm() {
     } finally {
       setSaving(false);
     }
-  }, [categories, incomeBracket, name, router, setUser, t, verified]);
+  }, [chosen, incomeBracket, name, router, setUser, t, verified]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -97,7 +103,7 @@ export default function WorkerForm() {
             label={t('onboarding.categoriesLabel')}
             hint={t('onboarding.categoriesHint', { max: MAX_CATEGORIES })}
             groups={groups}
-            selected={categories}
+            selected={chosen}
             onChange={setCategories}
             max={MAX_CATEGORIES}
             error={errors.categories}

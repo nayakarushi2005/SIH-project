@@ -7,6 +7,9 @@ import { clearSession, getUser, saveUser } from '../services/session';
 
 const UserContext = createContext(null);
 
+// Per-app-session choices (reset on sign-out so the next account starts clean).
+export const sessionFlags = { workerPromptClosed: false, locationAsked: false };
+
 /**
  * The signed-in user's profile, shared by every screen so a change made on
  * one (e.g. registering as a worker) shows up everywhere — including the
@@ -16,6 +19,9 @@ export function UserProvider({ children }) {
   const [user, setUserState] = useState(null);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  // True once /me has answered this session — prompts wait for it so they
+  // never act on a stale cached profile.
+  const [fresh, setFresh] = useState(false);
 
   const setUser = useCallback((next) => {
     setUserState(next);
@@ -25,15 +31,18 @@ export function UserProvider({ children }) {
   const reload = useCallback(async () => {
     try {
       const cached = await getUser();
-      if (cached) setUserState((current) => current ?? cached);
+      // Keep what's on screen if it's the same account; a different cached
+      // account (just signed in) replaces it.
+      if (cached) setUserState((current) => (current?.id === cached.id ? current : cached));
 
       const epoch = languageEpoch();
-      const fresh = await getMe();
-      setUser(fresh);
+      const latest = await getMe();
+      setUser(latest);
+      setFresh(true);
       setError(null);
       // Follow a language changed on another device (but never undo a pick
       // made here while this request was in flight).
-      await applyServerLanguage(fresh.preferredLanguage, epoch);
+      await applyServerLanguage(latest.preferredLanguage, epoch);
     } catch (err) {
       if (isUnauthorized(err)) {
         await clearSession();
@@ -45,6 +54,15 @@ export function UserProvider({ children }) {
     }
   }, [setUser]);
 
+  /** Forget the signed-in account (sign-out, or before a new sign-in). */
+  const clear = useCallback(() => {
+    setUserState(null);
+    setError(null);
+    setFresh(false);
+    sessionFlags.workerPromptClosed = false;
+    sessionFlags.locationAsked = false;
+  }, []);
+
   const refresh = useCallback(async () => {
     setRefreshing(true);
     await reload();
@@ -52,8 +70,8 @@ export function UserProvider({ children }) {
   }, [reload]);
 
   const value = useMemo(
-    () => ({ user, setUser, error, refreshing, reload, refresh }),
-    [user, setUser, error, refreshing, reload, refresh]
+    () => ({ user, setUser, fresh, error, refreshing, reload, refresh, clear }),
+    [user, setUser, fresh, error, refreshing, reload, refresh, clear]
   );
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 }
