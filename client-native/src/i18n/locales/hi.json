@@ -1,0 +1,167 @@
+{
+  "common": {
+    "tryAgain": "Try again",
+    "cancel": "Cancel",
+    "saveChanges": "Save changes",
+    "notAdded": "Not added",
+    "notAvailable": "Not available",
+    "goBack": "Go back",
+    "error": "Error"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "timeout": "The server took too long to respond.",
+    "network": "Can't reach the server at {{url}}. Is the backend running and on the same network?"
+  },
+  "tabs": {
+    "home": "Home",
+    "bookings": "Bookings",
+    "messages": "Messages",
+    "profile": "Profile"
+  },
+  "landing": {
+    "heading": "<b>Every Skill,</b>\nOne <b>App</b>",
+    "subtitle": "From quick fixes to big projects, find verified local professionals ready to help.",
+    "cta": "Get Started"
+  },
+  "auth": {
+    "tagline": "Verified professionals, trusted services",
+    "login": "Login",
+    "signup": "Sign Up",
+    "loginDescription": "Welcome back! Sign in to continue.",
+    "signupDescription": "Create your account. We'll verify your identity with Aadhaar.",
+    "continueWithGoogle": "Continue with Google",
+    "signupWithGoogle": "Sign up with Google",
+    "loginA11y": "Login with Google",
+    "signupA11y": "Sign up with Google",
+    "signupNote": "🔐 New accounts verify their identity through DigiLocker",
+    "loginNote": "🔒 Your credentials are secured and never stored",
+    "terms": "By continuing, you agree to our <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>",
+    "failedTitle": "Authentication Failed",
+    "inProgress": "A sign-in is already in progress.",
+    "playServices": "Google Play Services is missing or out of date on this device.",
+    "misconfigured": "Google Sign-In is misconfigured for this build (check the Android OAuth client SHA-1).",
+    "noIdToken": "Google did not return an ID token."
+  },
+  "aadhaar": {
+    "title": "DigiLocker Verification",
+    "subtitle": "We securely verify your identity using the official Govt. of India DigiLocker service.",
+    "cardTitle": "Verify your identity",
+    "cardDescription": "You will be redirected to DigiLocker to authorize the sharing of your Aadhaar details securely.",
+    "privacy": "We do not store your full Aadhaar number. We strictly comply with UIDAI and Government data privacy guidelines.",
+    "verifyButton": "Verify with DigiLocker →",
+    "later": "I'll do this later",
+    "poweredBy": "Secured by Meon eKYC · UIDAI Authorized",
+    "startFailed": "Could not start DigiLocker verification.",
+    "verifying": "Verifying with DigiLocker…",
+    "verifyingBody": "Fetching your details securely. This takes a few seconds.",
+    "failedTitle": "Verification failed",
+    "fetchFailed": "Could not fetch your Aadhaar details.",
+    "startOver": "Start over"
+  },
+  "home": {
+    "yourLocation": "Your location",
+    "setLocation": "Set your location",
+    "locationA11y": "Location: {{location}}. Change",
+    "notifications": "Notifications",
+    "profile": "Profile",
+    "createJob": "Create a new job",
+    "createJobBody": "Describe the work, we find nearby workers",
+    "mostBooked": "Most booked",
+    "bookA11y": "Book {{name}}",
+    "trending": "Trending",
+    "bookAgain": "Book again",
+    "bookAgainEmpty": "Services you book will show up here so you can rebook in one tap."
+  },
+  "banners": {
+    "emergency": {
+      "title": "Emergency repairs",
+      "body": "Power cut or a burst pipe? Get a verified worker at your door fast.",
+      "cta": "Book now"
+    },
+    "deep-clean": {
+      "title": "Festive deep cleaning",
+      "body": "Whole-home cleaning by cooperative teams, priced fairly.",
+      "cta": "Book cleaning"
+    },
+    "verified": {
+      "title": "Every worker is verified",
+      "body": "Cooperative members with checked identity and fair wages.",
+      "cta": "Find a worker"
+    }
+  },
+  "bookings": {
+    "title": "Bookings",
+    "emptyTitle": "No bookings yet",
+    "emptyBody": "Jobs you post and the workers you book will appear here.",
+    "createJob": "Create a new job"
+  },
+  "messages": {
+    "title": "Messages",
+    "emptyTitle": "No messages yet",
+    "emptyBody": "Once a worker accepts your job, you can chat with them here."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "emptyTitle": "You're all caught up",
+    "emptyBody": "Updates about your jobs, workers and payments will show up here."
+  },
+  "createJob": {
+    "title": "New job",
+    "comingTitle": "Job posting is coming next",
+    "comingBody": "You'll describe the work here and we'll match you with verified workers nearby."
+  },
+  "profile": {
+    "title": "Profile",
+    "edit": "Edit",
+    "addName": "Add your name",
+    "completeTitle": "Complete your profile",
+    "completeCount": "{{done}} of {{total}}",
+    "completeBody": "Add your phone number and address so workers can find and reach you.",
+    "verifiedTitle": "Aadhaar verified",
+    "verifiedVia": "Verified via DigiLocker",
+    "verifiedOn": "Verified via DigiLocker on {{date}}",
+    "notVerifiedTitle": "Aadhaar not verified",
+    "notVerifiedManual": "Your details are self-declared. Verify with DigiLocker to confirm them and get a verified badge.",
+    "notVerifiedEmpty": "Verify with DigiLocker to get a verified badge, or add your details manually for now.",
+    "verifyButton": "Verify with DigiLocker",
+    "enterManually": "Enter details manually",
+    "tagAadhaar": "From Aadhaar",
+    "tagSelf": "Self-declared",
+    "personal": "Personal details",
+    "contact": "Contact",
+    "preferences": "Preferences",
+    "fullName": "Full name",
+    "dob": "Date of birth",
+    "gender": "Gender",
+    "address": "Address",
+    "mobile": "Mobile number",
+    "city": "City",
+    "pincode": "PIN code",
+    "appLanguage": "App language",
+    "signOut": "Sign out",
+    "signOutConfirm": "Are you sure you want to sign out?",
+    "memberSince": "Member since {{date}}"
+  },
+  "editProfile": {
+    "title": "Edit profile",
+    "verifiedNote": "These details are verified from your Aadhaar and can't be edited.",
+    "selfNote": "These details are self-declared until you verify with DigiLocker, which will replace them with your Aadhaar details.",
+    "namePlaceholder": "As on your government ID",
+    "dobPlaceholder": "DD/MM/YYYY",
+    "addressPlaceholder": "House no., street, area",
+    "mobilePlaceholder": "10-digit number",
+    "mobileHint": "Workers use this to reach you about a job.",
+    "cityPlaceholder": "e.g. Jaipur",
+    "saveFailed": "Could not save"
+  },
+  "gender": {
+    "M": "Male",
+    "F": "Female",
+    "T": "Transgender"
+  },
+  "language": {
+    "title": "App language",
+    "saveFailed": "Could not change the language. Please try again."
+  }
+}

@@ -16,8 +16,10 @@
     "expo-secure-store": "^57.0.4",
     "expo-status-bar": "~57.0.1",
     "expo-web-browser": "~57.0.3",
+    "i18next": "^26.4.2",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "react-i18next": "^17.0.15",
     "react-native": "0.86.3",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.0",
@@ -29,7 +31,9 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "check:i18n": "node scripts/check-i18n.mjs",
+    "test:i18n": "node --test \"scripts/*.test.mjs\""
   },
   "private": true,
   "devDependencies": {
