@@ -20,9 +20,11 @@ import Button from '../../components/Button';
 import LanguageSheet from '../../components/LanguageSheet';
 import ScreenHeader from '../../components/ScreenHeader';
 import { colors, radius, spacing, typography } from '../../constants/theme';
+import useCategories from '../../hooks/useCategories';
 import useProfile from '../../hooks/useProfile';
 import i18n from '../../i18n';
 import { localeTag, setAppLanguage } from '../../i18n/language';
+import { deregisterWorker } from '../../services/api';
 import { signOut } from '../../services/auth';
 import {
   formatDOB,
@@ -75,7 +77,8 @@ function Section({ title, tag, children }) {
 
 export default function Profile() {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, i18n: i18next } = useTranslation();
+  const { bySlug } = useCategories(i18next.language);
   const { user, setUser, error, refreshing, refresh: onRefresh, reload: load } = useProfile();
   const [languageOpen, setLanguageOpen] = useState(false);
 
@@ -91,6 +94,23 @@ export default function Profile() {
     },
     [setUser, t]
   );
+
+  const handleDeregister = useCallback(() => {
+    Alert.alert(t('workerProfile.deregisterConfirmTitle'), t('workerProfile.deregisterConfirmBody'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('workerProfile.deregister'),
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            setUser(await deregisterWorker());
+          } catch {
+            Alert.alert(t('common.error'), t('workerProfile.deregisterFailed'));
+          }
+        },
+      },
+    ]);
+  }, [setUser, t]);
 
   const handleSignOut = useCallback(() => {
     Alert.alert(t('profile.signOut'), t('profile.signOutConfirm'), [
@@ -223,6 +243,24 @@ export default function Profile() {
           <DetailRow label={t('profile.address')} value={user.address} last />
         </Section>
 
+        {user.isWorker ? (
+          <Section title={t('workerProfile.section')}>
+            <DetailRow
+              label={t('workerProfile.categories')}
+              value={user.worker.categories
+                .map(bySlug)
+                .filter(Boolean)
+                .map((c) => c.name)
+                .join(', ')}
+            />
+            <DetailRow
+              label={t('workerProfile.income')}
+              value={user.worker.incomeBracket ? t(`income.${user.worker.incomeBracket}`) : null}
+              last
+            />
+          </Section>
+        ) : null}
+
         <Section title={t('profile.contact')}>
           <DetailRow label={t('profile.mobile')} value={formatPhone(user.phone)} />
           <DetailRow label={t('profile.city')} value={user.city} />
@@ -237,6 +275,23 @@ export default function Profile() {
             last
           />
         </Section>
+
+        <Text style={styles.sectionTitleStandalone}>{t('workerProfile.settings')}</Text>
+        {user.isWorker ? (
+          <Button
+            label={t('workerProfile.deregister')}
+            variant="danger"
+            onPress={handleDeregister}
+            style={styles.workerAction}
+          />
+        ) : (
+          <Button
+            label={t('workerProfile.register')}
+            variant="secondary"
+            onPress={() => router.push('/worker-onboarding')}
+            style={styles.workerAction}
+          />
+        )}
 
         <Button
           label={t('profile.signOut')}
@@ -466,6 +521,17 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
 
+  sectionTitleStandalone: {
+    ...typography.label,
+    fontWeight: '700',
+    color: colors.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: spacing.sm,
+  },
+  workerAction: {
+    marginBottom: spacing.lg,
+  },
   signOut: {
     marginBottom: spacing.md,
   },
