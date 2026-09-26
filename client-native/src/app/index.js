@@ -13,7 +13,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Redirect, useRouter } from 'expo-router';
 
 import { colors, radius, spacing, typography } from '../constants/theme';
-import { getToken, getUser } from '../services/session';
+import { getToken } from '../services/session';
 
 const subjectImage = require('../../assets/images/subject.webp');
 // Derived from the bundled file so swapping the image never distorts it.
@@ -39,10 +39,9 @@ export default function Landing() {
     (async () => {
       let route = false;
       try {
-        if (await getToken()) {
-          const user = await getUser();
-          route = user?.isAadhaarVerified ? '/dashboard' : '/aadhaar-verify';
-        }
+        // Signed-in users go straight home; unverified ones are nudged to
+        // verify from their profile rather than blocked at launch.
+        if (await getToken()) route = '/home';
       } catch {
         // Unreadable storage — fall through to the landing screen.
       }

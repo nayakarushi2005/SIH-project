@@ -92,4 +92,18 @@ export async function getMe() {
   return res.data;
 }
 
+/**
+ * Update the current user's profile with any subset of editable fields.
+ * On a 400 the backend sends { error, fields } — see getFieldErrors.
+ */
+export async function updateMe(fields) {
+  const res = await api.patch('/auth/me', fields);
+  return res.data;
+}
+
+/** Per-field validation messages from a failed updateMe, or {}. */
+export function getFieldErrors(err) {
+  return err?.response?.data?.fields || {};
+}
+
 export default api;

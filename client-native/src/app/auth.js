@@ -98,8 +98,8 @@ export default function Auth() {
           params: { isNewUser: result.isNewUser ? '1' : '0' },
         });
       } else {
-        // Returning verified user → straight to dashboard
-        router.replace('/dashboard');
+        // Returning verified user → straight to home
+        router.replace('/home');
       }
     } catch (err) {
       if (!(isErrorWithCode(err) && err.code === statusCodes.SIGN_IN_CANCELLED)) {
