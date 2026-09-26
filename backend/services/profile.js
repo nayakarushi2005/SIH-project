@@ -3,6 +3,8 @@
  * user looks like to the app, and what the app is allowed to change.
  */
 
+const { fieldError } = require('./errors');
+
 const LANGUAGES = ['en', 'hi', 'mr', 'bn', 'ta', 'te'];
 
 // Filled in by DigiLocker once verified; editable by hand only before that.
@@ -59,36 +61,46 @@ function isValidDob(value) {
 // store, or throws a message for the user.
 const validators = {
   name(v) {
-    if (!/^[\p{L}\p{M} .'-]{2,80}$/u.test(v)) throw 'Enter your full name (letters only).';
+    if (!/^[\p{L}\p{M} .'-]{2,80}$/u.test(v)) {
+      throw fieldError('profile_name_invalid', 'Enter your full name (letters only).');
+    }
     return v.replace(/\s+/g, ' ');
   },
   dob(v) {
-    if (!isValidDob(v)) throw 'Enter a valid date as DD/MM/YYYY.';
+    if (!isValidDob(v)) throw fieldError('profile_dob_invalid', 'Enter a valid date as DD/MM/YYYY.');
     return v;
   },
   gender(v) {
-    if (!['M', 'F', 'T'].includes(v)) throw 'Choose a gender.';
+    if (!['M', 'F', 'T'].includes(v)) throw fieldError('profile_gender_invalid', 'Choose a gender.');
     return v;
   },
   address(v) {
-    if (v.length < 5 || v.length > 300) throw 'Enter your full address.';
+    if (v.length < 5 || v.length > 300) {
+      throw fieldError('profile_address_length', 'Enter your full address.');
+    }
     return v;
   },
   phone(v) {
     const digits = v.replace(/[\s-]/g, '').replace(/^(\+91|0)/, '');
-    if (!/^[6-9]\d{9}$/.test(digits)) throw 'Enter a valid 10-digit mobile number.';
+    if (!/^[6-9]\d{9}$/.test(digits)) {
+      throw fieldError('profile_phone_invalid', 'Enter a valid 10-digit mobile number.');
+    }
     return digits;
   },
   city(v) {
-    if (v.length < 2 || v.length > 60) throw 'Enter your city.';
+    if (v.length < 2 || v.length > 60) throw fieldError('profile_city_length', 'Enter your city.');
     return v;
   },
   pincode(v) {
-    if (!/^[1-9]\d{5}$/.test(v)) throw 'Enter a valid 6-digit PIN code.';
+    if (!/^[1-9]\d{5}$/.test(v)) {
+      throw fieldError('profile_pincode_invalid', 'Enter a valid 6-digit PIN code.');
+    }
     return v;
   },
   preferredLanguage(v) {
-    if (!LANGUAGES.includes(v)) throw 'Choose a supported language.';
+    if (!LANGUAGES.includes(v)) {
+      throw fieldError('profile_language_invalid', 'Choose a supported language.');
+    }
     return v;
   },
 };
@@ -113,7 +125,7 @@ function parseLocation(raw) {
     Number.isFinite(lng) &&
     Math.abs(lat) <= 90 &&
     Math.abs(lng) <= 180;
-  if (!ok) throw 'Could not read your location. Please try again.';
+  if (!ok) throw fieldError('profile_location_invalid', 'Could not read your location. Please try again.');
   return { type: 'Point', coordinates: [lng, lat] };
 }
 
@@ -147,7 +159,7 @@ function validateProfileUpdate(user, body) {
   for (const [field, raw] of Object.entries(body || {})) {
     if (!validators[field]) continue; // ignore unknown keys
     if (!editable.includes(field)) {
-      errors[field] = 'Verified from Aadhaar — this can’t be changed.';
+      errors[field] = fieldError('profile_identity_locked', 'Verified from Aadhaar — this can’t be changed.');
       continue;
     }
     if (raw === null || raw === undefined || String(raw).trim() === '') {

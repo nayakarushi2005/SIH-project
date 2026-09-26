@@ -5,6 +5,7 @@ const User = require('../models/User');
 const { initiateDigilocker, verifyDigilocker } = require('../services/meonApi');
 const verifyToken = require('../middleware/verifyToken');
 const { buildProfile } = require('../services/membership');
+const { splitFieldErrors } = require('../services/errors');
 const { IDENTITY_FIELDS, toProfile, validateProfileUpdate } = require('../services/profile');
 
 const router = express.Router();
@@ -147,7 +148,14 @@ router.patch('/me', verifyToken, async (req, res) => {
   const { updates, errors } = validateProfileUpdate(user, req.body);
 
   if (Object.keys(errors).length > 0) {
-    return res.status(400).json({ error: 'Please fix the highlighted fields.', fields: errors });
+    const { fields, fieldCodes, fieldParams } = splitFieldErrors(errors);
+    return res.status(400).json({
+      error: 'Please fix the highlighted fields.',
+      code: 'validation',
+      fields,
+      fieldCodes,
+      fieldParams,
+    });
   }
 
   try {

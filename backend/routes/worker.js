@@ -6,6 +6,7 @@ const {
   requestMembership,
   sendMembershipError,
 } = require('../services/membership');
+const { splitFieldErrors } = require('../services/errors');
 const { validateRegistration } = require('../services/worker');
 const { syncFromRegistration } = require('../services/workerProfile');
 
@@ -23,7 +24,14 @@ router.post('/register', async (req, res) => {
   try {
     const { updates, errors } = await validateRegistration(user, req.body);
     if (Object.keys(errors).length > 0) {
-      return res.status(400).json({ error: 'Please fix the highlighted fields.', fields: errors });
+      const { fields, fieldCodes, fieldParams } = splitFieldErrors(errors);
+      return res.status(400).json({
+        error: 'Please fix the highlighted fields.',
+        code: 'validation',
+        fields,
+        fieldCodes,
+        fieldParams,
+      });
     }
     if (updates.name) {
       user.name = updates.name;

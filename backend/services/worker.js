@@ -3,6 +3,7 @@
  * voice assistant — both submit through POST /api/worker/register.
  */
 const Category = require('../models/Category');
+const { fieldError } = require('./errors');
 const { validateName } = require('./profile');
 
 // Yearly income in ₹: <1L, 1–2.5L, 2.5–5L, 5–10L, >10L.
@@ -20,24 +21,33 @@ async function validateRegistration(user, body = {}) {
     const given = body.name !== undefined && body.name !== null && String(body.name).trim() !== '';
     try {
       if (given) updates.name = validateName(body.name);
-      else if (!user.name) throw 'Enter your full name.';
+      else if (!user.name) throw fieldError('worker_name_required', 'Enter your full name.');
     } catch (message) {
       errors.name = message;
     }
   }
 
   if (!INCOME_BRACKETS.includes(body.incomeBracket)) {
-    errors.incomeBracket = 'Choose your yearly income.';
+    errors.incomeBracket = fieldError('worker_income_required', 'Choose your yearly income.');
   }
 
   const slugs = Array.isArray(body.categories) ? [...new Set(body.categories.map(String))] : null;
   if (!slugs || slugs.length === 0) {
-    errors.categories = 'Choose at least one kind of work.';
+    errors.categories = fieldError('worker_categories_required', 'Choose at least one kind of work.');
   } else if (slugs.length > MAX_CATEGORIES) {
-    errors.categories = `Choose up to ${MAX_CATEGORIES} kinds of work.`;
+    errors.categories = fieldError(
+      'worker_categories_max',
+      `Choose up to ${MAX_CATEGORIES} kinds of work.`,
+      { max: MAX_CATEGORIES }
+    );
   } else {
     const active = await Category.countDocuments({ slug: { $in: slugs }, isActive: true });
-    if (active !== slugs.length) errors.categories = 'Some of the chosen work types are not available.';
+    if (active !== slugs.length) {
+      errors.categories = fieldError(
+        'worker_categories_unavailable',
+        'Some of the chosen work types are not available.'
+      );
+    }
   }
 
   if (Object.keys(errors).length === 0) {

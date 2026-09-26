@@ -47,7 +47,9 @@ test.each([
   const user = await createUser();
   const res = await request(app).patch('/api/auth/me').set(authHeader(user)).send({ location });
   expect(res.status).toBe(400);
+  expect(res.body.code).toBe('validation');
   expect(res.body.fields.location).toBeTruthy();
+  expect(res.body.fieldCodes.location).toBe('profile_location_invalid');
 });
 
 test('PATCH /me with location null clears it', async () => {
@@ -97,6 +99,7 @@ test('PATCH /me locks the DigiLocker details once Aadhaar is verified', async ()
     .send({ name: 'Someone Else', dob: '05/05/1995', gender: 'M', address: '1 New Street, Delhi' });
   expect(res.status).toBe(400);
   expect(Object.keys(res.body.fields).sort()).toEqual(['address', 'dob', 'gender', 'name']);
+  expect(res.body.fieldCodes.name).toBe('profile_identity_locked');
   const saved = await User.findById(user._id);
   expect(saved.name).toBe('Sita Devi');
   expect(saved.dob).toBe('01/02/1990');
