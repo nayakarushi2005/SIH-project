@@ -21,6 +21,10 @@ export default function useVoice(lang) {
   const [partial, setPartial] = useState('');
   const pending = useRef(null); // { resolve, reject, latest }
   const permitted = useRef(null);
+  // Resolves when the recogniser has fully stopped; a new listen waits for
+  // it so an aborted session's late events can't answer the new one.
+  const ended = useRef(Promise.resolve());
+  const markEnded = useRef(() => {});
 
   const settle = useCallback((fn) => {
     const p = pending.current;
@@ -38,6 +42,7 @@ export default function useVoice(lang) {
 
   useSpeechRecognitionEvent('end', () => {
     settle((p) => p.resolve(p.latest ?? ''));
+    markEnded.current();
   });
 
   useSpeechRecognitionEvent('error', (event) => {
@@ -70,6 +75,15 @@ export default function useVoice(lang) {
       }
       if (!permitted.current) throw { code: 'denied' };
       if (!ExpoSpeechRecognitionModule.isRecognitionAvailable()) throw { code: 'unavailable' };
+      // Finish any earlier session first (e.g. the mic was tapped while listening).
+      if (pending.current) {
+        settle((p) => p.resolve(''));
+        ExpoSpeechRecognitionModule.abort();
+      }
+      await Promise.race([ended.current, new Promise((r) => setTimeout(r, 1500))]);
+      ended.current = new Promise((r) => {
+        markEnded.current = r;
+      });
       setPartial('');
       return new Promise((resolve, reject) => {
         pending.current = { resolve, reject, latest: '' };
@@ -83,7 +97,7 @@ export default function useVoice(lang) {
         });
       });
     },
-    [locale]
+    [locale, settle]
   );
 
   /** Stop talking and listening (used before a tap and on leaving the screen). */
