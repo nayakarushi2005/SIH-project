@@ -110,6 +110,24 @@ export async function getCategories(lang = 'en') {
   return res.data;
 }
 
+// ── Worker ──────────────────────────────────────────────────────────────────
+
+/** { name?, incomeBracket, categories, onboardedVia? } → updated profile. 400 has fields. */
+export async function registerWorker(body) {
+  const res = await api.post('/worker/register', body);
+  return res.data;
+}
+
+export async function deregisterWorker() {
+  const res = await api.post('/worker/deregister');
+  return res.data;
+}
+
+export async function dismissWorkerPrompt() {
+  const res = await api.post('/worker/dismiss-prompt');
+  return res.data;
+}
+
 /** Per-field validation messages from a failed updateMe, or {}. */
 export function getFieldErrors(err) {
   return err?.response?.data?.fields || {};

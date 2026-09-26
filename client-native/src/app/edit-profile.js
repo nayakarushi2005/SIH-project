@@ -18,6 +18,7 @@ import OptionGroup from '../components/OptionGroup';
 import ScreenHeader from '../components/ScreenHeader';
 import TextField from '../components/TextField';
 import { colors, radius, spacing, typography } from '../constants/theme';
+import { useUser } from '../context/UserContext';
 import { getErrorMessage, getFieldErrors, updateMe } from '../services/api';
 import { getUser, saveUser } from '../services/session';
 import { formatDOB, genderLabel, genderOptions, maskDOB } from '../utils/profile';
@@ -50,6 +51,7 @@ function ReadOnlyRow({ label, value, last }) {
 export default function EditProfile() {
   const router = useRouter();
   const { t } = useTranslation();
+  const { setUser: setSharedUser } = useUser();
   const [user, setUser] = useState(null);
   const [form, setForm] = useState(toForm(null));
   const [errors, setErrors] = useState({});
@@ -87,6 +89,7 @@ export default function EditProfile() {
     try {
       const updated = await updateMe(changes);
       await saveUser(updated);
+      setSharedUser(updated);
       router.back();
     } catch (err) {
       const fieldErrors = getFieldErrors(err);
@@ -98,7 +101,7 @@ export default function EditProfile() {
     } finally {
       setSaving(false);
     }
-  }, [form, router, t, user, verified]);
+  }, [form, router, setSharedUser, t, user, verified]);
 
   if (!user) {
     return (

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 
+import { UserProvider } from '../context/UserContext';
 import '../i18n';
 import { initLanguage } from '../i18n/language';
 
@@ -14,5 +15,9 @@ export default function RootLayout() {
   }, []);
 
   if (!ready) return null;
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <UserProvider>
+      <Stack screenOptions={{ headerShown: false }} />
+    </UserProvider>
+  );
 }
