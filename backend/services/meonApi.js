@@ -1,83 +1,83 @@
 const axios = require('axios');
 
-const MEON_BASE_URL = process.env.MEON_BASE_URL || 'https://api.meon.co.in';
+const MEON_BASE_URL = 'https://digilocker.meon.co.in';
+const MEON_COMPANY_NAME = process.env.MEON_COMPANY_NAME;
 const MEON_SECRET_TOKEN = process.env.MEON_SECRET_TOKEN;
-const MEON_COMPANY_CODE = process.env.MEON_COMPANY_CODE;
-
-const meonClient = axios.create({
-  baseURL: MEON_BASE_URL,
-  headers: {
-    Authorization: `Bearer ${MEON_SECRET_TOKEN}`,
-    secret_token: MEON_SECRET_TOKEN,
-    companycode: MEON_COMPANY_CODE,
-    'Content-Type': 'application/json',
-  },
-  timeout: 30000,
-});
 
 /**
- * Step 1 — Send OTP to Aadhaar-linked mobile number
- * @param {string} aadhaarNumber - 12-digit Aadhaar number
- * @returns {Promise<{ transactionId: string, message: string }>}
+ * Step 1 — Generate Client Token and Digilocker Link
+ * @returns {Promise<{ url: string, clientToken: string, state: string }>}
  */
-async function initiateAadhaarOTP(aadhaarNumber) {
+async function initiateDigilocker() {
   try {
-    const response = await meonClient.post('/v1/aadhaar-ekyc/initiate', {
-      aadhaar: aadhaarNumber,
+    // 1. Get Access Token (Client Token & State)
+    const tokenRes = await axios.post(`${MEON_BASE_URL}/get_access_token`, {
+      company_name: MEON_COMPANY_NAME,
+      secret_token: MEON_SECRET_TOKEN,
+    }, {
+      headers: { 'Content-Type': 'application/json' }
     });
+
+    const { client_token, state } = tokenRes.data;
+    if (!client_token) throw new Error('Failed to get client_token from Meon');
+
+    // 2. Generate Digilocker URL
+    const urlRes = await axios.post(`${MEON_BASE_URL}/digi_url`, {
+      client_token,
+      redirect_url: 'sihconnect://aadhaar-callback', // Expo Deep Link schema (app.json scheme)
+      company_name: MEON_COMPANY_NAME,
+      documents: 'aadhaar',
+    }, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const urlData = urlRes.data;
+    if (!urlData.success) throw new Error(urlData.msg || 'Failed to generate Digilocker URL');
 
     return {
       success: true,
-      transactionId: response.data.transaction_id || response.data.transactionId,
-      message: response.data.message || 'OTP sent successfully',
+      url: urlData.url,
+      clientToken: client_token,
+      state: state,
     };
   } catch (error) {
-    const msg =
-      error.response?.data?.message ||
-      error.response?.data?.error ||
-      error.message ||
-      'Failed to initiate Aadhaar OTP';
+    const msg = error.response?.data?.msg || error.response?.data?.message || error.message || 'Failed to initiate Digilocker';
     throw new Error(msg);
   }
 }
 
 /**
- * Step 2 — Verify OTP and get Aadhaar demographic data
- * @param {string} transactionId - from initiateAadhaarOTP response
- * @param {string} otp - 6-digit OTP entered by user
- * @returns {Promise<{ name, dob, gender, address, maskedAadhaar }>}
+ * Step 2 — Fetch Aadhaar Data after user authorizes Digilocker
+ * @param {string} clientToken 
+ * @param {string} state 
  */
-async function verifyAadhaarOTP(transactionId, otp) {
+async function verifyDigilocker(clientToken, state) {
   try {
-    const response = await meonClient.post('/v1/aadhaar-ekyc/verify', {
-      transaction_id: transactionId,
-      otp,
+    const res = await axios.post(`${MEON_BASE_URL}/v2/send_entire_data`, {
+      client_token: clientToken,
+      state: state,
+      status: true,
+    }, {
+      headers: { 'Content-Type': 'application/json' }
     });
 
-    const data = response.data;
+    const data = res.data.data;
+    if (!res.data.success || !data) {
+      throw new Error(res.data.msg || 'Failed to retrieve Aadhaar data');
+    }
 
     return {
       success: true,
-      // Meon API returns these demographic fields
-      name: data.name || data.full_name || null,
-      dob: data.dob || data.date_of_birth || null,
-      gender: data.gender || null,
-      address: data.address || [
-        data.house, data.street, data.landmark, data.locality,
-        data.district, data.state, data.pincode,
-      ]
-        .filter(Boolean)
-        .join(', ') || null,
-      maskedAadhaar: data.masked_aadhaar || data.maskedAadhaar || null,
+      name: data.name,
+      dob: data.dob,
+      gender: data.gender === 'M' || data.gender === 'Male' ? 'Male' : (data.gender === 'F' || data.gender === 'Female' ? 'Female' : data.gender),
+      address: [data.house, data.locality, data.dist, data.state, data.pincode].filter(Boolean).join(', '),
+      maskedAadhaar: data.aadhar_no, // e.g. xxxxxxxx7845
     };
   } catch (error) {
-    const msg =
-      error.response?.data?.message ||
-      error.response?.data?.error ||
-      error.message ||
-      'OTP verification failed';
+    const msg = error.response?.data?.msg || error.response?.data?.message || error.message || 'Failed to verify Digilocker data';
     throw new Error(msg);
   }
 }
 
-module.exports = { initiateAadhaarOTP, verifyAadhaarOTP };
+module.exports = { initiateDigilocker, verifyDigilocker };
