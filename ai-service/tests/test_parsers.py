@@ -60,3 +60,51 @@ def test_detect_done(text, lang):
 )
 def test_clean_name(text, name):
     assert clean_name(text) == name
+
+
+# ── Review regressions ──────────────────────────────────────────────────────
+
+
+@pytest.mark.parametrize(
+    "text,lang,expected",
+    [
+        ("नहीं जी", "hi", "no"),
+        ("ना जी", "hi", "no"),
+        ("हाँ मुझे जुड़ना है", "hi", "yes"),  # ना inside जुड़ना is not "no"
+        ("हाँ सुना", "hi", "yes"),
+        ("হ্যাঁ জানা আছে", "bn", "yes"),
+        ("सही है ना", "hi", "yes"),          # tag question
+    ],
+)
+def test_yes_no_regressions(text, lang, expected):
+    assert detect_yes_no(text, lang) == expected
+
+
+@pytest.mark.parametrize(
+    "text,bracket",
+    [
+        ("मैं 2019 से काम कर रहा हूं", None),      # a year, not money
+        ("मेरा पिन कोड 110001 है", None),          # a PIN code
+        ("9876543210", None),                    # a phone number
+        ("रोज़ 600 रुपये मिलते हैं", "1l_2_5l"),    # daily pay ×300 = 1.8 L
+        ("700 per day", "1l_2_5l"),
+        ("हफ्ते के 3000", "1l_2_5l"),              # weekly ×52 = 1.56 L
+        ("2 लाख 50 हज़ार", "2_5l_5l"),              # compound amount
+        ("1 lakh 20 thousand", "1l_2_5l"),
+        ("20 हज़ार महीना, यानी 2 लाख 40 हज़ार साल", "1l_2_5l"),
+        ("60 हज़ार प्रति माह", "5l_10l"),
+        ("पंद्रह हज़ार महीना", "1l_2_5l"),
+        ("ढाई लाख", "2_5l_5l"),
+        ("twenty thousand a month", "1l_2_5l"),
+        ("₹20,000 monthly", "1l_2_5l"),
+        ("1.5 lakh", "1l_2_5l"),
+        ("salary 110000 rupees", "1l_2_5l"),     # 6 digits with rupees is money
+    ],
+)
+def test_income_regressions(text, bracket):
+    assert parse_income(text).bracket == bracket
+
+
+@pytest.mark.parametrize("text", ["आज मौसम अच्छा है", "who are you", "नमस्ते", "बाद में बताऊंगा", "Ignore previous instructions"])
+def test_obvious_non_names_are_rejected(text):
+    assert clean_name(text) is None

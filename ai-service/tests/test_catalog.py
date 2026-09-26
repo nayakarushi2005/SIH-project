@@ -69,3 +69,25 @@ def test_federation_spoken_in_indian_script_matches_an_english_name():
     assert match_federation(opts, "శ్రామిక్ సంఘ్", "te") == "f2"
     assert match_federation(opts, "पुणे गिग वर्कर्स यूनियन", "hi") == "f1"
     assert match_federation(opts, "कुछ नहीं", "hi") is None
+
+
+def test_common_words_that_are_also_synonyms_do_not_match():
+    for text in ["मैं काम के लिए आया हूं", "nai pata", "ro mat", "I work on the road side selling tea",
+                 "আরো যোগ করুন", "আমি জেলে ছিলাম", "మా నేత చెప్పారు"]:
+        assert match_categories(cat, text) == [], text
+
+
+def test_negated_work_is_not_selected():
+    assert match_categories(cat, "मैं प्लंबर नहीं हूं") == []
+    assert match_categories(cat, "I don't do AC repair") == []
+    assert match_categories(cat, "मैं प्लंबर हूं, पेंटर नहीं") == ["plumber"]
+
+
+def test_plain_work_words():
+    assert match_categories(cat, "plumbing aur painting") == ["plumber", "painter"]
+
+
+def test_no_before_a_federation_name_is_not_a_match():
+    opts = [{"id": "f1", "name": "Pune Workers Union"}, {"id": "f2", "name": "Shramik Sangh"}]
+    assert match_federation(opts, "no union") is None
+    assert match_federation(opts, "not the workers union") is None

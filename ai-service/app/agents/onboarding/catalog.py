@@ -13,8 +13,9 @@ from dataclasses import dataclass, field
 from indic_transliteration import sanscript
 from rapidfuzz import fuzz
 
+from app.agents.onboarding import lexicon as lx
 from app.agents.onboarding.lexicon import INDIC
-from app.agents.onboarding.parsers import _word, normalise
+from app.agents.onboarding.parsers import _word, detect_yes_no, normalise
 
 FUZZY_MIN_SCORE = 84
 FUZZY_MIN_LEN = 5
@@ -22,9 +23,10 @@ FUZZY_MAX_HITS = 2
 
 
 def _variants(label: str) -> list[str]:
-    """'Barber / hairdresser' → ['barber / hairdresser', 'barber', 'hairdresser']."""
+    """'Barber / hairdresser' → ['barber / hairdresser', 'barber', 'hairdresser'].
+    Only '/' separates alternatives; '&' joins one name ('Road & site worker')."""
     whole = normalise(label)
-    parts = [p.strip() for p in re.split(r"[/&]", whole) if p.strip()]
+    parts = [p.strip() for p in whole.split("/") if p.strip()]
     return [whole, *parts] if len(parts) > 1 else [whole]
 
 
@@ -43,9 +45,7 @@ class Catalog:
 
     @classmethod
     def from_node(cls, lang_payload: dict, en_payload: dict) -> "Catalog":
-        en = {
-            c["slug"]: c for g in en_payload.get("groups", []) for c in g.get("categories", [])
-        }
+        en = {c["slug"]: c for g in en_payload.get("groups", []) for c in g.get("categories", [])}
         categories = []
         for group in lang_payload.get("groups", []):
             for c in group.get("categories", []):
@@ -55,7 +55,7 @@ class Catalog:
                 words = []
                 for label in labels:
                     for v in _variants(label):
-                        if len(v) >= 2 and v not in words:
+                        if len(v) >= 2 and v not in words and v not in lx.AMBIGUOUS_SYNONYMS:
                             words.append(v)
                 categories.append(Category(c["slug"], c["name"], e.get("name", c["name"]), words))
         return cls(categories)
@@ -90,6 +90,30 @@ def _drop_contained(hits: list[tuple[int, int, str]]) -> list[tuple[int, int, st
     return kept
 
 
+_CLAUSE_END = re.compile(r"[,.;!?।]")
+
+
+def _negated(t: str, start: int, end: int, next_start: int) -> bool:
+    """'प्लंबर नहीं', 'don't do AC repair' — within the same clause."""
+    stop = _CLAUSE_END.search(t, end)
+    after = t[end : min(end + 15, next_start, stop.start() if stop else len(t))]
+    prev = [m.end() for m in _CLAUSE_END.finditer(t, 0, start)]
+    before = t[max(start - 12, prev[-1] if prev else 0) : start]
+    return any(re.search(_word(w), after) for w in lx.NEGATION_AFTER) or any(
+        re.search(_word(w), before) for w in lx.NEGATION_BEFORE
+    )
+
+
+def _drop_negated(t: str, hits: list[tuple[int, int, str]]) -> list[tuple[int, int, str]]:
+    hits = sorted(hits)
+    kept = []
+    for i, (start, end, slug) in enumerate(hits):
+        nxt = next((h[0] for h in hits[i + 1 :] if h[0] >= end), len(t))
+        if not _negated(t, start, end, nxt):
+            kept.append((start, end, slug))
+    return kept
+
+
 def match_categories(catalog: Catalog, text: str) -> list[str]:
     t = normalise(text)
     if not t:
@@ -114,7 +138,7 @@ def match_categories(catalog: Catalog, text: str) -> list[str]:
         fuzzy.sort(key=lambda f: -f[0])
         hits = [(s, e, slug) for _, s, e, slug in fuzzy[:FUZZY_MAX_HITS]]
     ordered = []
-    for _, _, slug in sorted(_drop_contained(hits)):
+    for _, _, slug in _drop_negated(t, _drop_contained(hits)):
         if slug not in ordered:
             ordered.append(slug)
     return ordered
@@ -161,8 +185,8 @@ def match_federation(options: list[dict], text: str, lang: str | None = None) ->
     """The federation the worker named. Names are typed in English on the
     web portal, so speech in an Indian script is also compared phonetically."""
     t = normalise(text)
-    if not t:
-        return None
+    if not t or detect_yes_no(text, lang or "en") == "no":
+        return None  # "no union", "नको, संघटना नको" — a refusal, not a choice
     spoken = _romanise(text, lang)
     best_id, best_score = None, 0
     for opt in options:

@@ -15,6 +15,7 @@ assistant can't be talked into skipping steps or wandering off.
 """
 
 import logging
+import re
 import time
 from collections.abc import Awaitable, Callable
 
@@ -46,6 +47,7 @@ from app.agents.onboarding.state import (
     HANDOFF_AFTER,
     INCOME_BRACKETS,
     MAX_CATEGORIES,
+    NAME_HANDOFF_AFTER,
     OnboardingState,
 )
 
@@ -78,6 +80,11 @@ def _detect_field(text: str, lang: str) -> str | None:
         if _has(_field_words(lang, field), t):
             return field
     return None
+
+
+_LEADING_NO = re.compile(
+    r"^\s*(?:no|nope|not|nahi|नहीं|नही|ना|नाही|नको|না|இல்லை|కాదు|లేదు)[\s,.।!]*", re.IGNORECASE
+)
 
 
 def _fail(reason: str, redirect: str | None = None, path: str = "rules") -> dict:
@@ -202,10 +209,23 @@ def build_graph(extractor: Extractor, catalog_for: CatalogFor, checkpointer):
         lang = state["lang"]
         yn = detect_yes_no(text, lang)
         field = _detect_field(text, lang) if state.get("step") == "confirm" else None
+        if field:
+            return {"ok": True, "reason": "answer", "yes": False, "field": field, "path": "rules"}
+        if yn == "no" and state.get("step") == "name_confirm":
+            # "नहीं, मेरा नाम रवि शंकर है" — take the corrected name straight away.
+            fixed = clean_name(_LEADING_NO.sub("", normalise(text)))
+            if fixed and fixed != state.get("name"):
+                return {
+                    "ok": True,
+                    "reason": "answer",
+                    "yes": False,
+                    "new_name": fixed,
+                    "path": "rules",
+                }
         if yn == "yes":
             return {"ok": True, "reason": "answer", "yes": True, "path": "rules"}
-        if yn == "no" or field:
-            return {"ok": True, "reason": "answer", "yes": False, "field": field, "path": "rules"}
+        if yn == "no":
+            return {"ok": True, "reason": "answer", "yes": False, "field": None, "path": "rules"}
         out = await llm(YesNoOut, state, text)
         failed = _from_llm(out)
         if failed:
@@ -245,7 +265,7 @@ def build_graph(extractor: Extractor, catalog_for: CatalogFor, checkpointer):
                 "ok": True,
                 "reason": "answer",
                 "add": matched,
-                "confirmed": finished,
+                "confirmed": False,
                 "path": "rules",
             }
         if finished and have:
@@ -267,11 +287,11 @@ def build_graph(extractor: Extractor, catalog_for: CatalogFor, checkpointer):
         lang = state["lang"]
         options = state.get("federation_options") or []
         yn = detect_yes_no(text, lang)
+        if yn == "no" or detect_done(text, lang):
+            return {"ok": True, "reason": "answer", "declined": True, "path": "rules"}
         chosen = match_federation(options, text, lang)
         if chosen:
             return {"ok": True, "reason": "answer", "federation_id": chosen, "path": "rules"}
-        if yn == "no" or detect_done(text, lang):
-            return {"ok": True, "reason": "answer", "declined": True, "path": "rules"}
         if yn == "yes" and len(options) == 1:
             return {
                 "ok": True,
@@ -349,21 +369,28 @@ def build_graph(extractor: Extractor, catalog_for: CatalogFor, checkpointer):
             return {"ack": []}
 
         if not o.get("ok"):
-            attempts[step] = attempts.get(step, 0) + 1
-            if attempts[step] >= HANDOFF_AFTER:
+            key = "name" if step in ("name", "name_confirm") else step
+            attempts[key] = attempts.get(key, 0) + 1
+            limit = NAME_HANDOFF_AFTER if key == "name" else HANDOFF_AFTER
+            if attempts[key] >= limit:
                 return {"attempts": attempts, "step": "handoff", "handoff": True, "ack": []}
             return {"attempts": attempts, "ack": []}
 
-        attempts[step] = 0
+        if step not in ("name", "name_confirm"):
+            attempts[step] = 0
         up: dict = {"attempts": attempts, "ack": []}
 
         if step == "name":
             up["name"] = o["name"]
         elif step == "name_confirm":
             if not o.get("yes"):
-                up["name"] = None
-                up["step"] = "name"
-                return up
+                attempts["name"] = attempts.get("name", 0) + 1
+                if attempts["name"] >= NAME_HANDOFF_AFTER:
+                    return {**up, "step": "handoff", "handoff": True}
+                if o.get("new_name"):
+                    return {**up, "name": o["new_name"], "step": "name_confirm"}
+                return {**up, "name": None, "step": "name"}
+            attempts["name"] = attempts["name_confirm"] = 0
         elif step == "income":
             up["income_bracket"] = o["bracket"]
             up["ack"] = [

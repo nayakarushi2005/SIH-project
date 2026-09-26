@@ -7,6 +7,7 @@ from app.agents.onboarding.lexicon import LANGS
 MAX_CATEGORIES = 10
 BUTTONS_AFTER = 3  # failed tries on a step before tap choices are offered
 HANDOFF_AFTER = 6  # failed tries on a step before we switch to the form
+NAME_HANDOFF_AFTER = 3  # names have no tap choices: switch to the form sooner
 
 INCOME_BRACKETS = ("lt_1l", "1l_2_5l", "2_5l_5l", "5l_10l", "gt_10l")
 FIELDS = ("name", "income", "categories", "federation")
