@@ -5,7 +5,7 @@
 ```mermaid
 graph LR
     subgraph Cloud VM
-        D[Docker Container<br>Node.js API<br>Port 5000]
+        D[Docker Container<br>Node.js API<br>Port 3000]
     end
     subgraph Expo EAS Cloud
         E[EAS Build<br>Android APK]
@@ -43,9 +43,9 @@ graph LR
 docker compose up --build
 ```
 
-The backend will be live at `http://localhost:5000`. Verify:
+The backend will be live at `http://localhost:3000`. Verify:
 ```bash
-curl http://localhost:5000/api/health
+curl http://localhost:3000/api/health
 # → {"status":"ok","message":"SIH Backend is running"}
 ```
 
@@ -66,7 +66,7 @@ nano backend/.env   # fill in real values
 docker compose up -d --build
 
 # 5. Verify
-curl http://localhost:5000/api/health
+curl http://localhost:3000/api/health
 ```
 
 ### Useful Docker Commands
@@ -153,10 +153,10 @@ adb install path/to/sih-connect.apk
 ### [`server.js`](file:///e:/sih/SIH-project/backend/server.js)
 
 ```diff
--    const PORT = process.env.PORT || 5000;
+-    const PORT = process.env.PORT || 3000;
 -    app.listen(PORT, () => {
 -      console.log(`🚀 Server running on port ${PORT}`);
-+const PORT = process.env.PORT || 5000;
++const PORT = process.env.PORT || 3000;
 +const HOST = '0.0.0.0'; // Required for Docker
 +    const server = app.listen(PORT, HOST, () => {
 +      console.log(`🚀 Server running on ${HOST}:${PORT}`);
