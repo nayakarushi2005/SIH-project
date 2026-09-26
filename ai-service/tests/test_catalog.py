@@ -37,3 +37,35 @@ def test_longer_phrase_wins_over_the_word_inside_it():
 
 def test_english_inside_a_hindi_sentence():
     assert match_categories(cat, "मैं electrician हूँ") == ["electrician"]
+
+
+async def test_cache_serves_the_last_catalog_when_node_is_down():
+    import pytest as _pytest
+
+    from app.agents.onboarding.catalog import CatalogCache
+    from app.errors import ServiceError
+
+    class Node:
+        down = False
+
+        async def get_categories(self, lang):
+            if self.down:
+                raise ServiceError(503, "down", "backend_unavailable")
+            return EN_PAYLOAD if lang == "en" else LANG_PAYLOAD
+
+    node = Node()
+    cache = CatalogCache(node, ttl=0)  # every call is "stale"
+    first = await cache.get("hi")
+    node.down = True
+    assert await cache.get("hi") is first
+    with _pytest.raises(ServiceError):
+        await cache.get("ta")  # never fetched → nothing to fall back to
+
+
+def test_federation_spoken_in_indian_script_matches_an_english_name():
+    opts = [{"id": "f1", "name": "Pune Gig Workers Union"}, {"id": "f2", "name": "Shramik Sangh"}]
+    assert match_federation(opts, "श्रमिक संघ", "hi") == "f2"
+    assert match_federation(opts, "শ্রমিক সংঘ", "bn") == "f2"
+    assert match_federation(opts, "శ్రామిక్ సంఘ్", "te") == "f2"
+    assert match_federation(opts, "पुणे गिग वर्कर्स यूनियन", "hi") == "f1"
+    assert match_federation(opts, "कुछ नहीं", "hi") is None

@@ -267,7 +267,7 @@ def build_graph(extractor: Extractor, catalog_for: CatalogFor, checkpointer):
         lang = state["lang"]
         options = state.get("federation_options") or []
         yn = detect_yes_no(text, lang)
-        chosen = match_federation(options, text)
+        chosen = match_federation(options, text, lang)
         if chosen:
             return {"ok": True, "reason": "answer", "federation_id": chosen, "path": "rules"}
         if yn == "no" or detect_done(text, lang):
