@@ -21,6 +21,7 @@ from collections.abc import Awaitable, Callable
 
 from langgraph.graph import END, START, StateGraph
 
+from app.agents.common.flow import fail, from_llm, safe_redirect
 from app.agents.onboarding.catalog import Catalog, match_categories, match_federation
 from app.agents.onboarding.extract import (
     CategoriesOut,
@@ -30,7 +31,6 @@ from app.agents.onboarding.extract import (
     NameOut,
     YesNoOut,
 )
-from app.agents.onboarding.lexicon import in_script
 from app.agents.onboarding.messages import MESSAGES, msg
 from app.agents.onboarding.parsers import (
     _has,
@@ -88,20 +88,6 @@ _LEADING_NO = re.compile(
 )
 
 
-def _fail(reason: str, redirect: str | None = None, path: str = "rules") -> dict:
-    return {"ok": False, "reason": reason, "redirect": redirect, "path": path}
-
-
-def _from_llm(out) -> dict | None:
-    """A failed/declined LLM reading as a failure outcome, or None if it answered."""
-    if out is None:
-        return _fail("unclear", path="llm")
-    if out.intent != "answer":
-        reason = "off_topic" if out.intent == "off_topic" else "unclear"
-        return _fail(reason, out.redirect, "llm")
-    return None
-
-
 def _question_for(state: OnboardingState) -> str:
     """The question currently on screen, in English, for the LLM prompt."""
     return {
@@ -141,10 +127,10 @@ def build_graph(extractor: Extractor, catalog_for: CatalogFor, checkpointer):
         else:
             text = (turn.get("transcript") or "").strip()
             if not text:
-                outcome = _fail("not_heard")
+                outcome = fail("not_heard")
             else:
                 handler = SPEECH.get(step)
-                outcome = await handler(state, text) if handler else _fail("invalid")
+                outcome = await handler(state, text) if handler else fail("invalid")
         log.info(
             "turn step=%s reason=%s path=%s ms=%d lang=%s",
             step,
@@ -175,7 +161,7 @@ def build_graph(extractor: Extractor, catalog_for: CatalogFor, checkpointer):
             slugs = slugs[:MAX_CATEGORIES]
             confirm = bool(sel.get("confirm"))
             if confirm and not slugs:
-                return _fail("invalid", path="tap")
+                return fail("invalid", path="tap")
             return {
                 "ok": True,
                 "reason": "answer",
@@ -189,21 +175,21 @@ def build_graph(extractor: Extractor, catalog_for: CatalogFor, checkpointer):
                 return {"ok": True, "reason": "answer", "declined": True, "path": "tap"}
             if any(o["id"] == fid for o in state.get("federation_options", [])):
                 return {"ok": True, "reason": "answer", "federation_id": fid, "path": "tap"}
-        return _fail("invalid", path="tap")
+        return fail("invalid", path="tap")
 
     async def _speech_name(state, text) -> dict:
         name = clean_name(text)
         if name:
             return {"ok": True, "reason": "answer", "name": name, "path": "rules"}
         out = await llm(NameOut, state, text)
-        failed = _from_llm(out)
+        failed = from_llm(out)
         if failed:
             return failed
         name = clean_name(out.name or "")
         return (
             {"ok": True, "reason": "answer", "name": name, "path": "llm"}
             if name
-            else _fail("unclear", path="llm")
+            else fail("unclear", path="llm")
         )
 
     async def _speech_yes_no(state, text) -> dict:
@@ -232,11 +218,11 @@ def build_graph(extractor: Extractor, catalog_for: CatalogFor, checkpointer):
         if yn == "no":
             return {"ok": True, "reason": "answer", "yes": False, "field": None, "path": "rules"}
         out = await llm(YesNoOut, state, text)
-        failed = _from_llm(out)
+        failed = from_llm(out)
         if failed:
             return failed
         if out.answer is None and not out.change_field:
-            return _fail("unclear", path="llm")
+            return fail("unclear", path="llm")
         return {
             "ok": True,
             "reason": "answer",
@@ -250,11 +236,11 @@ def build_graph(extractor: Extractor, catalog_for: CatalogFor, checkpointer):
         if parsed.bracket:
             return {"ok": True, "reason": "answer", "bracket": parsed.bracket, "path": "rules"}
         out = await llm(IncomeOut, state, text)
-        failed = _from_llm(out)
+        failed = from_llm(out)
         if failed:
             return failed
         if not out.amount_rupees or out.amount_rupees <= 0:
-            return _fail("unclear", path="llm")
+            return fail("unclear", path="llm")
         period = out.period or ("month" if out.amount_rupees <= 50_000 else "year")
         yearly = out.amount_rupees * (12 if period == "month" else 1)
         return {"ok": True, "reason": "answer", "bracket": bracket_for(yearly), "path": "llm"}
@@ -280,12 +266,12 @@ def build_graph(extractor: Extractor, catalog_for: CatalogFor, checkpointer):
             f"{o['slug']}: {o['name']} / {o['en']}" for o in options
         )
         out = await llm(CategoriesOut, state, text, context)
-        failed = _from_llm(out)
+        failed = from_llm(out)
         if failed:
             return failed
         slugs = [s for s in dict.fromkeys(out.slugs) if s in catalog.slugs]
         if not slugs:
-            return _fail("invalid", path="llm")
+            return fail("invalid", path="llm")
         return {"ok": True, "reason": "answer", "add": slugs, "confirmed": False, "path": "llm"}
 
     async def _speech_federation(state, text) -> dict:
@@ -308,7 +294,7 @@ def build_graph(extractor: Extractor, catalog_for: CatalogFor, checkpointer):
             f"{o['id']}: {o['name']}" for o in options
         )
         out = await llm(FederationOut, state, text, context)
-        failed = _from_llm(out)
+        failed = from_llm(out)
         if failed:
             return failed
         if out.declined:
@@ -320,19 +306,19 @@ def build_graph(extractor: Extractor, catalog_for: CatalogFor, checkpointer):
                 "federation_id": out.federation_id,
                 "path": "llm",
             }
-        return _fail("unclear", path="llm")
+        return fail("unclear", path="llm")
 
     async def _speech_change(state, text) -> dict:
         field = _detect_field(text, state["lang"])
         if field:
             return {"ok": True, "reason": "answer", "field": field, "path": "rules"}
         out = await llm(YesNoOut, state, text)
-        failed = _from_llm(out)
+        failed = from_llm(out)
         if failed:
             return failed
         if out.change_field:
             return {"ok": True, "reason": "answer", "field": out.change_field, "path": "llm"}
-        return _fail("unclear", path="llm")
+        return fail("unclear", path="llm")
 
     SPEECH = {
         "name": _speech_name,
@@ -482,10 +468,8 @@ def build_graph(extractor: Extractor, catalog_for: CatalogFor, checkpointer):
         if reason == "not_heard":
             return msg(lang, "not_heard")
         if reason == "off_topic":
-            redirect = (o.get("redirect") or "").strip()
-            if redirect and len(redirect) <= 200 and in_script(redirect, lang):
-                return redirect
-            return msg(lang, "redirect")
+            redirect = safe_redirect(o.get("redirect"), lang)
+            return redirect or msg(lang, "redirect")
         if step == "categories" and reason == "invalid":
             return msg(lang, "categories_none")
         return msg(lang, "unclear")

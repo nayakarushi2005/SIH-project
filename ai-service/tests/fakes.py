@@ -39,6 +39,6 @@ class FakeExtractor:
         self.results = list(results or [])
         self.calls = []
 
-    async def extract(self, schema, *, lang, question, transcript, context=""):
-        self.calls.append((schema.__name__, transcript))
+    async def extract(self, schema, *, lang, question, transcript, context="", system=None):
+        self.calls.append((schema.__name__, transcript, system))
         return self.results.pop(0) if self.results else None

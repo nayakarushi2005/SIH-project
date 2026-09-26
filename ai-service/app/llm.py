@@ -14,8 +14,11 @@ class ConfigError(Exception):
 
 
 def make_chat_model(settings: Settings) -> BaseChatModel:
-    if not settings.google_cloud_project:
-        raise ConfigError("Set GOOGLE_CLOUD_PROJECT in ai-service/.env to use Vertex AI.")
+    if not settings.effective_project:
+        raise ConfigError(
+            "Set GOOGLE_CLOUD_PROJECT in ai-service/.env, or point "
+            "GOOGLE_APPLICATION_CREDENTIALS at a key file with a project_id, to use Vertex AI."
+        )
     if settings.google_application_credentials:
         key = Path(settings.google_application_credentials).expanduser()
         if not key.is_file():
@@ -24,7 +27,7 @@ def make_chat_model(settings: Settings) -> BaseChatModel:
     return ChatGoogleGenerativeAI(
         model=settings.gemini_model,
         vertexai=True,
-        project=settings.google_cloud_project,
+        project=settings.effective_project,
         location=settings.google_cloud_location,
         temperature=0,
         timeout=settings.llm_timeout_s,
