@@ -1,0 +1,15 @@
+fastapi==0.141.1
+uvicorn[standard]==0.54.0
+pydantic-settings==2.15.0
+httpx==0.28.1
+langgraph==1.2.12
+langchain-core==1.6.5
+langchain-google-genai==4.4.0
+langgraph-checkpoint-mongodb==0.5.0
+pymongo==4.17.0
+rapidfuzz==3.14.6
+# dev
+pytest==9.1.1
+pytest-asyncio==1.4.0
+respx==0.23.1
+ruff==0.16.9
