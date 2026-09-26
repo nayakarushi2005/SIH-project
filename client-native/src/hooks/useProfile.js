@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useFocusEffect, useRouter } from 'expo-router';
 
-import { applyLanguage } from '../i18n/language';
+import { applyServerLanguage, languageEpoch } from '../i18n/language';
 import { getErrorMessage, getMe, isUnauthorized } from '../services/api';
 import { clearSession, getUser, saveUser } from '../services/session';
 
@@ -21,12 +21,13 @@ export default function useProfile() {
       const cached = await getUser();
       if (cached) setUser((current) => current ?? cached);
 
+      const epoch = languageEpoch();
       const fresh = await getMe();
       setUser(fresh);
       setError(null);
       await saveUser(fresh);
       // Follow a language changed on another device.
-      if (fresh.preferredLanguage) await applyLanguage(fresh.preferredLanguage);
+      await applyServerLanguage(fresh.preferredLanguage, epoch);
     } catch (err) {
       if (isUnauthorized(err)) {
         await clearSession();

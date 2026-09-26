@@ -23,6 +23,7 @@ import { Trans, useTranslation } from 'react-i18next';
 
 import i18n from '../i18n';
 import { getErrorMessage, googleSignIn } from '../services/api';
+import { applyLanguage } from '../i18n/language';
 import { saveSession } from '../services/session';
 
 // Configure Google Sign-In — webClientId from .env
@@ -94,6 +95,9 @@ export default function Auth() {
 
       const result = await googleSignIn(idToken);
       await saveSession(result.token, result.user);
+      // A returning user on a new phone: switch to their language before
+      // the Aadhaar screen opens.
+      if (result.user?.preferredLanguage) await applyLanguage(result.user.preferredLanguage);
 
       if (result.needsAadhaarVerification) {
         // New user OR existing user without Aadhaar → go verify
