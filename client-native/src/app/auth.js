@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,15 +8,19 @@ import {
   ActivityIndicator,
   Alert,
   useWindowDimensions,
-  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import * as SecureStore from 'expo-secure-store';
+import {
+  GoogleSignin,
+  isErrorWithCode,
+  isSuccessResponse,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
 
-import { googleSignIn } from '../services/api';
+import { getErrorMessage, googleSignIn } from '../services/api';
+import { saveSession } from '../services/session';
 
 // Configure Google Sign-In — webClientId from .env
 GoogleSignin.configure({
@@ -24,10 +28,25 @@ GoogleSignin.configure({
   offlineAccess: false,
 });
 
-// Google logo as a safe static require — avoids SVG parsing issues with ESLint
-// Falls back to a styled 'G' if no local asset is present
-const GOOGLE_LOGO_URL =
-  'https://www.google.com/favicon.ico'; // replaced with local asset in production
+if (!process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID) {
+  console.warn('EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID is not set — Google Sign-In will fail.');
+}
+
+function googleErrorMessage(err) {
+  if (isErrorWithCode(err)) {
+    switch (err.code) {
+      case statusCodes.IN_PROGRESS:
+        return 'A sign-in is already in progress.';
+      case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
+        return 'Google Play Services is missing or out of date on this device.';
+      case 'DEVELOPER_ERROR':
+      case '10':
+        // Almost always a SHA-1 / package-name mismatch in Google Cloud Console.
+        return 'Google Sign-In is misconfigured for this build (check the Android OAuth client SHA-1).';
+    }
+  }
+  return getErrorMessage(err);
+}
 
 export default function Auth() {
   const [activeTab, setActiveTab] = useState('login'); // 'login' | 'signup'
@@ -60,17 +79,17 @@ export default function Auth() {
   const handleGoogleAuth = useCallback(async () => {
     setLoading(true);
     try {
-      await GoogleSignin.hasPlayServices();
-      const userInfo = await GoogleSignin.signIn();
-      const idToken = userInfo.data?.idToken;
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      const response = await GoogleSignin.signIn();
 
-      if (!idToken) throw new Error('Failed to get Google ID token');
+      // The user closed the account picker — not an error.
+      if (!isSuccessResponse(response)) return;
+
+      const idToken = response.data.idToken;
+      if (!idToken) throw new Error('Google did not return an ID token.');
 
       const result = await googleSignIn(idToken);
-
-      // Persist JWT
-      await SecureStore.setItemAsync('authToken', result.token);
-      await SecureStore.setItemAsync('user', JSON.stringify(result.user));
+      await saveSession(result.token, result.user);
 
       if (result.needsAadhaarVerification) {
         // New user OR existing user without Aadhaar → go verify
@@ -79,16 +98,12 @@ export default function Auth() {
           params: { isNewUser: result.isNewUser ? '1' : '0' },
         });
       } else {
-        // Returning verified user → straight to dashboard
-        router.replace('/dashboard');
+        // Returning verified user → straight to home
+        router.replace('/home');
       }
     } catch (err) {
-      if (err.code !== 'SIGN_IN_CANCELLED') {
-        Alert.alert(
-          'Authentication Failed',
-          err.message || 'Something went wrong. Please try again.',
-          [{ text: 'OK' }]
-        );
+      if (!(isErrorWithCode(err) && err.code === statusCodes.SIGN_IN_CANCELLED)) {
+        Alert.alert('Authentication Failed', googleErrorMessage(err));
       }
     } finally {
       setLoading(false);
@@ -158,11 +173,7 @@ export default function Auth() {
             <ActivityIndicator color="#1a1a2e" size="small" />
           ) : (
             <>
-              <Image
-                source={{ uri: GOOGLE_LOGO_URL }}
-                style={styles.googleIcon}
-                resizeMode="contain"
-              />
+              <Text style={styles.googleIcon}>G</Text>
               <Text style={styles.googleButtonText}>
                 {activeTab === 'login' ? 'Continue with Google' : 'Sign up with Google'}
               </Text>
@@ -173,7 +184,7 @@ export default function Auth() {
         {/* Info note */}
         <Text style={styles.note}>
           {activeTab === 'signup'
-            ? '🔐 New accounts require Aadhaar verification via OTP'
+            ? '🔐 New accounts verify their identity through DigiLocker'
             : '🔒 Your credentials are secured and never stored'}
         </Text>
       </View>
@@ -327,8 +338,9 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.98 }],
   },
   googleIcon: {
-    width: 22,
-    height: 22,
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#4285F4',
   },
   googleButtonText: {
     fontSize: 16,
