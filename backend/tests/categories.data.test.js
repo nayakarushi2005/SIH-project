@@ -49,3 +49,13 @@ test('legacy app slugs still exist', () => {
     expect(slugs.has(s)).toBe(true);
   }
 });
+
+// Wording a native speaker flagged as misleading or demeaning.
+test.each([
+  ['ro_service bn name is not the word "more"', () => data.categories.find((c) => c.slug === 'ro_service'), (c) => [c.names.bn, ...c.synonyms.bn], /(^|\s)আরও(\s|$)/],
+  ['security group is not "security & convenience"', () => data.groups.find((g) => g.slug === 'security_facility'), (g) => [g.names.en, g.names.hi, g.names.mr, g.names.bn, g.names.ta, g.names.te], /facility|सुविधा|সুবিধা|வசதி|సౌకర్య/i],
+  ['domestic help in Tamil is not "servant"', () => data.categories.find((c) => c.slug === 'maid'), (c) => [c.names.ta], /வேலையாள்/],
+  ['cobbler in Marathi is not a caste name', () => data.categories.find((c) => c.slug === 'cobbler'), (c) => [c.names.mr], /चांभार/],
+])('%s', (_, find, texts, banned) => {
+  for (const text of texts(find())) expect(text).not.toMatch(banned);
+});
