@@ -17,6 +17,7 @@ import { useTranslation } from 'react-i18next';
 
 import Avatar from '../../components/Avatar';
 import Button from '../../components/Button';
+import { STATUS_KEYS } from '../../components/FederationList';
 import LanguageSheet from '../../components/LanguageSheet';
 import ScreenHeader from '../../components/ScreenHeader';
 import { colors, radius, spacing, typography } from '../../constants/theme';
@@ -259,6 +260,15 @@ export default function Profile() {
             <DetailRow
               label={t('workerProfile.income')}
               value={user.worker.incomeBracket ? t(`income.${user.worker.incomeBracket}`) : null}
+            />
+            <DetailRow
+              label={t('federation.manage')}
+              value={
+                user.federation
+                  ? `${user.federation.name} · ${t(STATUS_KEYS[user.federation.status] ?? 'federation.statusNone')}`
+                  : t('federation.statusNone')
+              }
+              onPress={() => router.push('/federations')}
               last
             />
           </Section>

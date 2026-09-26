@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Alert, KeyboardAvoidingView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 
 import Button from '../components/Button';
 import CategoryPicker from '../components/CategoryPicker';
+import FederationList from '../components/FederationList';
 import OptionGroup from '../components/OptionGroup';
 import ScreenHeader from '../components/ScreenHeader';
 import TextField from '../components/TextField';
@@ -14,12 +15,20 @@ import { colors, radius, spacing, typography } from '../constants/theme';
 import { INCOME_BRACKETS, MAX_CATEGORIES } from '../constants/worker';
 import { useUser } from '../context/UserContext';
 import useCategories from '../hooks/useCategories';
-import { getErrorMessage, getFieldErrors, registerWorker } from '../services/api';
+import {
+  getErrorMessage,
+  getFieldErrors,
+  getNearbyFederations,
+  registerWorker,
+  requestFederation,
+} from '../services/api';
 
 /**
  * Manual worker registration: name (locked once Aadhaar-verified), yearly
- * income bracket and the kinds of work they do. Prefilled from a previous
- * registration so re-registering is one tap.
+ * income bracket, the kinds of work they do, and optionally a nearby
+ * federation to join. Prefilled from a previous registration so
+ * re-registering is one tap. The federation request never blocks
+ * registration.
  */
 export default function WorkerForm() {
   const { t, i18n } = useTranslation();
@@ -32,6 +41,22 @@ export default function WorkerForm() {
   const [incomeBracket, setIncomeBracket] = useState(user?.worker?.incomeBracket ?? null);
   const [categories, setCategories] = useState(user?.worker?.categories ?? []);
   const [errors, setErrors] = useState({});
+  // { federations, message } once loaded; hidden if the lookup fails.
+  const [nearby, setNearby] = useState(null);
+  const [federationId, setFederationId] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    getNearbyFederations().then(
+      (data) => active && setNearby({ federations: data.federations, message: data.federations.length ? null : 'federation.none' }),
+      (err) =>
+        active &&
+        setNearby(err?.response?.data?.code === 'no_location' ? { federations: [], message: 'federation.noLocation' } : null)
+    );
+    return () => {
+      active = false;
+    };
+  }, []);
   const [saving, setSaving] = useState(false);
 
   // Once the real catalogue is here, drop prefilled work types that were
@@ -51,7 +76,16 @@ export default function WorkerForm() {
         categories: chosen,
         onboardedVia: 'form',
       });
-      setUser(updated);
+      let latest = updated;
+      if (federationId) {
+        try {
+          latest = await requestFederation(federationId);
+        } catch {
+          // Registered anyway — they can retry from Profile › Federation.
+          Alert.alert(t('federation.requestFailed'));
+        }
+      }
+      setUser(latest);
       Alert.alert(t('onboarding.done'));
       // Back from Profile shouldn't return to the registration screens.
       router.dismissTo('/profile');
@@ -62,7 +96,7 @@ export default function WorkerForm() {
     } finally {
       setSaving(false);
     }
-  }, [chosen, incomeBracket, name, router, setUser, t, verified]);
+  }, [chosen, federationId, incomeBracket, name, router, setUser, t, verified]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -108,6 +142,23 @@ export default function WorkerForm() {
             max={MAX_CATEGORIES}
             error={errors.categories}
           />
+
+          {nearby ? (
+            <View style={styles.federation}>
+              <Text style={styles.sectionTitle}>{t('federation.stepTitle')}</Text>
+              <Text style={styles.sectionBody}>{t('federation.stepBody')}</Text>
+              {nearby.federations.length > 0 ? (
+                <FederationList
+                  mode="pick"
+                  federations={nearby.federations}
+                  selectedId={federationId}
+                  onSelect={setFederationId}
+                />
+              ) : (
+                <Text style={styles.sectionBody}>{t(nearby.message)}</Text>
+              )}
+            </View>
+          ) : null}
         </ScrollView>
 
         <View style={styles.footer}>
@@ -136,6 +187,9 @@ const styles = StyleSheet.create({
   readOnlyRight: { alignItems: 'flex-end', flexShrink: 1 },
   readOnlyValue: { ...typography.body, fontWeight: '600', color: colors.text },
   tag: { ...typography.label, color: colors.primary, marginTop: 2 },
+  federation: { marginTop: spacing.sm },
+  sectionTitle: { ...typography.label, fontWeight: '600', color: colors.text },
+  sectionBody: { ...typography.label, color: colors.textMuted, marginTop: 2, marginBottom: spacing.sm },
   footer: {
     paddingHorizontal: spacing.lg - spacing.xs,
     paddingVertical: spacing.sm + 4,

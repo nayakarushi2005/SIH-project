@@ -128,6 +128,26 @@ export async function dismissWorkerPrompt() {
   return res.data;
 }
 
+// ── Federations ─────────────────────────────────────────────────────────────
+
+/** { match, federations: [{ id, name, city, pincode, memberCount, match, myStatus }] } */
+export async function getNearbyFederations() {
+  const res = await api.get('/federations/nearby');
+  return res.data;
+}
+
+/** Ask to join; returns the updated profile. */
+export async function requestFederation(federationId) {
+  const res = await api.post('/worker/federation', { federationId });
+  return res.data;
+}
+
+/** Cancel a pending request or leave; returns the updated profile. */
+export async function leaveFederation() {
+  const res = await api.delete('/worker/federation');
+  return res.data;
+}
+
 /** Per-field validation messages from a failed updateMe, or {}. */
 export function getFieldErrors(err) {
   return err?.response?.data?.fields || {};
