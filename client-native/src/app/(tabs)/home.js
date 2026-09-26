@@ -9,7 +9,8 @@ import Avatar from '../../components/Avatar';
 import BannerCarousel from '../../components/BannerCarousel';
 import EmptyState from '../../components/EmptyState';
 import { colors, radius, spacing, typography } from '../../constants/theme';
-import { BANNERS, MOST_BOOKED } from '../../constants/services';
+import { BANNERS, MOST_BOOKED_SLUGS } from '../../constants/services';
+import useCategories from '../../hooks/useCategories';
 import useProfile from '../../hooks/useProfile';
 
 const SIDE = spacing.lg - spacing.xs;
@@ -25,6 +26,8 @@ function SectionTitle({ children }) {
 export default function Home() {
   const router = useRouter();
   const { user, refreshing, refresh } = useProfile();
+  const { bySlug } = useCategories(user?.preferredLanguage);
+  const mostBooked = MOST_BOOKED_SLUGS.map(bySlug).filter(Boolean);
 
   const startJob = useCallback(
     (serviceId) =>
@@ -107,18 +110,18 @@ export default function Home() {
         {/* ── Most booked ────────────────────────────────────────────── */}
         <SectionTitle>Most booked</SectionTitle>
         <View style={styles.grid}>
-          {MOST_BOOKED.map((service) => (
+          {mostBooked.map((service) => (
             <Pressable
-              key={service.id}
-              onPress={() => startJob(service.id)}
+              key={service.slug}
+              onPress={() => startJob(service.slug)}
               style={({ pressed }) => [styles.serviceCard, pressed && styles.pressed]}
               accessibilityRole="button"
-              accessibilityLabel={`Book ${service.label}`}
+              accessibilityLabel={`Book ${service.name}`}
             >
               <View style={styles.serviceTile}>
                 <MaterialCommunityIcons name={service.icon} size={36} color={colors.primary} />
               </View>
-              <Text style={styles.serviceLabel}>{service.label}</Text>
+              <Text style={styles.serviceLabel}>{service.name}</Text>
             </Pressable>
           ))}
         </View>
