@@ -5,6 +5,8 @@
 
 const Category = require('../models/Category');
 const { isOwnedJobPhoto } = require('./cloudinary');
+const { fieldError } = require('./errors');
+const { LANGUAGES } = require('./profile');
 
 const MAX_PHOTOS = 5;
 
@@ -25,7 +27,12 @@ function toGeoPoint(v) {
     typeof lng === 'number' &&
     Math.abs(lat) <= 90 &&
     Math.abs(lng) <= 180;
-  if (!valid) throw 'We couldn’t read your location. Please allow location access.';
+  if (!valid) {
+    throw fieldError(
+      'job_location_invalid',
+      'We couldn’t read your location. Please allow location access.'
+    );
+  }
   return { type: 'Point', coordinates: [lng, lat] };
 }
 
@@ -45,6 +52,8 @@ function toJob(job, viewerId) {
     expectedDurationMins: job.expectedDurationMins,
     location: { lat, lng },
     address: job.address,
+    language: job.language,
+    postedVia: job.postedVia,
     clientAadhaarVerified: job.clientAadhaarVerified,
     status: job.status,
     assignedWorker: job.assignedWorker,
@@ -71,6 +80,7 @@ function toOffer(job, workerId) {
     photos: job.photos,
     price: job.price,
     expectedDurationMins: job.expectedDurationMins,
+    language: job.language,
     clientAadhaarVerified: job.clientAadhaarVerified,
     distanceMeters: offer?.distanceMeters ?? null,
     expiresAt: offer?.expiresAt ?? null,
@@ -83,35 +93,44 @@ function toOffer(job, workerId) {
 const validators = {
   category(v) {
     // Shape only here; validateNewJob checks it's an active category.
-    if (typeof v !== 'string' || v.trim() === '') throw 'Choose a service.';
+    if (typeof v !== 'string' || v.trim() === '') {
+      throw fieldError('job_category_required', 'Choose a service.');
+    }
     return v.trim();
   },
   description(v) {
     const text = typeof v === 'string' ? v.trim().replace(/\s+/g, ' ') : '';
     if (text.length < 10 || text.length > 500) {
-      throw 'Describe the work in 10–500 characters.';
+      throw fieldError('job_description_length', 'Describe the work in 10–500 characters.');
     }
     return text;
   },
   photos(v, user) {
-    if (!Array.isArray(v) || v.length === 0) throw 'Add at least one photo of the work.';
-    if (v.length > MAX_PHOTOS) throw `Add at most ${MAX_PHOTOS} photos.`;
+    if (!Array.isArray(v) || v.length === 0) {
+      throw fieldError('job_photos_required', 'Add at least one photo of the work.');
+    }
+    if (v.length > MAX_PHOTOS) {
+      throw fieldError('job_photos_max', `Add at most ${MAX_PHOTOS} photos.`, { max: MAX_PHOTOS });
+    }
     if (!v.every((url) => isOwnedJobPhoto(url, user._id))) {
-      throw 'A photo didn’t upload correctly. Please remove it and add it again.';
+      throw fieldError(
+        'job_photos_invalid',
+        'A photo didn’t upload correctly. Please remove it and add it again.'
+      );
     }
     return [...new Set(v)];
   },
   price(v) {
     const n = Number(v);
     if (!Number.isInteger(n) || n < 50 || n > 100000) {
-      throw 'Enter a price between ₹50 and ₹1,00,000.';
+      throw fieldError('job_price_range', 'Enter a price between ₹50 and ₹1,00,000.');
     }
     return n;
   },
   expectedDurationMins(v) {
     const n = Number(v);
     if (!Number.isInteger(n) || n < 15 || n > 7 * 24 * 60) {
-      throw 'Enter a duration between 15 minutes and 7 days.';
+      throw fieldError('job_duration_range', 'Enter a duration between 15 minutes and 7 days.');
     }
     return n;
   },
@@ -121,8 +140,18 @@ const validators = {
   address(v) {
     if (v === null || v === undefined || String(v).trim() === '') return null;
     const text = String(v).trim();
-    if (text.length < 5 || text.length > 300) throw 'Enter the address in 5–300 characters.';
+    if (text.length < 5 || text.length > 300) {
+      throw fieldError('job_address_length', 'Enter the address in 5–300 characters.');
+    }
     return text;
+  },
+  language(v) {
+    if (v == null || v === '') return 'en';
+    if (LANGUAGES.includes(v)) return v;
+    throw fieldError('job_language_invalid', 'Unsupported language.');
+  },
+  postedVia(v) {
+    return v === 'voice' ? 'voice' : 'form';
   },
 };
 
@@ -144,7 +173,7 @@ async function validateNewJob(user, body) {
   }
 
   if (!errors.category && !(await activeCategorySlugs([job.category])).has(job.category)) {
-    errors.category = 'Choose a service.';
+    errors.category = fieldError('job_category_required', 'Choose a service.');
   }
 
   return { job, errors };

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { LANGUAGES } = require('../services/profile');
 
 /**
  * A job posted by a client. This document is the source of truth for the
@@ -53,6 +54,16 @@ const jobSchema = new mongoose.Schema(
     address: {
       type: String, // optional landmark / flat details for the worker
       default: null,
+    },
+    language: {
+      type: String,
+      enum: LANGUAGES,
+      default: 'en',
+    },
+    postedVia: {
+      type: String,
+      enum: ['form', 'voice'],
+      default: 'form',
     },
 
     // Snapshot of the client's verification when they posted, read from

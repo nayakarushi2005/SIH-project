@@ -8,6 +8,7 @@ const verifyToken = require('../middleware/verifyToken');
 const { advanceNow, startDispatch } = require('../services/dispatch');
 const { validateFeedback } = require('../services/feedback');
 const { enqueueFeedback } = require('../services/graph');
+const { sendError, splitFieldErrors } = require('../services/errors');
 const { toJob, validateNewJob } = require('../services/job');
 const {
   recordAcceptance,
@@ -42,7 +43,14 @@ router.post('/', verifyToken, async (req, res) => {
   const { job: fields, errors } = await validateNewJob(user, req.body);
 
   if (Object.keys(errors).length > 0) {
-    return res.status(400).json({ error: 'Please fix the highlighted fields.', fields: errors });
+    const { fields: fieldMessages, fieldCodes, fieldParams } = splitFieldErrors(errors);
+    return res.status(400).json({
+      error: 'Please fix the highlighted fields.',
+      code: 'validation',
+      fields: fieldMessages,
+      fieldCodes,
+      fieldParams,
+    });
   }
 
   try {
@@ -61,7 +69,7 @@ router.post('/', verifyToken, async (req, res) => {
     return res.status(201).json(toJob(job, user._id));
   } catch (err) {
     console.error('Job create error:', err.message);
-    return res.status(500).json({ error: 'Could not post your job.' });
+    return sendError(res, 500, 'job_create_failed', 'Could not post your job.');
   }
 });
 
@@ -75,7 +83,7 @@ router.get('/', verifyToken, async (req, res) => {
     return res.status(200).json(jobs.map((job) => toJob(job, req.user._id)));
   } catch (err) {
     console.error('Job list error:', err.message);
-    return res.status(500).json({ error: 'Could not load your jobs.' });
+    return sendError(res, 500, 'job_load_failed', 'Could not load your jobs.');
   }
 });
 
@@ -85,7 +93,7 @@ router.get('/', verifyToken, async (req, res) => {
 // ────────────────────────────────────────────────────────────────────────────
 router.get('/:id', verifyToken, async (req, res) => {
   if (!mongoose.isValidObjectId(req.params.id)) {
-    return res.status(404).json({ error: 'Job not found' });
+    return sendError(res, 404, 'job_not_found', 'Job not found');
   }
 
   try {
@@ -93,11 +101,11 @@ router.get('/:id', verifyToken, async (req, res) => {
       _id: req.params.id,
       $or: [{ client: req.user._id }, { assignedWorker: req.user._id }],
     });
-    if (!job) return res.status(404).json({ error: 'Job not found' });
+    if (!job) return sendError(res, 404, 'job_not_found', 'Job not found');
     return res.status(200).json(toJob(job, req.user._id));
   } catch (err) {
     console.error('Job fetch error:', err.message);
-    return res.status(500).json({ error: 'Could not load the job.' });
+    return sendError(res, 500, 'job_load_failed', 'Could not load the job.');
   }
 });
 
@@ -109,7 +117,7 @@ router.get('/:id', verifyToken, async (req, res) => {
 // ────────────────────────────────────────────────────────────────────────────
 router.post('/:id/cancel', verifyToken, async (req, res) => {
   if (!mongoose.isValidObjectId(req.params.id)) {
-    return res.status(404).json({ error: 'Job not found' });
+    return sendError(res, 404, 'job_not_found', 'Job not found');
   }
 
   const owned = { _id: req.params.id, client: req.user._id };
@@ -124,8 +132,8 @@ router.post('/:id/cancel', verifyToken, async (req, res) => {
     if (!job) {
       const exists = await Job.exists(owned);
       return exists
-        ? res.status(409).json({ error: 'This job can no longer be cancelled.' })
-        : res.status(404).json({ error: 'Job not found' });
+        ? sendError(res, 409, 'job_cannot_cancel', 'This job can no longer be cancelled.')
+        : sendError(res, 404, 'job_not_found', 'Job not found');
     }
 
     // Pending offers die with the job: the dispatcher and the offers list
@@ -138,7 +146,7 @@ router.post('/:id/cancel', verifyToken, async (req, res) => {
     return res.status(200).json(toJob(job, req.user._id));
   } catch (err) {
     console.error('Job cancel error:', err.message);
-    return res.status(500).json({ error: 'Could not cancel the job.' });
+    return sendError(res, 500, 'job_update_failed', 'Could not cancel the job.');
   }
 });
 
@@ -151,7 +159,7 @@ router.post('/:id/cancel', verifyToken, async (req, res) => {
 // ────────────────────────────────────────────────────────────────────────────
 router.post('/:id/accept', verifyToken, async (req, res) => {
   if (!mongoose.isValidObjectId(req.params.id)) {
-    return res.status(404).json({ error: 'Job not found' });
+    return sendError(res, 404, 'job_not_found', 'Job not found');
   }
 
   const me = req.user._id;
@@ -166,8 +174,8 @@ router.post('/:id/accept', verifyToken, async (req, res) => {
     if (!worker) {
       const registered = await WorkerProfile.exists({ user: me });
       return registered
-        ? res.status(409).json({ error: 'Finish your current job before accepting another.' })
-        : res.status(403).json({ error: 'Not registered as a worker' });
+        ? sendError(res, 409, 'worker_busy', 'Finish your current job before accepting another.')
+        : sendError(res, 403, 'worker_not_registered', 'Not registered as a worker');
     }
 
     const job = await Job.findOneAndUpdate(
@@ -194,7 +202,7 @@ router.post('/:id/accept', verifyToken, async (req, res) => {
 
     if (!job) {
       await releaseWorker(me, jobId);
-      return res.status(409).json({ error: 'This job is no longer available.' });
+      return sendError(res, 409, 'job_unavailable', 'This job is no longer available.');
     }
 
     recordAcceptance(me).catch((err) => console.error('Stats update failed:', err.message));
@@ -205,7 +213,7 @@ router.post('/:id/accept', verifyToken, async (req, res) => {
   } catch (err) {
     console.error('Job accept error:', err.message);
     await releaseWorker(me, jobId).catch(() => {});
-    return res.status(500).json({ error: 'Could not accept the job.' });
+    return sendError(res, 500, 'job_update_failed', 'Could not accept the job.');
   }
 });
 
@@ -216,7 +224,7 @@ router.post('/:id/accept', verifyToken, async (req, res) => {
 // ────────────────────────────────────────────────────────────────────────────
 router.post('/:id/reject', verifyToken, async (req, res) => {
   if (!mongoose.isValidObjectId(req.params.id)) {
-    return res.status(404).json({ error: 'Job not found' });
+    return sendError(res, 404, 'job_not_found', 'Job not found');
   }
 
   const now = new Date();
@@ -236,7 +244,7 @@ router.post('/:id/reject', verifyToken, async (req, res) => {
       },
       { new: true }
     );
-    if (!job) return res.status(409).json({ error: 'This offer is no longer open.' });
+    if (!job) return sendError(res, 409, 'offer_closed', 'This offer is no longer open.');
 
     const round = job.dispatch.round;
     const roundOffers = job.dispatch.offers.filter((o) => o.round === round);
@@ -249,7 +257,7 @@ router.post('/:id/reject', verifyToken, async (req, res) => {
     return res.status(204).end();
   } catch (err) {
     console.error('Job reject error:', err.message);
-    return res.status(500).json({ error: 'Could not decline the offer.' });
+    return sendError(res, 500, 'job_update_failed', 'Could not decline the offer.');
   }
 });
 
@@ -262,7 +270,7 @@ router.post('/:id/reject', verifyToken, async (req, res) => {
 // ────────────────────────────────────────────────────────────────────────────
 router.post('/:id/start', verifyToken, async (req, res) => {
   if (!mongoose.isValidObjectId(req.params.id)) {
-    return res.status(404).json({ error: 'Job not found' });
+    return sendError(res, 404, 'job_not_found', 'Job not found');
   }
 
   const me = req.user._id;
@@ -285,18 +293,26 @@ router.post('/:id/start', verifyToken, async (req, res) => {
     );
     if (!counted) {
       return (await Job.exists(mine))
-        ? res.status(429).json({
-            error: 'Too many wrong codes. Withdraw from this job so another worker can be found.',
-          })
-        : res.status(409).json({ error: 'This job can’t be started.' });
+        ? sendError(
+            res,
+            429,
+            'job_start_code_too_many',
+            'Too many wrong codes. Withdraw from this job so another worker can be found.'
+          )
+        : sendError(res, 409, 'job_cannot_start', 'This job can’t be started.');
     }
 
     const left = MAX_START_CODE_ATTEMPTS - counted.startCodeAttempts;
     const message = left > 0 ? `Wrong code. ${left} ${left === 1 ? 'try' : 'tries'} left.` : 'Wrong code.';
-    return res.status(400).json({ error: message, fields: { code: message } });
+    return res.status(400).json({
+      error: message,
+      code: 'job_start_code_wrong',
+      params: { left },
+      fields: { code: message },
+    });
   } catch (err) {
     console.error('Job start error:', err.message);
-    return res.status(500).json({ error: 'Could not start the job.' });
+    return sendError(res, 500, 'job_update_failed', 'Could not start the job.');
   }
 });
 
@@ -308,7 +324,7 @@ router.post('/:id/start', verifyToken, async (req, res) => {
 // ────────────────────────────────────────────────────────────────────────────
 router.post('/:id/complete', verifyToken, async (req, res) => {
   if (!mongoose.isValidObjectId(req.params.id)) {
-    return res.status(404).json({ error: 'Job not found' });
+    return sendError(res, 404, 'job_not_found', 'Job not found');
   }
 
   const me = req.user._id;
@@ -319,7 +335,9 @@ router.post('/:id/complete', verifyToken, async (req, res) => {
       { status: 'COMPLETED', completedAt: new Date() },
       { new: true }
     );
-    if (!job) return res.status(409).json({ error: 'Only a job in progress can be completed.' });
+    if (!job) {
+      return sendError(res, 409, 'job_cannot_complete', 'Only a job in progress can be completed.');
+    }
 
     await releaseWorker(me, job._id);
     recordCompletion(job).catch((err) => console.error('Stats update failed:', err.message));
@@ -328,7 +346,7 @@ router.post('/:id/complete', verifyToken, async (req, res) => {
     return res.status(200).json(toJob(job, me));
   } catch (err) {
     console.error('Job complete error:', err.message);
-    return res.status(500).json({ error: 'Could not complete the job.' });
+    return sendError(res, 500, 'job_update_failed', 'Could not complete the job.');
   }
 });
 
@@ -340,13 +358,13 @@ router.post('/:id/complete', verifyToken, async (req, res) => {
 // ────────────────────────────────────────────────────────────────────────────
 router.post('/:id/withdraw', verifyToken, async (req, res) => {
   if (!mongoose.isValidObjectId(req.params.id)) {
-    return res.status(404).json({ error: 'Job not found' });
+    return sendError(res, 404, 'job_not_found', 'Job not found');
   }
 
   const me = req.user._id;
   const mine = { _id: req.params.id, assignedWorker: me, status: 'ASSIGNED' };
   const notAllowed = () =>
-    res.status(409).json({ error: 'You can only withdraw from a job you haven’t started.' });
+    sendError(res, 409, 'job_cannot_withdraw', 'You can only withdraw from a job you haven’t started.');
 
   try {
     const current = await Job.findOne(mine).select('dispatch.round');
@@ -386,7 +404,7 @@ router.post('/:id/withdraw', verifyToken, async (req, res) => {
     return res.status(204).end();
   } catch (err) {
     console.error('Job withdraw error:', err.message);
-    return res.status(500).json({ error: 'Could not withdraw from the job.' });
+    return sendError(res, 500, 'job_update_failed', 'Could not withdraw from the job.');
   }
 });
 
@@ -400,19 +418,31 @@ router.post('/:id/withdraw', verifyToken, async (req, res) => {
 // ────────────────────────────────────────────────────────────────────────────
 router.post('/:id/feedback', verifyToken, async (req, res) => {
   if (!mongoose.isValidObjectId(req.params.id)) {
-    return res.status(404).json({ error: 'Job not found' });
+    return sendError(res, 404, 'job_not_found', 'Job not found');
   }
 
   try {
     const job = await Job.findOne({ _id: req.params.id, client: req.user._id });
-    if (!job) return res.status(404).json({ error: 'Job not found' });
+    if (!job) return sendError(res, 404, 'job_not_found', 'Job not found');
     if (job.status !== 'COMPLETED' || !job.assignedWorker) {
-      return res.status(409).json({ error: 'You can rate the worker once the job is completed.' });
+      return sendError(
+        res,
+        409,
+        'feedback_not_completed',
+        'You can rate the worker once the job is completed.'
+      );
     }
 
     const { fields, errors } = validateFeedback(req.body);
     if (Object.keys(errors).length > 0) {
-      return res.status(400).json({ error: 'Please fix the highlighted fields.', fields: errors });
+      const { fields: fieldMessages, fieldCodes, fieldParams } = splitFieldErrors(errors);
+      return res.status(400).json({
+        error: 'Please fix the highlighted fields.',
+        code: 'validation',
+        fields: fieldMessages,
+        fieldCodes,
+        fieldParams,
+      });
     }
 
     let feedback;
@@ -426,7 +456,7 @@ router.post('/:id/feedback', verifyToken, async (req, res) => {
       });
     } catch (err) {
       if (err.code === 11000) {
-        return res.status(409).json({ error: 'You’ve already rated this job.' });
+        return sendError(res, 409, 'feedback_already', 'You’ve already rated this job.');
       }
       throw err;
     }
@@ -442,7 +472,7 @@ router.post('/:id/feedback', verifyToken, async (req, res) => {
     return res.status(201).json(toJob(job, req.user._id));
   } catch (err) {
     console.error('Job feedback error:', err.message);
-    return res.status(500).json({ error: 'Could not save your feedback.' });
+    return sendError(res, 500, 'job_update_failed', 'Could not save your feedback.');
   }
 });
 
