@@ -16,7 +16,7 @@ services:
     container_name: sih-backend
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "${BACKEND_PORT:-3000}:3000"
     env_file:
       - ./backend/.env
     environment:
