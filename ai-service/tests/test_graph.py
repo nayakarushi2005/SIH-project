@@ -178,3 +178,46 @@ async def test_a_tap_that_does_not_fit_the_step_counts_as_a_failure():
     await c.start()
     s = await c.tap(federationId="f1")  # we're on income
     assert s["step"] == "income" and s["attempts"]["income"] == 1
+
+
+async def test_yes_with_a_field_at_confirm_means_change():
+    c = Convo(verified=True, feds=[])
+    await c.start()
+    await c.say("2 lakh saal")
+    await c.tap(categories=["cook"], confirm=True)
+    s = await c.say("हाँ, आमदनी बदलनी है")
+    assert s["step"] == "income" and s["done"] is False
+
+
+async def test_no_union_declines_the_federation():
+    c = Convo(verified=True, feds=[{"id": "f1", "name": "Pune Workers Union"}])
+    await c.start()
+    await c.say("2 lakh saal")
+    await c.tap(categories=["cook"], confirm=True)
+    s = await c.say("no union")
+    assert s["federation_id"] is None and s["step"] == "confirm"
+
+
+async def test_rejecting_the_name_three_times_hands_off():
+    c = Convo(lang="hi")
+    await c.start()
+    for _ in range(3):
+        await c.say("रवि")
+        s = await c.say("नहीं")
+    assert s["handoff"] is True
+
+
+async def test_no_with_a_new_name_takes_the_new_name():
+    c = Convo(lang="hi")
+    await c.start()
+    await c.say("रवि")
+    s = await c.say("नहीं, मेरा नाम रवि शंकर है")
+    assert s["step"] == "name_confirm" and s["name"] == "रवि शंकर"
+
+
+async def test_words_added_in_the_same_turn_are_not_auto_confirmed():
+    c = Convo(verified=True)
+    await c.start()
+    await c.say("2 lakh")
+    s = await c.say("प्लंबर, हाँ")
+    assert s["step"] == "categories" and s["ui"]["selected"] == ["plumber"]

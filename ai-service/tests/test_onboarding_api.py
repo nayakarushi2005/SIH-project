@@ -91,3 +91,38 @@ async def test_session_survives_graph_rebuild_with_same_saver(client, node_ok, a
     rebuild_graph_for_tests(app)  # new graph object, same checkpointer
     res = await client.get(f"/v1/onboarding/sessions/{sid}", headers=H)
     assert res.json()["step"] == "income"
+
+
+async def test_a_turn_while_another_is_running_is_409(client, node_ok):
+    sid = (await start(client))["sessionId"]
+    from app.routes.onboarding import session_lock
+
+    lock = session_lock(sid)
+    await lock.acquire()
+    try:
+        res = await client.post(f"/v1/onboarding/sessions/{sid}/turns", headers=H, json={"transcript": "2 लाख"})
+        assert res.status_code == 409 and res.json()["code"] == "busy"
+    finally:
+        lock.release()
+
+
+async def test_turn_after_done_is_409(client, node_ok):
+    sid = (await start(client))["sessionId"]
+    for text in ["2 लाख साल"]:
+        await client.post(f"/v1/onboarding/sessions/{sid}/turns", headers=H, json={"transcript": text})
+    await client.post(f"/v1/onboarding/sessions/{sid}/turns", headers=H, json={"selection": {"categories": ["cook"], "confirm": True}})
+    done = await client.post(f"/v1/onboarding/sessions/{sid}/turns", headers=H, json={"transcript": "हाँ"})
+    assert done.json()["done"] is True
+    res = await client.post(f"/v1/onboarding/sessions/{sid}/turns", headers=H, json={"transcript": "हाँ"})
+    assert res.status_code == 409
+
+
+async def test_backend_down_mid_conversation_leaves_the_session_unchanged(client, node_ok, app):
+    sid = (await start(client))["sessionId"]
+    before = (await client.get(f"/v1/onboarding/sessions/{sid}", headers=H)).json()
+    app.state.catalogs._cache.clear()
+    node_ok.get("/categories").mock(return_value=httpx.Response(500, json={"error": "down"}))
+    res = await client.post(f"/v1/onboarding/sessions/{sid}/turns", headers=H, json={"transcript": "2 लाख साल"})
+    assert res.status_code == 503
+    after = (await client.get(f"/v1/onboarding/sessions/{sid}", headers=H)).json()
+    assert after["step"] == before["step"] and after["speak"] == before["speak"]

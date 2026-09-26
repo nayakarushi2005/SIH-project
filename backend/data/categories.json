@@ -216,7 +216,8 @@
         "en": [
           "wireman",
           "electric work",
-          "wiring"
+          "wiring",
+          "electrical work"
         ],
         "hi": [
           "बिजली वाला",
@@ -263,7 +264,8 @@
         "en": [
           "pipe fitter",
           "tap repair",
-          "leakage"
+          "leakage",
+          "plumbing"
         ],
         "hi": [
           "नल वाला",
@@ -306,7 +308,8 @@
       "synonyms": {
         "en": [
           "furniture work",
-          "wood work"
+          "wood work",
+          "carpentry"
         ],
         "hi": [
           "कारपेंटर",
@@ -353,7 +356,8 @@
         "en": [
           "wall painting",
           "house painting",
-          "polish"
+          "polish",
+          "painting"
         ],
         "hi": [
           "पुताई",
@@ -398,7 +402,9 @@
         "en": [
           "deep cleaning",
           "home cleaning",
-          "cleaner"
+          "cleaner",
+          "cleaning",
+          "house cleaning"
         ],
         "hi": [
           "सफ़ाई",
@@ -489,7 +495,8 @@
       "synonyms": {
         "en": [
           "garden work",
-          "lawn care"
+          "lawn care",
+          "gardening"
         ],
         "hi": [
           "बागवानी",
@@ -1064,7 +1071,8 @@
         "en": [
           "bricklayer",
           "brick work",
-          "plaster"
+          "plaster",
+          "masonry"
         ],
         "hi": [
           "मिस्त्री",
@@ -1406,7 +1414,8 @@
           "driver",
           "chauffeur",
           "taxi driver",
-          "cab driver"
+          "cab driver",
+          "driving"
         ],
         "hi": [
           "ड्राइवर",
@@ -1996,7 +2005,8 @@
         "en": [
           "chef",
           "home cook",
-          "khana banana"
+          "khana banana",
+          "cooking"
         ],
         "hi": [
           "खाना बनाने वाला",
@@ -3086,7 +3096,8 @@
         "en": [
           "stitching",
           "alteration",
-          "sewing"
+          "sewing",
+          "tailoring"
         ],
         "hi": [
           "सिलाई",
