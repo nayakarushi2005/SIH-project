@@ -15,7 +15,7 @@ import {
 
 // Opened by the sihconnect://aadhaar-callback deep link once the user
 // finishes on DigiLocker. Reads the handshake saved by aadhaar-verify.js,
-// asks the backend to fetch the KYC data, then moves on to the dashboard.
+// asks the backend to fetch the KYC data, then moves on to the home screen.
 export default function AadhaarCallback() {
   const router = useRouter();
   const [error, setError] = useState(null);
@@ -35,7 +35,7 @@ export default function AadhaarCallback() {
       const cached = await getUser();
       await saveUser({ ...cached, ...result.user });
       await clearPendingDigilocker();
-      router.replace('/dashboard');
+      router.replace('/home');
     } catch (err) {
       if (isUnauthorized(err)) {
         await clearSession();

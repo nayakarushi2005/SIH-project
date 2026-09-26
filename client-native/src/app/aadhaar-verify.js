@@ -41,7 +41,7 @@ export default function AadhaarVerify() {
   }, []);
 
   const handleSkip = useCallback(() => {
-    router.replace('/dashboard');
+    router.replace('/home');
   }, [router]);
 
   return (

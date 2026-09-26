@@ -4,6 +4,8 @@ const mongoose = require('mongoose');
  * User schema — fields are sourced from:
  *   - Google Auth  : googleId, googleEmail, googleAvatar
  *   - Aadhaar eKYC : name, dob, gender, address, aadhaarNumber
+ *   - The user     : phone, city, pincode, preferredLanguage — and name, dob,
+ *                    gender, address when entered manually before verification
  */
 const userSchema = new mongoose.Schema(
   {
@@ -51,7 +53,33 @@ const userSchema = new mongoose.Schema(
       default: null,
     },
 
+    // ── Contact & preferences (entered by the user) ────────────────────
+    phone: {
+      type: String, // 10-digit Indian mobile number, without +91
+      default: null,
+    },
+    city: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+    pincode: {
+      type: String, // 6-digit Indian PIN code
+      default: null,
+    },
+    preferredLanguage: {
+      type: String, // ISO 639-1 code, e.g. 'en', 'hi'
+      default: 'en',
+    },
+
     // ── Verification status ─────────────────────────────────────────────
+    // Where name/dob/gender/address came from. 'manual' details are
+    // self-declared and get overwritten once Aadhaar verification succeeds.
+    detailsSource: {
+      type: String,
+      enum: ['aadhaar', 'manual', null],
+      default: null,
+    },
     isAadhaarVerified: {
       type: Boolean,
       default: false,

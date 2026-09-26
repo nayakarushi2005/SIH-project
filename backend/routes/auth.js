@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { initiateDigilocker, verifyDigilocker } = require('../services/meonApi');
 const verifyToken = require('../middleware/verifyToken');
+const { IDENTITY_FIELDS, toProfile, validateProfileUpdate } = require('../services/profile');
 
 const router = express.Router();
 const googleClient = new OAuth2Client(process.env.GOOGLE_WEB_CLIENT_ID);
@@ -61,14 +62,7 @@ router.post('/google', async (req, res) => {
       token,
       isNewUser,
       needsAadhaarVerification: !user.isAadhaarVerified,
-      user: {
-        id: user._id,
-        googleEmail: user.googleEmail,
-        googleAvatar: user.googleAvatar,
-        name: user.name,
-        dob: user.dob,
-        isAadhaarVerified: user.isAadhaarVerified,
-      },
+      user: toProfile(user),
     });
   } catch (err) {
     console.error('Google auth error:', err.message);
@@ -117,19 +111,12 @@ router.post('/aadhaar/verify', verifyToken, async (req, res) => {
     user.aadhaarNumber = kyc.maskedAadhaar ? kyc.maskedAadhaar.slice(-4) : null;
     user.isAadhaarVerified = true;
     user.aadhaarVerifiedAt = new Date();
+    user.detailsSource = 'aadhaar';
     await user.save();
 
     return res.status(200).json({
       success: true,
-      user: {
-        id: user._id,
-        name: user.name,
-        dob: user.dob,
-        gender: user.gender,
-        googleEmail: user.googleEmail,
-        googleAvatar: user.googleAvatar,
-        isAadhaarVerified: user.isAadhaarVerified,
-      },
+      user: toProfile(user),
     });
   } catch (err) {
     console.error('Digilocker verify error:', err.message);
@@ -142,19 +129,36 @@ router.post('/aadhaar/verify', verifyToken, async (req, res) => {
 // Returns the current authenticated user's profile
 // ────────────────────────────────────────────────────────────────────────────
 router.get('/me', verifyToken, async (req, res) => {
-  const u = req.user;
-  return res.status(200).json({
-    id: u._id,
-    name: u.name,
-    dob: u.dob,
-    gender: u.gender,
-    googleEmail: u.googleEmail,
-    googleAvatar: u.googleAvatar,
-    address: u.address,
-    aadhaarNumber: u.aadhaarNumber,
-    isAadhaarVerified: u.isAadhaarVerified,
-    createdAt: u.createdAt,
-  });
+  return res.status(200).json(toProfile(req.user));
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// PATCH /api/auth/me
+// Updates the user's own profile. Contact fields are always editable;
+// name/dob/gender/address only until Aadhaar verification locks them.
+// Body: any of { name, dob, gender, address, phone, city, pincode,
+//               preferredLanguage } — empty string clears a field.
+// 400 → { error, fields: { [field]: message } }
+// ────────────────────────────────────────────────────────────────────────────
+router.patch('/me', verifyToken, async (req, res) => {
+  const user = req.user;
+  const { updates, errors } = validateProfileUpdate(user, req.body);
+
+  if (Object.keys(errors).length > 0) {
+    return res.status(400).json({ error: 'Please fix the highlighted fields.', fields: errors });
+  }
+
+  try {
+    Object.assign(user, updates);
+    if (IDENTITY_FIELDS.some((f) => f in updates)) {
+      user.detailsSource = 'manual';
+    }
+    await user.save();
+    return res.status(200).json(toProfile(user));
+  } catch (err) {
+    console.error('Profile update error:', err.message);
+    return res.status(500).json({ error: 'Could not save your profile.' });
+  }
 });
 
 module.exports = router;
