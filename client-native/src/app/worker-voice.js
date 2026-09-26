@@ -30,8 +30,20 @@ const FIELDS = [
  * The conversation loop, outside React render: say the assistant's line,
  * listen, send the answer, repeat. `deps.current` holds the latest screen
  * callbacks (speech, state setters, navigation). Every send bumps `turn`,
- * so a listen that finishes after a tap (or after leaving) is ignored.
+ * so a listen or response that arrives after a newer action is ignored.
  */
+const MAX_TRANSCRIPT = 500;
+const RETRY_DELAYS_MS = [800, 1600];
+
+// Worth retrying: no connection, server hiccup, rate limit, or still busy.
+function retryable(err) {
+  const status = err?.response?.status;
+  if (!status) return true;
+  if (status === 409) return err.response.data?.code === 'busy';
+  return status === 429 || status >= 500;
+}
+
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 function createConversation(deps) {
   let sessionId = null;
   let turn = 0;
@@ -39,12 +51,14 @@ function createConversation(deps) {
   let last = null;
   const d = () => deps.current;
 
-  async function handle(next) {
+  async function handle(next, { quiet = false } = {}) {
     last = next;
     d().onResponse(next);
     const mine = turn;
-    d().setPhase('speaking');
-    await d().speak(next.speak);
+    if (!quiet || next.done || next.handoff) {
+      d().setPhase('speaking');
+      await d().speak(next.speak);
+    }
     if (!alive || mine !== turn) return;
     if (next.handoff) return d().toForm(next.filled);
     if (next.done) return d().setPhase('summary');
@@ -62,7 +76,7 @@ function createConversation(deps) {
       if (!alive || mine !== turn) return;
       if (err?.code === 'denied' || err?.code === 'unavailable') {
         await d().speak(d().t(err.code === 'denied' ? 'voice.micDenied' : 'voice.unavailable'));
-        d().toForm(current.filled);
+        if (alive) d().toForm(current.filled);
       } else {
         d().setPhase('idle');
       }
@@ -70,18 +84,28 @@ function createConversation(deps) {
     }
     if (!alive || mine !== turn) return;
     d().setHeard(text);
-    await send({ transcript: text });
+    await send({ transcript: text.slice(0, MAX_TRANSCRIPT) });
   }
 
-  async function send(payload) {
+  async function send(payload, { quiet = false } = {}) {
     d().stop();
-    turn += 1;
+    const mine = ++turn;
     d().setPhase('thinking');
-    try {
-      const next = await sendTurn(sessionId, payload);
-      if (alive) await handle(next);
-    } catch (err) {
-      if (alive) d().onServerError(err, last?.filled ?? null);
+    for (let attempt = 0; ; attempt += 1) {
+      try {
+        const next = await sendTurn(sessionId, payload);
+        if (alive && mine === turn) await handle(next, { quiet });
+        return;
+      } catch (err) {
+        if (!alive || mine !== turn) return;
+        if (attempt < RETRY_DELAYS_MS.length && retryable(err)) {
+          await wait(RETRY_DELAYS_MS[attempt]);
+          if (!alive || mine !== turn) return;
+          continue;
+        }
+        d().onServerError(err, last?.filled ?? null);
+        return;
+      }
     }
   }
 
@@ -97,6 +121,10 @@ function createConversation(deps) {
     },
     tap(selection) {
       send({ selection });
+    },
+    /** Chip toggles: keep the server's list in step without speaking. */
+    sync(selection) {
+      send({ selection }, { quiet: true });
     },
     mic() {
       if (!last || last.done) return;
@@ -245,7 +273,8 @@ export default function WorkerVoice() {
               </Text>
             ) : null}
 
-            {/* Tap choices for the current question */}
+            {/* Tap choices for the current question (locked while a turn is in flight) */}
+            <View pointerEvents={phase === 'thinking' ? 'none' : 'auto'} style={[styles.chips, phase === 'thinking' && styles.locked]}>
             {phase !== 'summary' && ui?.type === 'yesno' ? (
               <View style={styles.row}>
                 <Button label={t('voice.yes')} onPress={() => tap({ yes: true })} style={styles.flex} />
@@ -268,7 +297,10 @@ export default function WorkerVoice() {
                   label={t('onboarding.categoriesLabel')}
                   groups={groups}
                   selected={picked}
-                  onChange={setPicked}
+                  onChange={(next) => {
+                    setPicked(next);
+                    convo.current?.sync({ categories: next, confirm: false });
+                  }}
                   max={ui.max ?? MAX_CATEGORIES}
                 />
                 <Button
@@ -295,6 +327,8 @@ export default function WorkerVoice() {
                 ))}
               </View>
             ) : null}
+
+            </View>
 
             {ui?.type === 'summary' && filled ? (
               <View style={styles.summary}>
@@ -405,6 +439,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   micActive: { backgroundColor: colors.danger },
+  chips: { gap: spacing.md },
+  locked: { opacity: 0.5 },
   pressed: { opacity: 0.85 },
   status: { ...typography.label, color: colors.textMuted },
 });

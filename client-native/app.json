@@ -39,7 +39,6 @@
           "locationWhenInUsePermission": "SIH Connect uses your location to show jobs and workers near you."
         }
       ],
-      "expo-speech-recognition",
       [
         "expo-speech-recognition",
         {
