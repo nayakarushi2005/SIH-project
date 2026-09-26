@@ -6,6 +6,7 @@ require('dotenv').config();
 const authRoutes = require('./routes/auth'); // Existing app routes
 const webAuthRoutes = require('./routes/webAuth'); // New web routes
 const federationRoutes = require('./routes/federation'); // Federation management routes
+const categoryRoutes = require('./routes/categories'); // Public job-category catalogue
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use(cookieParser()); // <-- Allows reading HTTP-only cookies
 app.use('/api/auth', authRoutes);
 app.use('/api/web-auth', webAuthRoutes);
 app.use('/api/federation', federationRoutes);
+app.use('/api/categories', categoryRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
