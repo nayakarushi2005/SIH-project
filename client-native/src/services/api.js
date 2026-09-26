@@ -101,6 +101,14 @@ export async function updateMe(fields) {
   return res.data;
 }
 
+// ── Categories ──────────────────────────────────────────────────────────────
+
+/** Job categories grouped for display — { lang, groups: [{ slug, name, icon, categories }] } */
+export async function getCategories(lang = 'en') {
+  const res = await api.get('/categories', { params: { lang } });
+  return res.data;
+}
+
 /** Per-field validation messages from a failed updateMe, or {}. */
 export function getFieldErrors(err) {
   return err?.response?.data?.fields || {};

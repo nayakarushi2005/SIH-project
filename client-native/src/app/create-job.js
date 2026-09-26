@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -7,13 +8,19 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import EmptyState from '../components/EmptyState';
 import ScreenHeader from '../components/ScreenHeader';
 import { colors, radius, spacing, typography } from '../constants/theme';
-import { getService } from '../constants/services';
+import useCategories from '../hooks/useCategories';
+import { getUser } from '../services/session';
 
 // Placeholder until the job model is designed — keeps the navigation and the
 // selected service wired up so the real form can drop in here.
 export default function CreateJob() {
   const { service: serviceId } = useLocalSearchParams();
-  const service = getService(serviceId);
+  const [lang, setLang] = useState('en');
+  useEffect(() => {
+    getUser().then((u) => u?.preferredLanguage && setLang(u.preferredLanguage));
+  }, []);
+  const { bySlug } = useCategories(lang);
+  const service = serviceId ? bySlug(serviceId) : null;
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -22,7 +29,7 @@ export default function CreateJob() {
       {service ? (
         <View style={styles.selected}>
           <MaterialCommunityIcons name={service.icon} size={22} color={colors.primary} />
-          <Text style={styles.selectedText}>{service.label}</Text>
+          <Text style={styles.selectedText}>{service.name}</Text>
         </View>
       ) : null}
       <EmptyState

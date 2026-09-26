@@ -1,24 +1,35 @@
-// Service catalogue shown on the home screen. Hard-coded until the backend
-// owns categories; `icon` is a MaterialCommunityIcons name.
+// Offline fallback for the category catalogue (the backend owns the real
+// list — see hooks/useCategories.js), plus home-screen picks and banners.
+// `icon` is a MaterialCommunityIcons name.
 
-export const SERVICES = [
-  { id: 'electrician', label: 'Electrician', icon: 'flash' },
-  { id: 'cleaning', label: 'Cleaning', icon: 'broom' },
-  { id: 'plumber', label: 'Plumber', icon: 'pipe-wrench' },
-  { id: 'carpenter', label: 'Carpenter', icon: 'hand-saw' },
-  { id: 'painter', label: 'Painter', icon: 'format-paint' },
-  { id: 'caregiver', label: 'Caregiver', icon: 'account-heart' },
-  { id: 'driver', label: 'Driver', icon: 'car' },
-  { id: 'gardener', label: 'Gardener', icon: 'flower' },
-  { id: 'technician', label: 'Technician', icon: 'tools' },
+export const FALLBACK_GROUPS = [
+  {
+    slug: 'home_services',
+    name: 'Home services',
+    icon: 'home-city',
+    categories: [
+      { slug: 'electrician', name: 'Electrician', icon: 'flash' },
+      { slug: 'cleaning', name: 'House cleaning', icon: 'broom' },
+      { slug: 'plumber', name: 'Plumber', icon: 'pipe-wrench' },
+      { slug: 'carpenter', name: 'Carpenter', icon: 'hand-saw' },
+      { slug: 'painter', name: 'Painter', icon: 'format-paint' },
+      { slug: 'gardener', name: 'Gardener', icon: 'flower' },
+    ],
+  },
+  {
+    slug: 'more',
+    name: 'More',
+    icon: 'dots-grid',
+    categories: [
+      { slug: 'technician', name: 'Appliance technician', icon: 'tools' },
+      { slug: 'caregiver', name: 'Elderly caregiver', icon: 'account-heart' },
+      { slug: 'driver', name: 'Car driver', icon: 'car' },
+    ],
+  },
 ];
 
-export function getService(id) {
-  return SERVICES.find((s) => s.id === id) ?? null;
-}
-
 // Until we have booking data, "most booked" is a fixed pick.
-export const MOST_BOOKED = ['electrician', 'cleaning', 'plumber', 'carpenter'].map(getService);
+export const MOST_BOOKED_SLUGS = ['electrician', 'cleaning', 'plumber', 'carpenter'];
 
 export const BANNERS = [
   {
