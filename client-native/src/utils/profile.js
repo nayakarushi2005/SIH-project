@@ -1,6 +1,3 @@
-// Display helpers and option lists for the user profile. Keep the value lists
-// in sync with backend/services/profile.js.
-
 export const GENDERS = [
   { value: 'M', label: 'Male' },
   { value: 'F', label: 'Female' },
@@ -16,12 +13,10 @@ export const LANGUAGES = [
   { value: 'te', label: 'తెలుగు' },
 ];
 
-// What we need before a user can post a job.
 export const REQUIRED_FIELDS = ['name', 'phone', 'address', 'city', 'pincode'];
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-// Format DOB nicely if it's DD/MM/YYYY (or DD-MM-YYYY); otherwise show as-is.
 export function formatDOB(dob) {
   if (!dob) return null;
   const parts = String(dob).split(/[/-]/);
@@ -65,7 +60,6 @@ export function profileCompletion(user) {
   return { done, total: REQUIRED_FIELDS.length };
 }
 
-// Typing helper: turns "15081999" into "15/08/1999" as the user types.
 export function maskDOB(input) {
   const digits = input.replace(/\D/g, '').slice(0, 8);
   if (digits.length <= 2) return digits;

@@ -9,19 +9,12 @@ const { IDENTITY_FIELDS, toProfile, validateProfileUpdate } = require('../servic
 const router = express.Router();
 const googleClient = new OAuth2Client(process.env.GOOGLE_WEB_CLIENT_ID);
 
-// ── Helper: sign a JWT for the app ──────────────────────────────────────────
 function signAppToken(userId) {
   return jwt.sign({ userId }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
   });
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-// POST /api/auth/google
-// Called by the app after Google Sign-In succeeds on the device.
-// Verifies the Google ID token, finds or creates a user, and returns a JWT.
-// Response also tells the app whether Aadhaar verification is still needed.
-// ────────────────────────────────────────────────────────────────────────────
 router.post('/google', async (req, res) => {
   const { idToken } = req.body;
 
@@ -30,7 +23,6 @@ router.post('/google', async (req, res) => {
   }
 
   try {
-    // Verify Google token
     const ticket = await googleClient.verifyIdToken({
       idToken,
       audience: process.env.GOOGLE_WEB_CLIENT_ID,
@@ -39,7 +31,6 @@ router.post('/google', async (req, res) => {
 
     const { sub: googleId, email, picture, name } = payload;
 
-    // Find or create user
     let user = await User.findOne({ googleId });
     const isNewUser = !user;
 
@@ -48,10 +39,8 @@ router.post('/google', async (req, res) => {
         googleId,
         googleEmail: email,
         googleAvatar: picture || null,
-        // name comes from Aadhaar, not Google — leave null until verified
       });
     } else {
-      // Update last login
       user.lastLoginAt = new Date();
       await user.save();
     }
@@ -70,12 +59,6 @@ router.post('/google', async (req, res) => {
   }
 });
 
-// ────────────────────────────────────────────────────────────────────────────
-// POST /api/auth/aadhaar/initiate
-// Generates a Digilocker URL for the user to authorize Aadhaar access.
-// Requires: valid app JWT
-// Body: none
-// ────────────────────────────────────────────────────────────────────────────
 router.post('/aadhaar/initiate', verifyToken, async (req, res) => {
   try {
     const result = await initiateDigilocker();
@@ -86,12 +69,6 @@ router.post('/aadhaar/initiate', verifyToken, async (req, res) => {
   }
 });
 
-// ────────────────────────────────────────────────────────────────────────────
-// POST /api/auth/aadhaar/verify
-// Fetches data from Digilocker after the user completes the browser flow.
-// Requires: valid app JWT
-// Body: { clientToken, state }
-// ────────────────────────────────────────────────────────────────────────────
 router.post('/aadhaar/verify', verifyToken, async (req, res) => {
   const { clientToken, state } = req.body;
 
@@ -102,7 +79,6 @@ router.post('/aadhaar/verify', verifyToken, async (req, res) => {
   try {
     const kyc = await verifyDigilocker(clientToken, state);
 
-    // Update user with Aadhaar-sourced data
     const user = req.user;
     user.name = kyc.name;
     user.dob = kyc.dob;
@@ -124,22 +100,10 @@ router.post('/aadhaar/verify', verifyToken, async (req, res) => {
   }
 });
 
-// ────────────────────────────────────────────────────────────────────────────
-// GET /api/auth/me
-// Returns the current authenticated user's profile
-// ────────────────────────────────────────────────────────────────────────────
 router.get('/me', verifyToken, async (req, res) => {
   return res.status(200).json(toProfile(req.user));
 });
 
-// ────────────────────────────────────────────────────────────────────────────
-// PATCH /api/auth/me
-// Updates the user's own profile. Contact fields are always editable;
-// name/dob/gender/address only until Aadhaar verification locks them.
-// Body: any of { name, dob, gender, address, phone, city, pincode,
-//               preferredLanguage } — empty string clears a field.
-// 400 → { error, fields: { [field]: message } }
-// ────────────────────────────────────────────────────────────────────────────
 router.patch('/me', verifyToken, async (req, res) => {
   const user = req.user;
   const { updates, errors } = validateProfileUpdate(user, req.body);

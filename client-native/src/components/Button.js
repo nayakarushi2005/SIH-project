@@ -1,11 +1,11 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
+import { ActivityIndicator, Pressable, Text } from 'react-native';
 
-import { colors, radius, spacing, typography } from '../constants/theme';
+import { radius, spacing, typography } from '../constants/theme';
+import { makeStyles, useTheme } from '../hooks/useTheme';
 
-/**
- * variant: 'primary' (filled), 'secondary' (outlined) or 'text' (link-style).
- */
 export default function Button({ label, onPress, variant = 'primary', loading = false, disabled = false, style }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const isDisabled = disabled || loading;
 
   return (
@@ -31,7 +31,7 @@ export default function Button({ label, onPress, variant = 'primary', loading = 
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   base: {
     minHeight: 48,
     alignItems: 'center',
@@ -59,6 +59,8 @@ const styles = StyleSheet.create({
   },
   label: {
     ...typography.button,
+    alignSelf: 'stretch',
+    textAlign: 'center',
     fontWeight: '600',
   },
   primaryLabel: {
@@ -70,4 +72,4 @@ const styles = StyleSheet.create({
   textLabel: {
     color: colors.primary,
   },
-});
+}));

@@ -1,13 +1,9 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
-import { colors, spacing, typography } from '../constants/theme';
+import { spacing, typography } from '../constants/theme';
+import { makeStyles } from '../hooks/useTheme';
 
-/**
- * Top bar with a back chevron, a title and an optional text action on the
- * right. Back falls through to `fallbackHref` when there is no history (e.g.
- * the screen was opened from a deep link). Tab screens pass showBack={false}.
- */
 export default function ScreenHeader({
   title,
   actionLabel,
@@ -15,6 +11,7 @@ export default function ScreenHeader({
   fallbackHref = '/home',
   showBack = true,
 }) {
+  const styles = useStyles();
   const router = useRouter();
 
   const goBack = () => {
@@ -53,7 +50,7 @@ export default function ScreenHeader({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -90,4 +87,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.primary,
   },
-});
+}));

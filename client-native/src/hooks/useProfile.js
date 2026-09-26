@@ -4,11 +4,6 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { getErrorMessage, getMe, isUnauthorized } from '../services/api';
 import { clearSession, getUser, saveUser } from '../services/session';
 
-/**
- * The signed-in user's profile: shows the cached copy instantly, then
- * refreshes from the server every time the screen gains focus. An expired
- * session sends the user back to sign-in.
- */
 export default function useProfile() {
   const router = useRouter();
   const [user, setUser] = useState(null);

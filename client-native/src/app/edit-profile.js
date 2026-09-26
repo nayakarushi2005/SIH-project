@@ -4,19 +4,18 @@ import {
   Alert,
   KeyboardAvoidingView,
   ScrollView,
-  StyleSheet,
   Text,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 
 import Button from '../components/Button';
 import OptionGroup from '../components/OptionGroup';
 import ScreenHeader from '../components/ScreenHeader';
 import TextField from '../components/TextField';
-import { colors, radius, spacing, typography } from '../constants/theme';
+import { radius, spacing, typography } from '../constants/theme';
+import { makeStyles, useTheme } from '../hooks/useTheme';
 import { getErrorMessage, getFieldErrors, updateMe } from '../services/api';
 import { getUser, saveUser } from '../services/session';
 import { formatDOB, GENDERS, genderLabel, LANGUAGES, maskDOB } from '../utils/profile';
@@ -38,6 +37,7 @@ function toForm(user) {
 }
 
 function ReadOnlyRow({ label, value, last }) {
+  const styles = useStyles();
   return (
     <View style={[styles.readOnlyRow, last && styles.readOnlyRowLast]}>
       <Text style={styles.readOnlyLabel}>{label}</Text>
@@ -47,6 +47,8 @@ function ReadOnlyRow({ label, value, last }) {
 }
 
 export default function EditProfile() {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [form, setForm] = useState(toForm(null));
@@ -111,7 +113,6 @@ export default function EditProfile() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <StatusBar style="dark" />
       <ScreenHeader title="Edit profile" fallbackHref="/profile" />
 
       <KeyboardAvoidingView style={styles.flex} behavior="padding">
@@ -119,7 +120,6 @@ export default function EditProfile() {
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
-          {/* ── Personal details ───────────────────────────────────── */}
           <Text style={styles.sectionTitle}>Personal details</Text>
 
           {verified ? (
@@ -178,7 +178,6 @@ export default function EditProfile() {
             </>
           )}
 
-          {/* ── Contact ────────────────────────────────────────────── */}
           <Text style={[styles.sectionTitle, styles.sectionSpacing]}>Contact</Text>
           <TextField
             label="Mobile number"
@@ -216,7 +215,6 @@ export default function EditProfile() {
             />
           </View>
 
-          {/* ── Preferences ────────────────────────────────────────── */}
           <Text style={[styles.sectionTitle, styles.sectionSpacing]}>Preferences</Text>
           <OptionGroup
             label="App language"
@@ -235,7 +233,7 @@ export default function EditProfile() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -312,4 +310,4 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
     backgroundColor: colors.background,
   },
-});
+}));

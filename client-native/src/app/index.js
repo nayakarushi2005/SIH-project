@@ -3,35 +3,30 @@ import {
   ActivityIndicator,
   Image,
   Pressable,
-  StyleSheet,
   Text,
   View,
   useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
 import { Redirect, useRouter } from 'expo-router';
 
-import { colors, radius, spacing, typography } from '../constants/theme';
+import { radius, spacing, typography } from '../constants/theme';
+import { makeStyles, useTheme } from '../hooks/useTheme';
 import { getToken } from '../services/session';
 
 const subjectImage = require('../../assets/images/subject.webp');
-// Derived from the bundled file so swapping the image never distorts it.
 const { width: subjectW, height: subjectH } =
   Image.resolveAssetSource(subjectImage);
 const SUBJECT_ASPECT_RATIO = subjectW / subjectH;
 
-// Placeholder until the app name is decided.
 const BRAND_WORD = 'NAME';
 
-// Caps OS-level font scaling so large accessibility sizes stay usable
-// without breaking the layout.
 const MAX_FONT_SCALE = 1.4;
 
 export default function Landing() {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const { width } = useWindowDimensions();
-  // null while we check SecureStore, then the route to send the user to
-  // (or false to show the landing screen).
   const [sessionRoute, setSessionRoute] = useState(null);
 
   useEffect(() => {
@@ -39,11 +34,8 @@ export default function Landing() {
     (async () => {
       let route = false;
       try {
-        // Signed-in users go straight home; unverified ones are nudged to
-        // verify from their profile rather than blocked at launch.
         if (await getToken()) route = '/home';
       } catch {
-        // Unreadable storage — fall through to the landing screen.
       }
       if (!cancelled) setSessionRoute(route);
     })();
@@ -52,15 +44,11 @@ export default function Landing() {
     };
   }, []);
 
-  // Scale the decorative word with screen width so it fits on small phones
-  // and doesn't look tiny on tablets.
   const brandWordSize = Math.min(width * 0.34, 180);
 
   const router = useRouter();
 
   const handleGetStarted = useCallback(() => {
-    // replace (not push) so the back button/gesture on Auth exits the app
-    // instead of returning to the landing screen.
     router.replace('/auth');
   }, [router]);
 
@@ -76,7 +64,6 @@ export default function Landing() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <StatusBar style="dark" />
 
       <View style={styles.hero}>
         <Text
@@ -133,7 +120,7 @@ export default function Landing() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   checking: {
     flex: 1,
     alignItems: 'center',
@@ -217,4 +204,4 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
     borderLeftColor: colors.text,
   },
-});
+}));

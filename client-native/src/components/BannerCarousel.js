@@ -1,28 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { FlatList, Pressable, Text, View, useWindowDimensions } from 'react-native';
 
-import { colors, radius, spacing, typography } from '../constants/theme';
+import IconTile from './IconTile';
+import { radius, spacing, typography } from '../constants/theme';
+import { makeStyles } from '../hooks/useTheme';
+import { shade } from '../utils/color';
 
 const GAP = spacing.sm + 4;
 const AUTO_ADVANCE_MS = 5000;
 
-const TONES = {
-  dark: { card: { backgroundColor: colors.primary }, text: colors.textOnPrimary, icon: 'rgba(255,255,255,0.35)' },
-  soft: { card: { backgroundColor: colors.primarySoft }, text: colors.text, icon: colors.primary },
-  outline: {
-    card: { backgroundColor: colors.background, borderWidth: 1.5, borderColor: colors.border },
-    text: colors.text,
-    icon: colors.primary,
-  },
-};
-
-/**
- * Full-width swipeable banners with page dots. Advances on its own every few
- * seconds unless the user is dragging. `inset` is the page's side padding so
- * cards line up with the rest of the content.
- */
 export default function BannerCarousel({ banners, onPress, inset = spacing.lg - spacing.xs }) {
+  const styles = useStyles();
   const { width } = useWindowDimensions();
   const cardWidth = width - inset * 2;
   const interval = cardWidth + GAP;
@@ -55,30 +43,37 @@ export default function BannerCarousel({ banners, onPress, inset = spacing.lg - 
 
   const renderItem = useCallback(
     ({ item }) => {
-      const tone = TONES[item.tone] ?? TONES.outline;
+      const fg = item.foreground;
       return (
         <Pressable
           onPress={() => onPress?.(item)}
           accessibilityRole="button"
           accessibilityLabel={`${item.title}. ${item.cta}`}
-          style={({ pressed }) => [styles.card, tone.card, { width: cardWidth }, pressed && styles.pressed]}
+          style={({ pressed }) => [
+            styles.card,
+            {
+              width: cardWidth,
+              backgroundColor: item.background,
+            },
+            pressed && styles.pressed,
+          ]}
         >
           <View style={styles.cardText}>
-            <Text style={[styles.title, { color: tone.text }]} numberOfLines={1}>
+            <Text style={[styles.title, { color: fg }]} numberOfLines={2}>
               {item.title}
             </Text>
-            <Text style={[styles.body, { color: tone.text }]} numberOfLines={2}>
+            <Text style={[styles.body, { color: fg }]} numberOfLines={3}>
               {item.body}
             </Text>
-            <View style={[styles.cta, { borderColor: tone.text }]}>
-              <Text style={[styles.ctaText, { color: tone.text }]}>{item.cta}</Text>
+            <View style={[styles.cta, { backgroundColor: fg }]}>
+              <Text style={[styles.ctaText, { color: item.background }]}>{item.cta}</Text>
             </View>
           </View>
-          <MaterialCommunityIcons name={item.icon} size={64} color={tone.icon} />
+          <IconTile icon={item.icon} color={shade(item.background, 0.22)} size={72} />
         </Pressable>
       );
     },
-    [cardWidth, onPress]
+    [cardWidth, onPress, styles]
   );
 
   return (
@@ -92,7 +87,7 @@ export default function BannerCarousel({ banners, onPress, inset = spacing.lg - 
         showsHorizontalScrollIndicator={false}
         snapToInterval={interval}
         decelerationRate="fast"
-        contentContainerStyle={{ paddingHorizontal: inset }}
+        contentContainerStyle={{ paddingHorizontal: inset, paddingTop: spacing.xs, paddingBottom: spacing.lg }}
         ItemSeparatorComponent={() => <View style={{ width: GAP }} />}
         onScroll={onScroll}
         scrollEventThrottle={16}
@@ -113,14 +108,15 @@ export default function BannerCarousel({ banners, onPress, inset = spacing.lg - 
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   card: {
-    height: 148,
+    minHeight: 164,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    borderRadius: radius.md,
+    borderRadius: radius.xl,
     padding: spacing.md + 4,
+    boxShadow: colors.shadowCard,
   },
   pressed: {
     opacity: 0.9,
@@ -143,10 +139,9 @@ const styles = StyleSheet.create({
   cta: {
     alignSelf: 'flex-start',
     marginTop: spacing.sm,
-    borderWidth: 1.5,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.sm + 4,
-    paddingVertical: spacing.xs,
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs + 2,
   },
   ctaText: {
     ...typography.label,
@@ -156,7 +151,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 6,
-    marginTop: spacing.sm + 4,
   },
   dot: {
     width: 6,
@@ -168,4 +162,4 @@ const styles = StyleSheet.create({
     width: 18,
     backgroundColor: colors.primary,
   },
-});
+}));

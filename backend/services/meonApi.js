@@ -4,13 +4,8 @@ const MEON_BASE_URL = 'https://digilocker.meon.co.in';
 const MEON_COMPANY_NAME = process.env.MEON_COMPANY_NAME;
 const MEON_SECRET_TOKEN = process.env.MEON_SECRET_TOKEN;
 
-/**
- * Step 1 — Generate Client Token and Digilocker Link
- * @returns {Promise<{ url: string, clientToken: string, state: string }>}
- */
 async function initiateDigilocker() {
   try {
-    // 1. Get Access Token (Client Token & State)
     const tokenRes = await axios.post(`${MEON_BASE_URL}/get_access_token`, {
       company_name: MEON_COMPANY_NAME,
       secret_token: MEON_SECRET_TOKEN,
@@ -21,10 +16,9 @@ async function initiateDigilocker() {
     const { client_token, state } = tokenRes.data;
     if (!client_token) throw new Error('Failed to get client_token from Meon');
 
-    // 2. Generate Digilocker URL
     const urlRes = await axios.post(`${MEON_BASE_URL}/digi_url`, {
       client_token,
-      redirect_url: 'sihconnect://aadhaar-callback', // Expo Deep Link schema (app.json scheme)
+      redirect_url: 'sihconnect://aadhaar-callback',
       company_name: MEON_COMPANY_NAME,
       documents: 'aadhaar',
     }, {
@@ -46,11 +40,6 @@ async function initiateDigilocker() {
   }
 }
 
-/**
- * Step 2 — Fetch Aadhaar Data after user authorizes Digilocker
- * @param {string} clientToken 
- * @param {string} state 
- */
 async function verifyDigilocker(clientToken, state) {
   try {
     const res = await axios.post(`${MEON_BASE_URL}/v2/send_entire_data`, {
@@ -72,7 +61,7 @@ async function verifyDigilocker(clientToken, state) {
       dob: data.dob,
       gender: data.gender === 'M' || data.gender === 'Male' ? 'Male' : (data.gender === 'F' || data.gender === 'Female' ? 'Female' : data.gender),
       address: [data.house, data.locality, data.dist, data.state, data.pincode].filter(Boolean).join(', '),
-      maskedAadhaar: data.aadhar_no, // e.g. xxxxxxxx7845
+      maskedAadhaar: data.aadhar_no,
     };
   } catch (error) {
     const msg = error.response?.data?.msg || error.response?.data?.message || error.message || 'Failed to verify Digilocker data';

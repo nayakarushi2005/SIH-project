@@ -1,15 +1,14 @@
-import { StyleSheet } from 'react-native';
+import {} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
 
 import EmptyState from '../components/EmptyState';
 import ScreenHeader from '../components/ScreenHeader';
-import { colors } from '../constants/theme';
+import { makeStyles } from '../hooks/useTheme';
 
 export default function Notifications() {
+  const styles = useStyles();
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <StatusBar style="dark" />
       <ScreenHeader title="Notifications" />
       <EmptyState
         icon="notifications-outline"
@@ -20,6 +19,6 @@ export default function Notifications() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: { flex: 1, backgroundColor: colors.background },
-});
+}));

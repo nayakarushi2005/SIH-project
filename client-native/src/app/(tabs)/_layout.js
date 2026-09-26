@@ -1,40 +1,33 @@
+import { useRef } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { BlurTargetView } from 'expo-blur';
 
-import { colors } from '../../constants/theme';
+import FloatingTabBar, { TABS } from '../../components/FloatingTabBar';
 
-function tabIcon(name) {
-  // Filled icon when active, outline otherwise.
-  function TabIcon({ color, focused, size }) {
-    return <Ionicons name={focused ? name : `${name}-outline`} size={size} color={color} />;
-  }
-  return TabIcon;
+function HiddenTabBar() {
+  return null;
 }
 
 export default function TabsLayout() {
+  const blurTarget = useRef(null);
+
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textMuted,
-        tabBarStyle: {
-          backgroundColor: colors.background,
-          borderTopColor: colors.border,
-        },
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '600',
-        },
-      }}
-    >
-      <Tabs.Screen name="home" options={{ title: 'Home', tabBarIcon: tabIcon('home') }} />
-      <Tabs.Screen name="bookings" options={{ title: 'Bookings', tabBarIcon: tabIcon('calendar') }} />
-      <Tabs.Screen
-        name="messages"
-        options={{ title: 'Messages', tabBarIcon: tabIcon('chatbubble-ellipses') }}
-      />
-      <Tabs.Screen name="profile" options={{ title: 'Profile', tabBarIcon: tabIcon('person') }} />
-    </Tabs>
+    <View style={styles.container}>
+      <BlurTargetView ref={blurTarget} style={styles.container}>
+        <Tabs tabBar={HiddenTabBar} screenOptions={{ headerShown: false }}>
+          {TABS.map((tab) => (
+            <Tabs.Screen key={tab.href} name={tab.href.slice(1)} options={{ title: tab.title }} />
+          ))}
+        </Tabs>
+      </BlurTargetView>
+      <FloatingTabBar blurTarget={blurTarget} />
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});
