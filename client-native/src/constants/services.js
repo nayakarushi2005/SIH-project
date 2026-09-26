@@ -31,30 +31,22 @@ export const FALLBACK_GROUPS = [
 // Until we have booking data, "most booked" is a fixed pick.
 export const MOST_BOOKED_SLUGS = ['electrician', 'cleaning', 'plumber', 'carpenter'];
 
+// Copy lives in i18n under banners.<id>.
 export const BANNERS = [
   {
     id: 'emergency',
-    title: 'Emergency repairs',
-    body: 'Power cut or a burst pipe? Get a verified worker at your door fast.',
-    cta: 'Book now',
     serviceId: 'electrician',
     icon: 'alarm-light',
     tone: 'dark',
   },
   {
     id: 'deep-clean',
-    title: 'Festive deep cleaning',
-    body: 'Whole-home cleaning by cooperative teams, priced fairly.',
-    cta: 'Book cleaning',
     serviceId: 'cleaning',
     icon: 'spray-bottle',
     tone: 'soft',
   },
   {
     id: 'verified',
-    title: 'Every worker is verified',
-    body: 'Cooperative members with checked identity and fair wages.',
-    cta: 'Find a worker',
     serviceId: null,
     icon: 'shield-check',
     tone: 'outline',
