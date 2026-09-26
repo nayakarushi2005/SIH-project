@@ -12,23 +12,23 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
-import { getMe } from '../services/api';
+import { getMe, isUnauthorized } from '../services/api';
+import { clearSession, getUser, saveUser } from '../services/session';
 
-// Format DOB nicely if it's DD/MM/YYYY
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+// Format DOB nicely if it's DD/MM/YYYY (or DD-MM-YYYY); otherwise show as-is.
 function formatDOB(dob) {
   if (!dob) return '—';
-  const parts = dob.split(/[\/\-]/);
+  const parts = String(dob).split(/[/-]/);
   if (parts.length === 3) {
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const day = parseInt(parts[0], 10);
-    const month = parseInt(parts[1], 10) - 1;
-    const year = parts[2];
-    return `${day} ${months[month]} ${year}`;
+    const month = MONTHS[parseInt(parts[1], 10) - 1];
+    if (day && month) return `${day} ${month} ${parts[2]}`;
   }
-  return dob;
+  return String(dob);
 }
 
 function genderLabel(g) {
@@ -74,9 +74,10 @@ export default function Dashboard() {
   const doSignOut = useCallback(async () => {
     try {
       await GoogleSignin.signOut();
-    } catch (_) {}
-    await SecureStore.deleteItemAsync('authToken');
-    await SecureStore.deleteItemAsync('user');
+    } catch {
+      // Not signed in with Google on this device — nothing to undo.
+    }
+    await clearSession();
     router.replace('/auth');
   }, [router]);
 
@@ -103,16 +104,17 @@ export default function Dashboard() {
   const loadUser = useCallback(async () => {
     try {
       // Try cached first for instant display
-      const cached = await SecureStore.getItemAsync('user');
-      if (cached) setUser(JSON.parse(cached));
+      const cached = await getUser();
+      if (cached) setUser(cached);
 
       // Then refresh from server
       const fresh = await getMe();
       setUser(fresh);
-      await SecureStore.setItemAsync('user', JSON.stringify(fresh));
+      await saveUser(fresh);
     } catch (err) {
-      // If token expired, force logout
-      if (err?.response?.status === 401) {
+      // If token expired, force logout. Other errors (offline, server down)
+      // keep showing the cached profile.
+      if (isUnauthorized(err)) {
         handleSignOut(true);
       }
     } finally {
@@ -205,6 +207,23 @@ export default function Dashboard() {
             </View>
           </View>
         </View>
+
+        {/* ── Verify prompt (only for unverified users) ───────────────── */}
+        {user && !user.isAadhaarVerified && (
+          <Pressable
+            onPress={() => router.push('/aadhaar-verify')}
+            style={({ pressed }) => [styles.verifyBanner, pressed && { opacity: 0.85 }]}
+            accessibilityRole="button"
+          >
+            <View style={{ flex: 1 }}>
+              <Text style={styles.verifyBannerTitle}>Verify your identity</Text>
+              <Text style={styles.verifyBannerText}>
+                Complete DigiLocker verification to unlock bookings and build trust.
+              </Text>
+            </View>
+            <Text style={styles.verifyBannerArrow}>→</Text>
+          </Pressable>
+        )}
 
         {/* ── KYC Details ──────────────────────────────────────────────── */}
         <Text style={styles.sectionTitle}>Identity Details</Text>
@@ -400,6 +419,23 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#0B7A4B',
   },
+
+  // ── Verify banner ────────────────────────────────────────────────────
+  verifyBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: 'rgba(245,158,11,0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(245,158,11,0.35)',
+    borderRadius: 16,
+    padding: 16,
+    marginTop: -12,
+    marginBottom: 28,
+  },
+  verifyBannerTitle: { fontSize: 15, fontWeight: '700', color: '#f59e0b', marginBottom: 2 },
+  verifyBannerText: { fontSize: 12, color: '#ccb98a', lineHeight: 17 },
+  verifyBannerArrow: { fontSize: 20, color: '#f59e0b', fontWeight: '700' },
 
   // ── Section title ────────────────────────────────────────────────────
   sectionTitle: {
