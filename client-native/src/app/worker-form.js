@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Alert, KeyboardAvoidingView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import Button from '../components/Button';
@@ -37,13 +37,26 @@ export default function WorkerForm() {
   const { groups, bySlug, loading: catalogLoading, error: catalogError } = useCategories(i18n.language);
 
   const verified = !!user?.isAadhaarVerified;
-  const [name, setName] = useState(user?.name ?? '');
-  const [incomeBracket, setIncomeBracket] = useState(user?.worker?.incomeBracket ?? null);
-  const [categories, setCategories] = useState(user?.worker?.categories ?? []);
+  // Answers handed over by the voice assistant, if it switched to the form.
+  const { prefill: prefillParam } = useLocalSearchParams();
+  const [prefill] = useState(() => {
+    try {
+      return prefillParam ? JSON.parse(prefillParam) : {};
+    } catch {
+      return {};
+    }
+  });
+  const [name, setName] = useState(prefill.name || user?.name || '');
+  const [incomeBracket, setIncomeBracket] = useState(
+    prefill.incomeBracket ?? user?.worker?.incomeBracket ?? null
+  );
+  const [categories, setCategories] = useState(
+    prefill.categories?.length ? prefill.categories : user?.worker?.categories ?? []
+  );
   const [errors, setErrors] = useState({});
   // { federations, message } once loaded; hidden if the lookup fails.
   const [nearby, setNearby] = useState(null);
-  const [federationId, setFederationId] = useState(null);
+  const [federationId, setFederationId] = useState(prefill.federationId ?? null);
 
   useEffect(() => {
     let active = true;

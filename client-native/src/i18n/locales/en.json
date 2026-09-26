@@ -242,5 +242,28 @@
     "leaveFailed": "Could not leave the federation.",
     "current": "Your federation",
     "unlisted": "No longer listed near you"
+  },
+  "voice": {
+    "title": "Talk to the assistant",
+    "listening": "Listening…",
+    "thinking": "Thinking…",
+    "speaking": "Speaking…",
+    "tapToSpeak": "Tap the mic to speak",
+    "you": "You",
+    "done": "Done",
+    "yes": "Yes",
+    "no": "No",
+    "confirm": "Confirm and register",
+    "micDenied": "Microphone permission is off, so let's use the form instead.",
+    "unavailable": "Speech recognition isn't available on this phone. Let's use the form.",
+    "serverDown": "The assistant is not available right now. You can use the form.",
+    "useForm": "Use the form instead",
+    "summaryTitle": "Please check your details",
+    "fieldName": "Name",
+    "fieldIncome": "Yearly income",
+    "fieldWork": "Work",
+    "fieldFederation": "Federation",
+    "none": "None",
+    "micA11y": "Speak your answer"
   }
 }
