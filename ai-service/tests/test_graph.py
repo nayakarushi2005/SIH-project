@@ -221,3 +221,11 @@ async def test_words_added_in_the_same_turn_are_not_auto_confirmed():
     await c.say("2 lakh")
     s = await c.say("प्लंबर, हाँ")
     assert s["step"] == "categories" and s["ui"]["selected"] == ["plumber"]
+
+
+async def test_polite_no_at_name_confirm_is_just_no():
+    c = Convo(lang="hi")
+    await c.start()
+    await c.say("रवि")
+    s = await c.say("नहीं जी")
+    assert s["step"] == "name" and s["name"] is None
