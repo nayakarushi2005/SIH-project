@@ -28,12 +28,11 @@
   },
   "scripts": {
     "start": "expo start",
-    "usb": "adb reverse tcp:8081 tcp:8081 && adb reverse tcp:5000 tcp:5000",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "usb:watch": "node scripts/usb-forward.js"
+    "usb": "adb reverse tcp:8081 tcp:8081 && adb reverse tcp:3000 tcp:3000"
   },
   "private": true,
   "devDependencies": {
