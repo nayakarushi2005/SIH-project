@@ -149,6 +149,10 @@ def detect_done(text: str, lang: str) -> bool:
     return _has(lx.DONE.get(lang, []) + lx.DONE["en"], normalise(text))
 
 
+def detect_change(text: str, lang: str) -> bool:
+    return _has(lx.CHANGE.get(lang, []) + lx.CHANGE["en"], normalise(text))
+
+
 def clean_name(text: str) -> str | None:
     t = " ".join(lx.nfc(text).split()).strip(" .,!?।")
     for pattern in lx.NAME_FILLERS:
