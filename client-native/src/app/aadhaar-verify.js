@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,71 +11,38 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
 import * as Linking from 'expo-linking';
 
-import { initiateDigilocker, verifyDigilocker } from '../services/api';
+import { getErrorMessage, initiateDigilocker } from '../services/api';
+import { savePendingDigilocker } from '../services/session';
 
+// DigiLocker redirects to sihconnect://aadhaar-callback when the user is done
+// (set in backend/services/meonApi.js). Expo Router opens the matching
+// screen, src/app/aadhaar-callback.js, which finishes verification.
 export default function AadhaarVerify() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [processingData, setProcessingData] = useState(false);
-  const [currentClientToken, setCurrentClientToken] = useState(null);
-  const [currentState, setCurrentState] = useState(null);
 
-  // When returning from Digilocker browser flow via Deep Link
-  const handleDeepLink = useCallback(async (event) => {
-    // If the app was opened with our callback URL
-    if (event.url && event.url.includes('aadhaar-callback') && currentClientToken && currentState) {
-      setProcessingData(true);
-      try {
-        const verifyResult = await verifyDigilocker(currentClientToken, currentState);
-        
-        await SecureStore.setItemAsync('user', JSON.stringify(verifyResult.user));
-        Alert.alert(
-          '✅ Verified!',
-          `Welcome, ${verifyResult.user.name}! Your Aadhaar has been verified via Digilocker.`,
-          [{ text: 'Continue', onPress: () => router.replace('/dashboard') }]
-        );
-      } catch (err) {
-        Alert.alert('Verification Failed', err.message || 'Could not fetch Aadhaar data.');
-      } finally {
-        setProcessingData(false);
-        setCurrentClientToken(null);
-        setCurrentState(null);
-      }
-    }
-  }, [currentClientToken, currentState, router]);
-
-  useEffect(() => {
-    const subscription = Linking.addEventListener('url', handleDeepLink);
-    return () => subscription.remove();
-  }, [handleDeepLink]);
-
-  const handleStartVerification = async () => {
+  const handleStartVerification = useCallback(async () => {
     setLoading(true);
     try {
-      // 1. Get Digilocker URL from our backend
       const result = await initiateDigilocker();
-      
-      if (!result.url) {
-        throw new Error('Failed to generate Digilocker link');
+      if (!result?.url || !result.clientToken || !result.state) {
+        throw new Error('Could not start DigiLocker verification.');
       }
 
-      // Store tokens in state so we can use them when the deep link returns
-      setCurrentClientToken(result.clientToken);
-      setCurrentState(result.state);
-      setLoading(false);
-
-      // 2. Open the Digilocker page in the phone's default browser (Chrome/Safari)
-      // This avoids the 'ExpoWebBrowser' native module crash!
+      await savePendingDigilocker(result);
       await Linking.openURL(result.url);
-
     } catch (err) {
+      Alert.alert('Error', getErrorMessage(err));
+    } finally {
       setLoading(false);
-      Alert.alert('Error', err.message || 'Something went wrong.');
     }
-  };
+  }, []);
+
+  const handleSkip = useCallback(() => {
+    router.replace('/dashboard');
+  }, [router]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -110,18 +77,26 @@ export default function AadhaarVerify() {
             style={({ pressed }) => [
               styles.primaryButton,
               pressed && styles.primaryButtonPressed,
-              (loading || processingData) && styles.primaryButtonDisabled,
+              loading && styles.primaryButtonDisabled,
             ]}
             onPress={handleStartVerification}
-            disabled={loading || processingData}
+            disabled={loading}
+            accessibilityRole="button"
           >
             {loading ? (
               <ActivityIndicator color="#fff" />
-            ) : processingData ? (
-              <Text style={styles.primaryButtonText}>Retrieving Data...</Text>
             ) : (
               <Text style={styles.primaryButtonText}>Verify with DigiLocker →</Text>
             )}
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [styles.skipButton, pressed && { opacity: 0.6 }]}
+            onPress={handleSkip}
+            disabled={loading}
+            accessibilityRole="button"
+          >
+            <Text style={styles.skipText}>I&apos;ll do this later</Text>
           </Pressable>
         </View>
 
@@ -150,5 +125,7 @@ const styles = StyleSheet.create({
   primaryButtonPressed: { opacity: 0.88, transform: [{ scale: 0.98 }] },
   primaryButtonDisabled: { opacity: 0.6 },
   primaryButtonText: { fontSize: 16, fontWeight: '700', color: '#ffffff', letterSpacing: 0.3 },
+  skipButton: { alignItems: 'center', paddingVertical: 12, marginTop: 8 },
+  skipText: { fontSize: 14, color: '#8888aa', fontWeight: '600' },
   poweredBy: { fontSize: 11, color: '#444466', textAlign: 'center', marginTop: 8 },
 });

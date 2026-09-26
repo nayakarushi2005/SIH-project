@@ -1,7 +1,25 @@
 import axios from 'axios';
-import * as SecureStore from 'expo-secure-store';
+import Constants from 'expo-constants';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
+import { getToken } from './session';
+
+const API_PORT = 5000;
+
+// EXPO_PUBLIC_API_BASE_URL wins when set (staging/production). In development
+// we otherwise reuse the IP the phone already reaches Metro on, so the API URL
+// follows your laptop when its LAN IP changes instead of silently timing out.
+function resolveBaseUrl() {
+  if (process.env.EXPO_PUBLIC_API_BASE_URL) {
+    return process.env.EXPO_PUBLIC_API_BASE_URL;
+  }
+  const host = Constants.expoConfig?.hostUri?.split(':')[0];
+  if (__DEV__ && host) {
+    return `http://${host}:${API_PORT}/api`;
+  }
+  return `http://localhost:${API_PORT}/api`;
+}
+
+export const API_BASE_URL = resolveBaseUrl();
 
 // Axios instance
 const api = axios.create({
@@ -12,12 +30,29 @@ const api = axios.create({
 
 // Auto-attach JWT token to every request
 api.interceptors.request.use(async (config) => {
-  const token = await SecureStore.getItemAsync('authToken');
+  const token = await getToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
+
+/**
+ * Turns an axios/network error into a message fit for an Alert.
+ * The backend responds with { error: '...' } on failure.
+ */
+export function getErrorMessage(err, fallback = 'Something went wrong. Please try again.') {
+  if (err?.response?.data?.error) return err.response.data.error;
+  if (err?.code === 'ECONNABORTED') return 'The server took too long to respond.';
+  if (err?.message === 'Network Error') {
+    return `Can't reach the server at ${API_BASE_URL}. Is the backend running and on the same network?`;
+  }
+  return err?.message || fallback;
+}
+
+export function isUnauthorized(err) {
+  return err?.response?.status === 401;
+}
 
 // ── Auth API calls ───────────────────────────────────────────────────────────
 
