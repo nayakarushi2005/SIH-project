@@ -10,8 +10,10 @@ import re
 import time
 from dataclasses import dataclass, field
 
+from indic_transliteration import sanscript
 from rapidfuzz import fuzz
 
+from app.agents.onboarding.lexicon import INDIC
 from app.agents.onboarding.parsers import _word, normalise
 
 FUZZY_MIN_SCORE = 84
@@ -118,10 +120,50 @@ def match_categories(catalog: Catalog, text: str) -> list[str]:
     return ordered
 
 
-def match_federation(options: list[dict], text: str) -> str | None:
+_SCRIPTS = {
+    "hi": sanscript.DEVANAGARI,
+    "mr": sanscript.DEVANAGARI,
+    "bn": sanscript.BENGALI,
+    "ta": sanscript.TAMIL,
+    "te": sanscript.TELUGU,
+}
+
+
+def _skeleton(latin: str) -> str:
+    """Rough sound-alike form of romanised text, so 'shramika samgha'
+    (from श्रमिक संघ) and 'Shramik Sangh' compare equal."""
+    s = re.sub(r"[^a-z ]", "", latin.lower())
+    s = s.replace("sh", "s").replace("ph", "f").replace("w", "v").replace("z", "j")
+    s = re.sub(r"m(?=[kgcjtdpb])", "n", s)
+    s = re.sub(r"([a-z])\1+", r"\1", s)
+    words = [w[:-1] if len(w) > 3 and w.endswith("a") else w for w in s.split()]
+    return " ".join(words)
+
+
+def _consonants(skeleton: str) -> str:
+    """Drop vowels (y counts as one) except a leading vowel, written 'a':
+    romanisations differ mostly in vowels ('varkars yuniyan' ~ 'workers union')."""
+    out = []
+    for w in skeleton.split():
+        head = "a" if w[0] in "aeiouy" else w[0]
+        out.append(head + re.sub(r"[aeiouy]", "", w[1:]))
+    return " ".join(out)
+
+
+def _romanise(text: str, lang: str | None) -> str | None:
+    script = _SCRIPTS.get(lang or "")
+    if not script or not INDIC.search(text):
+        return None
+    return _skeleton(sanscript.transliterate(text, script, sanscript.ITRANS))
+
+
+def match_federation(options: list[dict], text: str, lang: str | None = None) -> str | None:
+    """The federation the worker named. Names are typed in English on the
+    web portal, so speech in an Indian script is also compared phonetically."""
     t = normalise(text)
     if not t:
         return None
+    spoken = _romanise(text, lang)
     best_id, best_score = None, 0
     for opt in options:
         name = normalise(opt.get("name", ""))
@@ -131,9 +173,16 @@ def match_federation(options: list[dict], text: str) -> str | None:
             score = 100
         else:
             score = fuzz.token_set_ratio(name, t)
+            if spoken:
+                skel = _skeleton(name)
+                sound = max(
+                    fuzz.token_set_ratio(skel, spoken),
+                    fuzz.token_set_ratio(_consonants(skel), _consonants(spoken)),
+                )
+                score = max(score, sound - 5)
         if score > best_score:
             best_id, best_score = opt["id"], score
-    return best_id if best_score >= 80 else None
+    return best_id if best_score >= 75 else None
 
 
 class CatalogCache:
@@ -148,8 +197,13 @@ class CatalogCache:
         hit = self._cache.get(lang)
         if hit and time.monotonic() - hit[0] < self._ttl:
             return hit[1]
-        lang_payload = await self._node.get_categories(lang)
-        en_payload = lang_payload if lang == "en" else await self._node.get_categories("en")
+        try:
+            lang_payload = await self._node.get_categories(lang)
+            en_payload = lang_payload if lang == "en" else await self._node.get_categories("en")
+        except Exception:
+            if hit:  # backend down: keep using the last good catalogue
+                return hit[1]
+            raise
         catalog = Catalog.from_node(lang_payload, en_payload)
         self._cache[lang] = (time.monotonic(), catalog)
         return catalog
