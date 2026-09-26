@@ -36,6 +36,7 @@ from app.agents.onboarding.parsers import (
     _has,
     bracket_for,
     clean_name,
+    detect_change,
     detect_done,
     detect_yes_no,
     normalise,
@@ -209,6 +210,10 @@ def build_graph(extractor: Extractor, catalog_for: CatalogFor, checkpointer):
         lang = state["lang"]
         yn = detect_yes_no(text, lang)
         field = _detect_field(text, lang) if state.get("step") == "confirm" else None
+        # "yes, the name is correct" names a field but confirms it; only a
+        # "no"/"wrong" or a "change" turns a mentioned field into an edit.
+        if field and yn == "yes" and not detect_change(text, lang):
+            field = None
         if field:
             return {"ok": True, "reason": "answer", "yes": False, "field": field, "path": "rules"}
         if yn == "no" and state.get("step") == "name_confirm":
