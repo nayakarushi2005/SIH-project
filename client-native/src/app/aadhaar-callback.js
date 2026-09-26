@@ -5,6 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
+import { useUser } from '../context/UserContext';
 import { getErrorMessage, isUnauthorized, verifyDigilocker } from '../services/api';
 import {
   clearPendingDigilocker,
@@ -19,6 +20,7 @@ import {
 // asks the backend to fetch the KYC data, then moves on to the home screen.
 export default function AadhaarCallback() {
   const { t } = useTranslation();
+  const { setUser } = useUser();
   const router = useRouter();
   const [error, setError] = useState(null);
   const started = useRef(false);
@@ -36,6 +38,7 @@ export default function AadhaarCallback() {
       const result = await verifyDigilocker(pending.clientToken, pending.state);
       const cached = await getUser();
       await saveUser({ ...cached, ...result.user });
+      setUser({ ...cached, ...result.user });
       await clearPendingDigilocker();
       router.replace('/home');
     } catch (err) {
@@ -46,7 +49,7 @@ export default function AadhaarCallback() {
       }
       setError(getErrorMessage(err, t('aadhaar.fetchFailed')));
     }
-  }, [router, t]);
+  }, [router, setUser, t]);
 
   useEffect(() => {
     // Guard against the effect firing twice (dev StrictMode) — the
