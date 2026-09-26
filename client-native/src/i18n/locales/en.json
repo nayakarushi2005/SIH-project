@@ -170,5 +170,16 @@
     "promptRegister": "Register as a worker",
     "promptNotWorker": "I'm not a worker",
     "promptClose": "Close"
+  },
+  "location": {
+    "title": "Your location",
+    "detecting": "Finding your location…",
+    "useCurrent": "Use my current location",
+    "confirm": "Is this right? You can correct the city and PIN code.",
+    "save": "Save location",
+    "denied": "Location permission is off. You can type your city and PIN code instead.",
+    "servicesOff": "Turn on location (GPS) on your phone, or type your city and PIN code.",
+    "unavailable": "We couldn't find your location. Please type your city and PIN code.",
+    "saveFailed": "Could not save your location."
   }
 }

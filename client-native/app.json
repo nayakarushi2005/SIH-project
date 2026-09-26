@@ -32,7 +32,13 @@
         }
       ],
       "expo-web-browser",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "SIH Connect uses your location to show jobs and workers near you."
+        }
+      ]
     ],
     "scheme": "sihconnect",
     "extra": {

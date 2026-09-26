@@ -3,13 +3,15 @@ import { Tabs, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 
+import LocationSheet from '../../components/LocationSheet';
 import WorkerPrompt from '../../components/WorkerPrompt';
 import { colors } from '../../constants/theme';
 import { useUser } from '../../context/UserContext';
 import { dismissWorkerPrompt } from '../../services/api';
+import { locationPermissionStatus } from '../../services/location';
 
 // Choices that last until the app is closed.
-const sessionFlags = { workerPromptClosed: false };
+const sessionFlags = { workerPromptClosed: false, locationAsked: false };
 
 function tabIcon(name) {
   // Filled icon when active, outline otherwise.
@@ -25,12 +27,35 @@ export default function TabsLayout() {
   const { user, setUser, reload } = useUser();
   const [promptClosed, setPromptClosed] = useState(sessionFlags.workerPromptClosed);
   const [dismissing, setDismissing] = useState(false);
+  const [locationOpen, setLocationOpen] = useState(false);
 
   useEffect(() => {
     reload();
   }, [reload]);
 
-  const showPrompt = !!user && !user.isWorker && !user.workerPromptDismissed && !promptClosed;
+  // First time only: offer to detect the location of a user who has none.
+  // If they already said no to the permission, don't nag — they can set it
+  // from the Home header.
+  const needsLocation = !!user && !user.location;
+  useEffect(() => {
+    if (!needsLocation || sessionFlags.locationAsked) return undefined;
+    let active = true;
+    locationPermissionStatus()
+      .then((status) => {
+        if (active && status === 'undetermined') {
+          sessionFlags.locationAsked = true;
+          setLocationOpen(true);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [needsLocation]);
+
+  // The worker question waits until the location sheet is out of the way.
+  const showPrompt =
+    !!user && !user.isWorker && !user.workerPromptDismissed && !promptClosed && !locationOpen;
 
   const closePrompt = useCallback(() => {
     sessionFlags.workerPromptClosed = true;
@@ -86,6 +111,8 @@ export default function TabsLayout() {
         />
         <Tabs.Screen name="profile" options={{ title: t('tabs.profile'), tabBarIcon: tabIcon('person') }} />
       </Tabs>
+
+      <LocationSheet autoDetect visible={locationOpen} onClose={() => setLocationOpen(false)} />
 
       <WorkerPrompt
         visible={showPrompt}
