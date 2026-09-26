@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { colors, spacing, typography } from '../constants/theme';
 
@@ -16,6 +17,7 @@ export default function ScreenHeader({
   showBack = true,
 }) {
   const router = useRouter();
+  const { t } = useTranslation();
 
   const goBack = () => {
     if (router.canGoBack()) router.back();
@@ -30,7 +32,7 @@ export default function ScreenHeader({
           hitSlop={spacing.sm}
           style={styles.side}
           accessibilityRole="button"
-          accessibilityLabel="Go back"
+          accessibilityLabel={t('common.goBack')}
         >
           <View style={styles.chevron} />
         </Pressable>

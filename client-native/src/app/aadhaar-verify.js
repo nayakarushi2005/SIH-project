@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import * as Linking from 'expo-linking';
+import { useTranslation } from 'react-i18next';
 
 import { getErrorMessage, initiateDigilocker } from '../services/api';
 import { savePendingDigilocker } from '../services/session';
@@ -20,6 +21,7 @@ import { savePendingDigilocker } from '../services/session';
 // (set in backend/services/meonApi.js). Expo Router opens the matching
 // screen, src/app/aadhaar-callback.js, which finishes verification.
 export default function AadhaarVerify() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -28,17 +30,17 @@ export default function AadhaarVerify() {
     try {
       const result = await initiateDigilocker();
       if (!result?.url || !result.clientToken || !result.state) {
-        throw new Error('Could not start DigiLocker verification.');
+        throw new Error(t('aadhaar.startFailed'));
       }
 
       await savePendingDigilocker(result);
       await Linking.openURL(result.url);
     } catch (err) {
-      Alert.alert('Error', getErrorMessage(err));
+      Alert.alert(t('common.error'), getErrorMessage(err));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   const handleSkip = useCallback(() => {
     router.replace('/home');
@@ -54,22 +56,22 @@ export default function AadhaarVerify() {
           <View style={styles.shieldIcon}>
             <Text style={styles.shieldEmoji}>🛡️</Text>
           </View>
-          <Text style={styles.title}>DigiLocker Verification</Text>
+          <Text style={styles.title}>{t('aadhaar.title')}</Text>
           <Text style={styles.subtitle}>
-            We securely verify your identity using the official Govt. of India DigiLocker service.
+            {t('aadhaar.subtitle')}
           </Text>
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Verify your Identity</Text>
+          <Text style={styles.cardTitle}>{t('aadhaar.cardTitle')}</Text>
           <Text style={styles.cardDesc}>
-            You will be redirected to DigiLocker to authorize the sharing of your Aadhaar details securely.
+            {t('aadhaar.cardDescription')}
           </Text>
 
           <View style={styles.privacyNote}>
             <Text style={styles.privacyIcon}>🔒</Text>
             <Text style={styles.privacyText}>
-              We do not store your full Aadhaar number. We strictly comply with UIDAI and Government data privacy guidelines.
+              {t('aadhaar.privacy')}
             </Text>
           </View>
 
@@ -86,7 +88,7 @@ export default function AadhaarVerify() {
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.primaryButtonText}>Verify with DigiLocker →</Text>
+              <Text style={styles.primaryButtonText}>{t('aadhaar.verifyButton')}</Text>
             )}
           </Pressable>
 
@@ -96,11 +98,11 @@ export default function AadhaarVerify() {
             disabled={loading}
             accessibilityRole="button"
           >
-            <Text style={styles.skipText}>I&apos;ll do this later</Text>
+            <Text style={styles.skipText}>{t('aadhaar.later')}</Text>
           </Pressable>
         </View>
 
-        <Text style={styles.poweredBy}>Secured by Meon eKYC · UIDAI Authorized</Text>
+        <Text style={styles.poweredBy}>{t('aadhaar.poweredBy')}</Text>
       </ScrollView>
     </SafeAreaView>
   );

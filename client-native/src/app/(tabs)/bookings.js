@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { StatusBar } from 'expo-status-bar';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,6 +14,7 @@ import { getErrorMessage, listJobs } from '../../services/api';
 
 export default function Bookings() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [jobs, setJobs] = useState(null); // null until the first load finishes
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -54,18 +56,18 @@ export default function Bookings() {
     );
   } else if (jobs === null) {
     body = (
-      <EmptyState icon="cloud-offline-outline" title="Couldn’t load bookings" body={error}>
-        <Button label="Try again" variant="secondary" onPress={load} style={styles.button} />
+      <EmptyState icon="cloud-offline-outline" title={t('bookings.loadError')} body={error}>
+        <Button label={t('common.tryAgain')} variant="secondary" onPress={load} style={styles.button} />
       </EmptyState>
     );
   } else if (jobs.length === 0) {
     body = (
       <EmptyState
         icon="calendar-outline"
-        title="No bookings yet"
-        body="Jobs you post and the workers you book will appear here."
+        title={t('bookings.emptyTitle')}
+        body={t('bookings.emptyBody')}
       >
-        <Button label="Create a new job" onPress={newJob} style={styles.button} />
+        <Button label={t('bookings.createJob')} onPress={newJob} style={styles.button} />
       </EmptyState>
     );
   } else {
@@ -87,11 +89,11 @@ export default function Bookings() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar style="dark" />
       <View style={styles.header}>
-        <Text style={styles.title} accessibilityRole="header">Bookings</Text>
+        <Text style={styles.title} accessibilityRole="header">{t('bookings.title')}</Text>
         {jobs?.length ? (
           <Pressable onPress={newJob} hitSlop={spacing.sm} style={styles.newJob} accessibilityRole="button">
             <Ionicons name="add" size={18} color={colors.primary} />
-            <Text style={styles.newJobText}>New job</Text>
+            <Text style={styles.newJobText}>{t('bookings.newJob')}</Text>
           </Pressable>
         ) : null}
       </View>

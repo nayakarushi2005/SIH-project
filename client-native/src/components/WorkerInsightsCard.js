@@ -1,10 +1,11 @@
 import { useCallback, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 
 import { colors, radius, spacing, typography } from '../constants/theme';
-import { getService } from '../constants/services';
+import useCategories from '../hooks/useCategories';
 import { getWorkerInsights } from '../services/api';
 import { getTrait } from '../utils/traits';
 
@@ -18,13 +19,15 @@ function Chip({ label, tone }) {
   );
 }
 
-function improveLabel(item) {
-  if (item.type === 'skill') return `${getService(item.id)?.label ?? item.id} skills`;
+function improveLabel(item, bySlug) {
+  if (item.type === 'skill') return `${bySlug(item.id)?.name ?? item.id} skills`;
   return getTrait(item.id)?.improve ?? item.id;
 }
 
 /** What clients' feedback says about this worker (from the knowledge graph). */
 export default function WorkerInsightsCard() {
+  const { i18n } = useTranslation();
+  const { bySlug } = useCategories(i18n.language);
   const [insights, setInsights] = useState(null);
 
   useFocusEffect(
@@ -88,7 +91,7 @@ export default function WorkerInsightsCard() {
               <Text style={styles.label}>Areas to improve</Text>
               <View style={styles.chips}>
                 {improve.map((i) => (
-                  <Chip key={`${i.type}-${i.id}`} label={improveLabel(i)} tone="improve" />
+                  <Chip key={`${i.type}-${i.id}`} label={improveLabel(i, bySlug)} tone="improve" />
                 ))}
               </View>
               <Text style={styles.muted}>

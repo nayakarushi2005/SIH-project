@@ -1,32 +1,47 @@
 const Federation = require('../models/Federation');
+const {
+  decideRequest,
+  listRequests,
+  memberCount,
+  removeMember,
+  sendMembershipError,
+} = require('../services/membership');
 
-// ── Register a new Federation ────────────────────────────────────────────────
+// City and PIN decide which workers see this federation, so both are required.
+function readLocation(body) {
+  const city = String(body.city ?? '').trim();
+  const pincode = String(body.pincode ?? '').trim();
+  const fields = {};
+  if (city.length < 2 || city.length > 60) fields.city = 'Enter the city the federation works in.';
+  if (!/^[1-9]\d{5}$/.test(pincode)) fields.pincode = 'Enter a valid 6-digit PIN code.';
+  return { city, pincode, fields };
+}
+
+// ── Register / update the signed-in Federation's details ───────────────────
+// The record was created at Google sign-in; this fills in the form. Always
+// the caller's own record — never one looked up from the request body.
 const registerFederation = async (req, res) => {
   try {
-    const { name, email, amount, noOfWorkers, area } = req.body;
-
-    if (!email) {
-      return res.status(400).json({ message: 'Email is required to complete registration.' });
+    const { name, amount, noOfWorkers, area } = req.body;
+    const { city, pincode, fields } = readLocation(req.body);
+    if (Object.keys(fields).length > 0) {
+      return res.status(400).json({ message: 'Please fix the highlighted fields.', fields });
     }
 
-    // 1. Find the federation created during Google OAuth
-    let federation = await Federation.findOne({ email: email.toLowerCase() });
-
+    const federation = await Federation.findById(req.user.userId);
     if (!federation) {
-      // Reject if not found. We DO NOT fallback to creating here because 
-      // all new users must go through Google OAuth to be created securely.
-      return res.status(404).json({ 
-        message: 'No authenticated record found for this email. Please sign in with Google first.' 
-      });
+      return res.status(404).json({ message: 'No federation account found. Please sign in with Google again.' });
     }
 
-    // 2. UPDATE existing record with the form details
     federation.name = name || federation.name;
     federation.amount = Number(amount) || federation.amount;
     federation.noOfWorkers = Number(noOfWorkers) || federation.noOfWorkers;
     federation.area = area || federation.area;
-    // Keep status as 'unverified' so government can review it
-    federation.status = 'unverified';
+    federation.city = city;
+    federation.pincode = pincode;
+    // New or rejected federations go (back) to government review; updating
+    // details must not un-verify an already verified one.
+    if (federation.status !== 'verified') federation.status = 'unverified';
 
     await federation.save();
 
@@ -40,6 +55,31 @@ const registerFederation = async (req, res) => {
   }
 };
 
+// ── Update only the signed-in Federation's city and PIN ─────────────────────
+// Status is untouched: moving the address does not send it back to review.
+const updateMyLocation = async (req, res) => {
+  try {
+    const { city, pincode, fields } = readLocation(req.body);
+    if (Object.keys(fields).length > 0) {
+      return res.status(400).json({ message: 'Please fix the highlighted fields.', fields });
+    }
+
+    const federation = await Federation.findByIdAndUpdate(
+      req.user.userId,
+      { $set: { city, pincode } },
+      { new: true, runValidators: true }
+    );
+    if (!federation) {
+      return res.status(404).json({ message: 'No federation account found. Please sign in with Google again.' });
+    }
+
+    return res.status(200).json({ message: 'Location updated.', federation });
+  } catch (error) {
+    console.error('Update Federation Location Error:', error);
+    return res.status(500).json({ message: 'Failed to update location', error: error.message });
+  }
+};
+
 // ── Check if Federation exists by Email ──────────────────────────────────────
 const checkFederationByEmail = async (req, res) => {
   try {
@@ -48,10 +88,14 @@ const checkFederationByEmail = async (req, res) => {
       return res.status(400).json({ message: 'Email parameter is required.' });
     }
 
+    // A federation may only look itself up.
     const federation = await Federation.findOne({ email: email.toLowerCase() });
+    if (federation && String(federation._id) !== String(req.user.userId)) {
+      return res.status(403).json({ message: 'You do not have access to this federation.' });
+    }
 
     if (federation) {
-      return res.status(200).json({ exists: true, federation });
+      return res.status(200).json({ exists: true, federation, memberCount: await memberCount(federation._id) });
     } else {
       return res.status(200).json({ exists: false, federation: null });
     }
@@ -87,15 +131,21 @@ const getAllFederations = async (req, res) => {
 const getFederationById = async (req, res) => {
   try {
     const { id } = req.params;
-    const federation = await Federation.findOne({
-      $or: [{ _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }, { fedId: id }],
-    });
+    const federation = await Federation.findOne(
+      /^[0-9a-fA-F]{24}$/.test(id) ? { $or: [{ _id: id }, { fedId: id }] } : { fedId: id }
+    );
 
     if (!federation) {
       return res.status(404).json({ message: 'Federation not found' });
     }
+    // Government officials see every federation; a federation sees itself.
+    const isOwner =
+      req.user.userModel === 'Federation' && String(federation._id) === String(req.user.userId);
+    if (req.user.userModel !== 'GovOfficial' && !isOwner) {
+      return res.status(403).json({ message: 'You do not have access to this federation.' });
+    }
 
-    return res.status(200).json({ federation });
+    return res.status(200).json({ federation, memberCount: await memberCount(federation._id) });
   } catch (error) {
     console.error('Get Federation By ID Error:', error);
     return res.status(500).json({ message: 'Error fetching federation details', error: error.message });
@@ -134,8 +184,45 @@ const verifyFederation = async (req, res) => {
   }
 };
 
+// ── Worker join requests (federation portal) ────────────────────────────────
+
+const listMyRequests = async (req, res) => {
+  try {
+    const requests = await listRequests(req.user.userId, req.query.status);
+    return res.status(200).json({ requests });
+  } catch (err) {
+    return sendMembershipError(res, err, 'message');
+  }
+};
+
+const decideMyRequest = async (req, res) => {
+  const { action, reason } = req.body || {};
+  if (!['accept', 'reject'].includes(action)) {
+    return res.status(400).json({ message: 'Action must be accept or reject.' });
+  }
+  try {
+    const request = await decideRequest(req.user.userId, req.params.id, action, reason);
+    return res.status(200).json({ request });
+  } catch (err) {
+    return sendMembershipError(res, err, 'message');
+  }
+};
+
+const removeMyMember = async (req, res) => {
+  try {
+    const request = await removeMember(req.user.userId, req.params.id);
+    return res.status(200).json({ request });
+  } catch (err) {
+    return sendMembershipError(res, err, 'message');
+  }
+};
+
 module.exports = {
   registerFederation,
+  updateMyLocation,
+  listMyRequests,
+  decideMyRequest,
+  removeMyMember,
   checkFederationByEmail,
   getAllFederations,
   getFederationById,

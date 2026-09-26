@@ -1,19 +1,21 @@
 import { useCallback, useState } from 'react';
-import { Alert, KeyboardAvoidingView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { useRouter } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import Button from '../components/Button';
+import CategoryPicker from '../components/CategoryPicker';
 import OptionGroup from '../components/OptionGroup';
 import ScreenHeader from '../components/ScreenHeader';
 import TextField from '../components/TextField';
-import { colors, spacing, typography } from '../constants/theme';
-import { SERVICES } from '../constants/services';
+import { colors, spacing } from '../constants/theme';
 import { useWorkerMode } from '../context/WorkerMode';
-import { getErrorMessage, getFieldErrors, isAadhaarRequired } from '../services/api';
+import useCategories from '../hooks/useCategories';
+import { getErrorMessage, getFieldErrors } from '../services/api';
 
-const SKILL_OPTIONS = SERVICES.map((s) => ({ value: s.id, label: s.label }));
+const MAX_SKILLS = 10; // backend: MAX_CATEGORIES in services/worker.js
 const RADIUS_OPTIONS = [2, 5, 10, 15, 25].map((km) => ({ value: km, label: `${km} km` }));
 
 function toForm(profile) {
@@ -25,11 +27,15 @@ function toForm(profile) {
   };
 }
 
-/** Register as a worker, or edit an existing worker profile. */
+/**
+ * Edit a registered worker's work settings. Registering itself is the
+ * onboarding flow (worker-onboarding: form or voice).
+ */
 export default function WorkerProfile() {
   const router = useRouter();
+  const { i18n } = useTranslation();
+  const { groups } = useCategories(i18n.language);
   const { profile, saveProfile } = useWorkerMode();
-  const isNew = !profile;
   const [form, setForm] = useState(() => toForm(profile));
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
@@ -48,11 +54,8 @@ export default function WorkerProfile() {
       const fieldErrors = getFieldErrors(err);
       if (Object.keys(fieldErrors).length > 0) {
         setErrors(fieldErrors);
-      } else if (isAadhaarRequired(err)) {
-        Alert.alert('Verify your Aadhaar', getErrorMessage(err), [
-          { text: 'Not now', style: 'cancel' },
-          { text: 'Verify', onPress: () => router.replace('/aadhaar-verify') },
-        ]);
+      } else if (err?.response?.data?.code === 'NOT_REGISTERED') {
+        router.replace('/worker-onboarding');
       } else {
         Alert.alert('Could not save', getErrorMessage(err));
       }
@@ -61,27 +64,23 @@ export default function WorkerProfile() {
     }
   }, [form, router, saveProfile]);
 
+  // Not a worker yet — registration is the onboarding flow.
+  if (profile === null) return <Redirect href="/worker-onboarding" />;
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <StatusBar style="dark" />
-      <ScreenHeader title={isNew ? 'Become a worker' : 'Work profile'} fallbackHref="/worker" />
+      <ScreenHeader title="Work profile" fallbackHref="/worker" />
 
       <KeyboardAvoidingView style={styles.flex} behavior="padding">
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          {isNew ? (
-            <Text style={styles.intro}>
-              Tell us what you do. We’ll send you job requests nearby that match your skills.
-            </Text>
-          ) : null}
-
-          <OptionGroup
+          <CategoryPicker
             label="Services you offer"
-            options={SKILL_OPTIONS}
-            value={form.skills}
+            groups={groups}
+            selected={form.skills}
             onChange={(v) => setField('skills', v)}
+            max={MAX_SKILLS}
             error={errors.skills}
-            hint="Choose up to 5."
-            multiple
           />
           <OptionGroup
             label="How far will you travel?"
@@ -112,7 +111,7 @@ export default function WorkerProfile() {
         </ScrollView>
 
         <View style={styles.footer}>
-          <Button label={isNew ? 'Start working' : 'Save changes'} onPress={handleSave} loading={saving} />
+          <Button label="Save changes" onPress={handleSave} loading={saving} />
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -130,11 +129,6 @@ const styles = StyleSheet.create({
   content: {
     padding: spacing.lg - spacing.xs,
     paddingBottom: spacing.xl,
-  },
-  intro: {
-    ...typography.body,
-    color: colors.textMuted,
-    marginBottom: spacing.md,
   },
   footer: {
     paddingHorizontal: spacing.lg - spacing.xs,

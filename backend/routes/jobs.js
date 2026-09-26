@@ -39,7 +39,7 @@ function releaseWorker(workerId, jobId) {
 // ────────────────────────────────────────────────────────────────────────────
 router.post('/', verifyToken, async (req, res) => {
   const user = req.user;
-  const { job: fields, errors } = validateNewJob(user, req.body);
+  const { job: fields, errors } = await validateNewJob(user, req.body);
 
   if (Object.keys(errors).length > 0) {
     return res.status(400).json({ error: 'Please fix the highlighted fields.', fields: errors });

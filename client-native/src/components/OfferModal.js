@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, Image, Modal, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 import Button from './Button';
 import { colors, radius, spacing, typography } from '../constants/theme';
-import { getService } from '../constants/services';
+import useCategories from '../hooks/useCategories';
 import { useWorkerMode } from '../context/WorkerMode';
 import { getErrorMessage } from '../services/api';
 import {
@@ -33,6 +34,8 @@ function Fact({ icon, label, value }) {
  * open. Shows the soonest-expiring offer; the rest wait their turn.
  */
 export default function OfferModal() {
+  const { i18n } = useTranslation();
+  const { bySlug } = useCategories(i18n.language);
   const router = useRouter();
   const { offers, accept, reject, dropOffer } = useWorkerMode();
   const offer = offers[0] ?? null;
@@ -72,7 +75,7 @@ export default function OfferModal() {
 
   if (!offer) return null;
 
-  const service = getService(offer.category);
+  const service = bySlug(offer.category);
   const urgent = timeLeft < URGENT_MS;
 
   return (
@@ -90,7 +93,7 @@ export default function OfferModal() {
                   New job request{offers.length > 1 ? `  ·  1 of ${offers.length}` : ''}
                 </Text>
                 <Text style={styles.title} accessibilityRole="header">
-                  {service?.label ?? offer.category}
+                  {service?.name ?? offer.category}
                 </Text>
               </View>
             </View>

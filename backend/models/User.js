@@ -6,6 +6,8 @@ const mongoose = require('mongoose');
  *   - Aadhaar eKYC : name, dob, gender, address, aadhaarNumber
  *   - The user     : phone, city, pincode, preferredLanguage — and name, dob,
  *                    gender, address when entered manually before verification
+ *   - The phone GPS: location (confirmed by the user)
+ *   - Worker signup: isWorker, workerPromptDismissed, worker
  */
 const userSchema = new mongoose.Schema(
   {
@@ -72,6 +74,36 @@ const userSchema = new mongoose.Schema(
       default: 'en',
     },
 
+    // ── Location (from the phone's GPS, confirmed by the user) ─────────
+    // GeoJSON so "workers near me" can use a 2dsphere query later. Left
+    // unset (not an empty object) until the user shares a location.
+    location: {
+      type: { type: String, enum: ['Point'] },
+      coordinates: { type: [Number], default: undefined }, // [lng, lat]
+    },
+    locationUpdatedAt: {
+      type: Date,
+      default: null,
+    },
+
+    // ── Worker role ─────────────────────────────────────────────────────
+    isWorker: {
+      type: Boolean,
+      default: false,
+    },
+    // Set when the user answers "I'm not a worker" — stops the prompt.
+    workerPromptDismissed: {
+      type: Boolean,
+      default: false,
+    },
+    worker: {
+      incomeBracket: { type: String, default: null }, // services/worker.js INCOME_BRACKETS
+      categories: { type: [String], default: [] }, // Category slugs
+      registeredAt: { type: Date, default: null },
+      deregisteredAt: { type: Date, default: null },
+      onboardedVia: { type: String, enum: ['form', 'voice', null], default: null },
+    },
+
     // ── Verification status ─────────────────────────────────────────────
     // Where name/dob/gender/address came from. 'manual' details are
     // self-declared and get overwritten once Aadhaar verification succeeds.
@@ -103,5 +135,7 @@ const userSchema = new mongoose.Schema(
     timestamps: true, // adds createdAt, updatedAt
   }
 );
+
+userSchema.index({ location: '2dsphere' });
 
 module.exports = mongoose.model('User', userSchema);

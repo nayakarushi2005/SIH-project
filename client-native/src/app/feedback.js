@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 
 import Button from '../components/Button';
@@ -19,7 +20,7 @@ import OptionGroup from '../components/OptionGroup';
 import ScreenHeader from '../components/ScreenHeader';
 import TextField from '../components/TextField';
 import { colors, radius, spacing, typography } from '../constants/theme';
-import { getService } from '../constants/services';
+import useCategories from '../hooks/useCategories';
 import { getErrorMessage, getFieldErrors, getJob, submitFeedback } from '../services/api';
 import { TRAITS } from '../utils/traits';
 
@@ -62,6 +63,8 @@ function StarRating({ value, onChange, error }) {
 
 /** Client rates the worker who completed their job. Route: /feedback?jobId=… */
 export default function Feedback() {
+  const { i18n } = useTranslation();
+  const { bySlug } = useCategories(i18n.language);
   const router = useRouter();
   const { jobId } = useLocalSearchParams();
   const [job, setJob] = useState(null);
@@ -113,7 +116,7 @@ export default function Feedback() {
     }
   }, [form, jobId, router]);
 
-  const service = job ? getService(job.category) : null;
+  const service = job ? bySlug(job.category) : null;
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -128,7 +131,7 @@ export default function Feedback() {
         <KeyboardAvoidingView style={styles.flex} behavior="padding">
           <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
             <View style={styles.jobSummary}>
-              <Text style={styles.jobService}>{service?.label ?? job.category}</Text>
+              <Text style={styles.jobService}>{service?.name ?? job.category}</Text>
               <Text style={styles.jobDescription} numberOfLines={2}>
                 {job.description}
               </Text>

@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { initiateDigilocker, verifyDigilocker } = require('../services/meonApi');
 const verifyToken = require('../middleware/verifyToken');
+const { buildProfile } = require('../services/membership');
 const { IDENTITY_FIELDS, toProfile, validateProfileUpdate } = require('../services/profile');
 
 const router = express.Router();
@@ -116,7 +117,7 @@ router.post('/aadhaar/verify', verifyToken, async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      user: toProfile(user),
+      user: await buildProfile(user),
     });
   } catch (err) {
     console.error('Digilocker verify error:', err.message);
@@ -129,7 +130,7 @@ router.post('/aadhaar/verify', verifyToken, async (req, res) => {
 // Returns the current authenticated user's profile
 // ────────────────────────────────────────────────────────────────────────────
 router.get('/me', verifyToken, async (req, res) => {
-  return res.status(200).json(toProfile(req.user));
+  return res.status(200).json(await buildProfile(req.user));
 });
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -137,7 +138,8 @@ router.get('/me', verifyToken, async (req, res) => {
 // Updates the user's own profile. Contact fields are always editable;
 // name/dob/gender/address only until Aadhaar verification locks them.
 // Body: any of { name, dob, gender, address, phone, city, pincode,
-//               preferredLanguage } — empty string clears a field.
+//               preferredLanguage, location: { lat, lng } | null }
+//       — empty string (or null location) clears a field.
 // 400 → { error, fields: { [field]: message } }
 // ────────────────────────────────────────────────────────────────────────────
 router.patch('/me', verifyToken, async (req, res) => {
@@ -150,11 +152,12 @@ router.patch('/me', verifyToken, async (req, res) => {
 
   try {
     Object.assign(user, updates);
+    if (updates.location === null) user.location = undefined;
     if (IDENTITY_FIELDS.some((f) => f in updates)) {
       user.detailsSource = 'manual';
     }
     await user.save();
-    return res.status(200).json(toProfile(user));
+    return res.status(200).json(await buildProfile(user));
   } catch (err) {
     console.error('Profile update error:', err.message);
     return res.status(500).json({ error: 'Could not save your profile.' });

@@ -1,98 +1,51 @@
 /**
- * Worker profile helpers shared by the worker routes: what a worker may set
- * about themselves, and what their profile looks like to the app.
+ * Rules for registering as a worker. Shared by the manual form and the
+ * voice assistant — both submit through POST /api/worker/register.
  */
+const Category = require('../models/Category');
+const { validateName } = require('./profile');
 
-const { CATEGORIES } = require('./job');
+// Yearly income in ₹: <1L, 1–2.5L, 2.5–5L, 5–10L, >10L.
+// Mirrored in client-native/src/constants/worker.js and the AI service.
+const INCOME_BRACKETS = ['lt_1l', '1l_2_5l', '2_5l_5l', '5l_10l', 'gt_10l'];
+const MAX_CATEGORIES = 10;
 
-const MAX_SKILLS = 5;
-const DEFAULT_RADIUS_KM = 5;
-
-// The app sends a location heartbeat about once a minute while online; a
-// worker silent for longer than this is treated as offline (app killed,
-// phone died) even if they never tapped "Go offline".
-const PRESENCE_TTL_MS = 3 * 60 * 1000;
-
-function isEmpty(v) {
-  return v === null || v === undefined || String(v).trim() === '';
-}
-
-/** Shape returned to the app for the signed-in worker. */
-function toWorkerProfile(profile) {
-  const coords = profile.location?.coordinates;
-  return {
-    skills: profile.skills,
-    bio: profile.bio,
-    experienceYears: profile.experienceYears,
-    serviceRadiusKm: profile.serviceRadiusKm,
-    isOnline: isPresent(profile),
-    location: coords ? { lat: coords[1], lng: coords[0] } : null,
-    currentJob: profile.currentJob,
-    createdAt: profile.createdAt,
-  };
-}
-
-/** Online and heard from recently — the only workers matching considers. */
-function isPresent(profile, now = Date.now()) {
-  return (
-    profile.isOnline &&
-    !!profile.lastSeenAt &&
-    now - profile.lastSeenAt.getTime() <= PRESENCE_TTL_MS
-  );
-}
-
-// Each validator gets the raw body value and returns the value to store, or
-// throws a message for the user. Optional fields clear when sent empty.
-const validators = {
-  skills(v) {
-    if (!Array.isArray(v) || v.length === 0) throw 'Choose at least one service you offer.';
-    const skills = [...new Set(v)];
-    if (skills.length > MAX_SKILLS) throw `Choose at most ${MAX_SKILLS} services.`;
-    if (!skills.every((s) => CATEGORIES.includes(s))) throw 'Choose services from the list.';
-    return skills;
-  },
-  bio(v) {
-    if (isEmpty(v)) return null;
-    const text = String(v).trim().replace(/\s+/g, ' ');
-    if (text.length > 300) throw 'Keep your introduction under 300 characters.';
-    return text;
-  },
-  experienceYears(v) {
-    if (isEmpty(v)) return null;
-    const n = Number(v);
-    if (!Number.isInteger(n) || n < 0 || n > 60) throw 'Enter your experience in whole years.';
-    return n;
-  },
-  serviceRadiusKm(v) {
-    if (isEmpty(v)) return DEFAULT_RADIUS_KM;
-    const n = Number(v);
-    if (!Number.isInteger(n) || n < 1 || n > 25) throw 'Choose a distance between 1 and 25 km.';
-    return n;
-  },
-};
-
-/**
- * Validates the worker profile form (the full set of editable fields).
- * Returns { fields, errors } — errors is keyed by field name.
- */
-function validateWorkerProfile(body) {
-  const fields = {};
+async function validateRegistration(user, body = {}) {
+  const updates = {};
   const errors = {};
 
-  for (const [field, validate] of Object.entries(validators)) {
+  // Verified users keep their Aadhaar name. Others must have a name — sent
+  // now, or saved earlier (e.g. when registering again after deregistering).
+  if (!user.isAadhaarVerified) {
+    const given = body.name !== undefined && body.name !== null && String(body.name).trim() !== '';
     try {
-      fields[field] = validate(body?.[field]);
+      if (given) updates.name = validateName(body.name);
+      else if (!user.name) throw 'Enter your full name.';
     } catch (message) {
-      errors[field] = message;
+      errors.name = message;
     }
   }
 
-  return { fields, errors };
+  if (!INCOME_BRACKETS.includes(body.incomeBracket)) {
+    errors.incomeBracket = 'Choose your yearly income.';
+  }
+
+  const slugs = Array.isArray(body.categories) ? [...new Set(body.categories.map(String))] : null;
+  if (!slugs || slugs.length === 0) {
+    errors.categories = 'Choose at least one kind of work.';
+  } else if (slugs.length > MAX_CATEGORIES) {
+    errors.categories = `Choose up to ${MAX_CATEGORIES} kinds of work.`;
+  } else {
+    const active = await Category.countDocuments({ slug: { $in: slugs }, isActive: true });
+    if (active !== slugs.length) errors.categories = 'Some of the chosen work types are not available.';
+  }
+
+  if (Object.keys(errors).length === 0) {
+    updates.categories = slugs;
+    updates.incomeBracket = body.incomeBracket;
+    updates.onboardedVia = body.onboardedVia === 'voice' ? 'voice' : 'form';
+  }
+  return { updates, errors };
 }
 
-module.exports = {
-  PRESENCE_TTL_MS,
-  isPresent,
-  toWorkerProfile,
-  validateWorkerProfile,
-};
+module.exports = { INCOME_BRACKETS, MAX_CATEGORIES, validateRegistration };

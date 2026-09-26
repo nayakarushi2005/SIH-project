@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import useFetchWithAuth from '../../hooks/useFetchWithAuth';
 import { useAuth } from '../../context/AuthContext';
+import CityPinFields from '../../components/CityPinFields';
 import { 
   Building2, 
   Clock, 
@@ -13,6 +14,7 @@ import {
   Mail,
   Users,
   IndianRupee,
+  Pencil,
   Sparkles
 } from 'lucide-react';
 
@@ -24,6 +26,7 @@ export default function FederationStatus() {
   const initialFederation = location.state?.federation || null;
 
   const [federation, setFederation] = useState(initialFederation);
+  const [memberCount, setMemberCount] = useState(null);
   const [loading, setLoading] = useState(!initialFederation);
   const [error, setError] = useState(null);
 
@@ -38,6 +41,7 @@ export default function FederationStatus() {
       
       if (data.exists && data.federation) {
         setFederation(data.federation);
+        setMemberCount(data.memberCount ?? null);
       } else {
         throw new Error('No registered federation found for your account.');
       }
@@ -49,11 +53,43 @@ export default function FederationStatus() {
     }
   };
 
+  const [editingLocation, setEditingLocation] = useState(false);
+  const [locationDraft, setLocationDraft] = useState({ city: '', pincode: '' });
+  const [savingLocation, setSavingLocation] = useState(false);
+  const [locationError, setLocationError] = useState(null);
+
+  const startEditingLocation = () => {
+    setLocationDraft({ city: federation.city || '', pincode: federation.pincode || '' });
+    setLocationError(null);
+    setEditingLocation(true);
+  };
+
+  const saveLocation = async (e) => {
+    e.preventDefault();
+    setSavingLocation(true);
+    setLocationError(null);
+    try {
+      const res = await authFetch('/api/federation/me/location', {
+        method: 'PATCH',
+        body: JSON.stringify({ city: locationDraft.city.trim(), pincode: locationDraft.pincode }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.fields?.city || data.fields?.pincode || data.message || 'Could not save location');
+      setFederation(data.federation);
+      setEditingLocation(false);
+    } catch (err) {
+      setLocationError(err.message || 'Could not save location');
+    } finally {
+      setSavingLocation(false);
+    }
+  };
+
+  // Always refresh on open: status and connected-worker count change over time.
   useEffect(() => {
-    if (!federation && user?.email) {
+    if (user?.email) {
       fetchMyStatus();
     }
-  }, [federation, user?.email]);
+  }, [user?.email]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="min-h-screen bg-slate-950 text-white py-12 px-4 sm:px-6 lg:px-8">
@@ -166,12 +202,76 @@ export default function FederationStatus() {
               </div>
 
               <div className="flex justify-between items-center">
+                <span className="text-xs font-semibold text-slate-400 uppercase">Connected Workers:</span>
+                <span className="text-sm font-bold text-emerald-400 flex items-center gap-1.5">
+                  <Users className="w-3.5 h-3.5" /> {memberCount ?? '—'}
+                </span>
+              </div>
+
+              {editingLocation ? (
+                <form onSubmit={saveLocation} className="space-y-3 pt-1">
+                  <span className="text-xs font-semibold text-slate-400 uppercase">City / PIN:</span>
+                  <CityPinFields
+                    city={locationDraft.city}
+                    pincode={locationDraft.pincode}
+                    onChange={(loc) => setLocationDraft((prev) => ({ ...prev, ...loc }))}
+                    autoDetect={!federation.city && !federation.pincode}
+                  />
+                  {locationError && <p className="text-xs text-rose-400">{locationError}</p>}
+                  <div className="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setEditingLocation(false)}
+                      disabled={savingLocation}
+                      className="px-4 py-2 border border-slate-700 text-slate-300 hover:bg-slate-800 rounded-xl text-sm font-bold disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={savingLocation}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-bold disabled:opacity-50"
+                    >
+                      {savingLocation ? 'Saving…' : 'Save'}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="flex justify-between items-center gap-3">
+                  <span className="text-xs font-semibold text-slate-400 uppercase">City / PIN:</span>
+                  <span className="text-sm text-slate-300 flex items-center gap-3">
+                    {federation.city || federation.pincode ? (
+                      [federation.city, federation.pincode].filter(Boolean).join(' · ')
+                    ) : (
+                      <span className="text-amber-400">Not added — workers can&apos;t find you</span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={startEditingLocation}
+                      className="text-blue-400 hover:text-blue-300 text-xs font-bold flex items-center gap-1"
+                    >
+                      <Pencil className="w-3.5 h-3.5" /> Edit
+                    </button>
+                  </span>
+                </div>
+              )}
+
+              <div className="flex justify-between items-center">
                 <span className="text-xs font-semibold text-slate-400 uppercase">Fund Amount:</span>
                 <span className="text-sm font-bold text-emerald-400 flex items-center gap-1">
                   <IndianRupee className="w-3.5 h-3.5" /> ₹{federation.amount?.toLocaleString()}
                 </span>
               </div>
             </div>
+
+            {federation.status === 'verified' && (
+              <Link
+                to="/federation/workers"
+                className="block w-full text-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-blue-500/25"
+              >
+                Manage worker requests →
+              </Link>
+            )}
           </div>
         ) : (
           !loading && (

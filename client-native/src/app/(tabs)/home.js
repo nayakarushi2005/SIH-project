@@ -1,15 +1,18 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 import Avatar from '../../components/Avatar';
 import BannerCarousel from '../../components/BannerCarousel';
 import EmptyState from '../../components/EmptyState';
+import LocationSheet from '../../components/LocationSheet';
 import { colors, radius, spacing, typography } from '../../constants/theme';
-import { BANNERS, MOST_BOOKED } from '../../constants/services';
+import { BANNERS, MOST_BOOKED_SLUGS } from '../../constants/services';
+import useCategories from '../../hooks/useCategories';
 import useProfile from '../../hooks/useProfile';
 
 const SIDE = spacing.lg - spacing.xs;
@@ -24,13 +27,24 @@ function SectionTitle({ children }) {
 
 export default function Home() {
   const router = useRouter();
+  const { t, i18n } = useTranslation();
   const { user, refreshing, refresh } = useProfile();
+  const [locationOpen, setLocationOpen] = useState(false);
+  const { bySlug } = useCategories(i18n.language);
+  const mostBooked = MOST_BOOKED_SLUGS.map(bySlug).filter(Boolean);
 
   const startJob = useCallback(
     (serviceId) =>
       router.push(serviceId ? { pathname: '/create-job', params: { service: serviceId } } : '/create-job'),
     [router]
   );
+
+  const banners = BANNERS.map((b) => ({
+    ...b,
+    title: t(`banners.${b.id}.title`),
+    body: t(`banners.${b.id}.body`),
+    cta: t(`banners.${b.id}.cta`),
+  }));
 
   const location = user?.city
     ? [user.city, user.pincode].filter(Boolean).join(' ')
@@ -43,16 +57,16 @@ export default function Home() {
       {/* ── Header: location + actions ─────────────────────────────── */}
       <View style={styles.header}>
         <Pressable
-          onPress={() => router.push('/edit-profile')}
+          onPress={() => setLocationOpen(true)}
           style={styles.location}
           accessibilityRole="button"
-          accessibilityLabel={location ? `Location: ${location}. Change` : 'Set your location'}
+          accessibilityLabel={location ? t('home.locationA11y', { location }) : t('home.setLocation')}
         >
-          <Text style={styles.locationLabel}>Your location</Text>
+          <Text style={styles.locationLabel}>{t('home.yourLocation')}</Text>
           <View style={styles.locationRow}>
             <Ionicons name="location-sharp" size={18} color={colors.primary} />
             <Text style={[styles.locationText, !location && styles.locationEmpty]} numberOfLines={1}>
-              {location || 'Set your location'}
+              {location || t('home.setLocation')}
             </Text>
             <Ionicons name="chevron-down" size={16} color={colors.text} />
           </View>
@@ -64,7 +78,7 @@ export default function Home() {
             style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}
             hitSlop={spacing.xs}
             accessibilityRole="button"
-            accessibilityLabel="Notifications"
+            accessibilityLabel={t('home.notifications')}
           >
             <Ionicons name="notifications-outline" size={22} color={colors.text} />
           </Pressable>
@@ -73,7 +87,7 @@ export default function Home() {
             style={({ pressed }) => pressed && styles.pressed}
             hitSlop={spacing.xs}
             accessibilityRole="button"
-            accessibilityLabel="Profile"
+            accessibilityLabel={t('home.profile')}
           >
             <Avatar user={user} size={40} />
           </Pressable>
@@ -92,51 +106,52 @@ export default function Home() {
           onPress={() => startJob(null)}
           style={({ pressed }) => [styles.createJob, pressed && styles.pressed]}
           accessibilityRole="button"
-          accessibilityLabel="Create a new job"
+          accessibilityLabel={t('home.createJob')}
         >
           <View style={styles.createJobIcon}>
             <Ionicons name="add" size={26} color={colors.primary} />
           </View>
           <View style={styles.createJobText}>
-            <Text style={styles.createJobTitle}>Create a new job</Text>
-            <Text style={styles.createJobBody}>Describe the work, we find nearby workers</Text>
+            <Text style={styles.createJobTitle}>{t('home.createJob')}</Text>
+            <Text style={styles.createJobBody}>{t('home.createJobBody')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color={colors.textOnPrimary} />
         </Pressable>
 
         {/* ── Most booked ────────────────────────────────────────────── */}
-        <SectionTitle>Most booked</SectionTitle>
+        <SectionTitle>{t('home.mostBooked')}</SectionTitle>
         <View style={styles.grid}>
-          {MOST_BOOKED.map((service) => (
+          {mostBooked.map((service) => (
             <Pressable
-              key={service.id}
-              onPress={() => startJob(service.id)}
+              key={service.slug}
+              onPress={() => startJob(service.slug)}
               style={({ pressed }) => [styles.serviceCard, pressed && styles.pressed]}
               accessibilityRole="button"
-              accessibilityLabel={`Book ${service.label}`}
+              accessibilityLabel={t('home.bookA11y', { name: service.name })}
             >
               <View style={styles.serviceTile}>
                 <MaterialCommunityIcons name={service.icon} size={36} color={colors.primary} />
               </View>
-              <Text style={styles.serviceLabel}>{service.label}</Text>
+              <Text style={styles.serviceLabel}>{service.name}</Text>
             </Pressable>
           ))}
         </View>
 
         {/* ── Trending ───────────────────────────────────────────────── */}
-        <SectionTitle>Trending</SectionTitle>
+        <SectionTitle>{t('home.trending')}</SectionTitle>
         <View style={styles.bleed}>
-          <BannerCarousel banners={BANNERS} inset={SIDE} onPress={(b) => startJob(b.serviceId)} />
+          <BannerCarousel banners={banners} inset={SIDE} onPress={(b) => startJob(b.serviceId)} />
         </View>
 
         {/* ── Book again ─────────────────────────────────────────────── */}
-        <SectionTitle>Book again</SectionTitle>
+        <SectionTitle>{t('home.bookAgain')}</SectionTitle>
         <EmptyState
           compact
           icon="time-outline"
-          body="Services you book will show up here so you can rebook in one tap."
+          body={t('home.bookAgainEmpty')}
         />
       </ScrollView>
+      <LocationSheet visible={locationOpen} onClose={() => setLocationOpen(false)} />
     </SafeAreaView>
   );
 }

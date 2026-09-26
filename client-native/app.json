@@ -43,7 +43,17 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location so nearby workers can find your job."
+          "locationWhenInUsePermission": "SIH Connect uses your location to show jobs and workers near you."
+        }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "SIH Connect uses the microphone so you can answer questions by speaking.",
+          "speechRecognitionPermission": "SIH Connect converts your speech to text to fill in your registration.",
+          "androidSpeechServicePackages": [
+            "com.google.android.googlequicksearchbox"
+          ]
         }
       ]
     ],

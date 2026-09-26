@@ -3,22 +3,16 @@
  * and what a job looks like to the app.
  */
 
+const Category = require('../models/Category');
 const { isOwnedJobPhoto } = require('./cloudinary');
 
-// Mirrors SERVICES in client-native/src/constants/services.js.
-const CATEGORIES = [
-  'electrician',
-  'cleaning',
-  'plumber',
-  'carpenter',
-  'painter',
-  'caregiver',
-  'driver',
-  'gardener',
-  'technician',
-];
-
 const MAX_PHOTOS = 5;
+
+/** The slugs among `slugs` that are active job categories (models/Category.js). */
+async function activeCategorySlugs(slugs) {
+  const found = await Category.find({ slug: { $in: slugs }, isActive: true }).select('slug').lean();
+  return new Set(found.map((c) => c.slug));
+}
 
 /**
  * Turns an app-sent { lat, lng } into a GeoJSON point ([lng, lat] order), or
@@ -88,8 +82,9 @@ function toOffer(job, workerId) {
 // throws a message for the user.
 const validators = {
   category(v) {
-    if (!CATEGORIES.includes(v)) throw 'Choose a service.';
-    return v;
+    // Shape only here; validateNewJob checks it's an active category.
+    if (typeof v !== 'string' || v.trim() === '') throw 'Choose a service.';
+    return v.trim();
   },
   description(v) {
     const text = typeof v === 'string' ? v.trim().replace(/\s+/g, ' ') : '';
@@ -136,7 +131,7 @@ const validators = {
  * Returns { job, errors } — errors is keyed by field name; job is only
  * complete when errors is empty.
  */
-function validateNewJob(user, body) {
+async function validateNewJob(user, body) {
   const job = {};
   const errors = {};
 
@@ -148,11 +143,15 @@ function validateNewJob(user, body) {
     }
   }
 
+  if (!errors.category && !(await activeCategorySlugs([job.category])).has(job.category)) {
+    errors.category = 'Choose a service.';
+  }
+
   return { job, errors };
 }
 
 module.exports = {
-  CATEGORIES,
+  activeCategorySlugs,
   toGeoPoint,
   toJob,
   toOffer,

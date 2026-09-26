@@ -11,7 +11,7 @@ const Affinity = require('../models/Affinity');
 const GraphEdge = require('../models/GraphEdge');
 const WorkerProfile = require('../models/WorkerProfile');
 const WorkerStats = require('../models/WorkerStats');
-const { PRESENCE_TTL_MS } = require('./worker');
+const { PRESENCE_TTL_MS } = require('./workerProfile');
 
 // ── Tuning ──────────────────────────────────────────────────────────────────
 // Signal weights (each signal is 0..1; affinity and traits can go to -1). Sum to 1.
