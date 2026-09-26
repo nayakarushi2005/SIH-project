@@ -8,9 +8,12 @@
     "dev": "nodemon server.js",
     "dispatcher": "node dispatcher.js",
     "dev:dispatcher": "nodemon dispatcher.js",
-    "seed:jobs": "node scripts/seed-jobs.js"
+    "seed:jobs": "node scripts/seed-jobs.js",
+    "llm:check": "node scripts/llm-check.js",
+    "graph:reprocess": "node scripts/graph-reprocess.js"
   },
   "dependencies": {
+    "@google/genai": "^2.24.0",
     "axios": "^1.7.2",
     "bullmq": "^6.3.9",
     "cors": "^2.8.5",

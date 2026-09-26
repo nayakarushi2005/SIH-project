@@ -16,7 +16,23 @@ const feedbackSchema = new mongoose.Schema(
     criticized: { type: [String], default: [] }, // trait ids
     rehire: { type: Boolean, default: null }, // "Would you hire them again?"
     block: { type: Boolean, default: false }, // "Don't send me this worker again"
-    comment: { type: String, default: null }, // stored for later text analysis
+    comment: { type: String, default: null },
+
+    // What the LLM read from the job description + comment (services/relations.js).
+    // Stored so graph rebuilds never call the LLM again and stay repeatable.
+    extracted: {
+      type: {
+        _id: false,
+        praised: [String], // trait ids, only from the fixed vocabulary
+        criticized: [String],
+        specialties: [String], // e.g. "ceiling fan repair"
+        sentiment: { type: String, enum: ['positive', 'neutral', 'negative'] },
+        model: String,
+        at: Date,
+      },
+      default: null,
+    },
+    extractionError: { type: String, default: null }, // last failure, if extraction failed
 
     // Set once the graph has been rebuilt from this feedback; the dispatcher
     // sweeps up feedback left unprocessed (e.g. Redis was down).

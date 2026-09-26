@@ -37,7 +37,7 @@ export default function WorkerInsightsCard() {
 
   if (!insights) return null;
 
-  const { rating, completedJobs, strengths, improve } = insights;
+  const { rating, completedJobs, strengths, improve, specialties = [] } = insights;
 
   return (
     <View style={styles.card}>
@@ -67,6 +67,17 @@ export default function WorkerInsightsCard() {
               <View style={styles.chips}>
                 {strengths.map((s) => (
                   <Chip key={s.trait} label={getTrait(s.trait)?.good ?? s.trait} />
+                ))}
+              </View>
+            </>
+          ) : null}
+
+          {specialties.length > 0 ? (
+            <>
+              <Text style={styles.label}>Known for</Text>
+              <View style={styles.chips}>
+                {specialties.map((s) => (
+                  <Chip key={s.specialty} label={s.specialty.replace(/^./, (c) => c.toUpperCase())} />
                 ))}
               </View>
             </>
