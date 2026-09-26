@@ -2,29 +2,42 @@ const express = require('express');
 const router = express.Router();
 const {
   registerFederation,
+  updateMyLocation,
   checkFederationByEmail,
   getAllFederations,
   getFederationById,
   verifyFederation,
+  listMyRequests,
+  decideMyRequest,
+  removeMyMember,
 } = require('../controllers/federationController');
 const { ensureAuth } = require('../middleware/authMiddleware');
+const requireRole = require('../middleware/requireRole');
 
 // Apply ensureAuth to all federation routes
 router.use(ensureAuth);
 
-// Route to register/update a new federation
-router.post('/register', registerFederation);
+// A federation fills in / updates its own details
+router.post('/register', requireRole('Federation'), registerFederation);
+
+// A federation moves its city / PIN without re-registering
+router.patch('/me/location', requireRole('Federation'), updateMyLocation);
 
 // Check if federation exists by email
-router.get('/check-email/:email', checkFederationByEmail);
+router.get('/check-email/:email', requireRole('Federation'), checkFederationByEmail);
 
-// Route to get all registered federations
-router.get('/all', getAllFederations);
+// Government officials review every federation
+router.get('/all', requireRole('GovOfficial'), getAllFederations);
 
-// Route to get a specific federation by ID
+// Federation portal: worker join requests (must come before '/:id')
+router.get('/me/requests', requireRole('Federation'), listMyRequests);
+router.patch('/me/requests/:id', requireRole('Federation'), decideMyRequest);
+router.delete('/me/members/:id', requireRole('Federation'), removeMyMember);
+
+// A federation's own record, or any record for government officials
 router.get('/:id', getFederationById);
 
-// Route for government officials to verify or reject a federation
-router.patch('/:id/verify', verifyFederation);
+// Only government officials can verify or reject a federation
+router.patch('/:id/verify', requireRole('GovOfficial'), verifyFederation);
 
 module.exports = router;

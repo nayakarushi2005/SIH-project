@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -6,17 +6,27 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  Pressable,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 import Avatar from '../../components/Avatar';
 import Button from '../../components/Button';
+import { STATUS_KEYS } from '../../components/FederationList';
+import LanguageSheet from '../../components/LanguageSheet';
 import ScreenHeader from '../../components/ScreenHeader';
 import { colors, radius, spacing, typography } from '../../constants/theme';
+import useCategories from '../../hooks/useCategories';
+import { useUser } from '../../context/UserContext';
 import useProfile from '../../hooks/useProfile';
+import i18n from '../../i18n';
+import { localeTag, setAppLanguage } from '../../i18n/language';
+import { deregisterWorker } from '../../services/api';
 import { signOut } from '../../services/auth';
 import {
   formatDOB,
@@ -27,26 +37,59 @@ import {
 } from '../../utils/profile';
 
 function formatDate(value, options = { day: 'numeric', month: 'short', year: 'numeric' }) {
-  return value ? new Date(value).toLocaleDateString('en-IN', options) : null;
+  return value ? new Date(value).toLocaleDateString(localeTag(), options) : null;
 }
 
-function DetailRow({ label, value, last }) {
-  return (
-    <View style={[styles.row, last && styles.rowLast]}>
+function DetailRow({ label, value, last, onPress }) {
+  const content = (
+    <>
       <Text style={styles.rowLabel}>{label}</Text>
-      <Text style={[styles.rowValue, !value && styles.rowValueEmpty]}>
-        {value || 'Not added'}
-      </Text>
-    </View>
+      <View style={styles.rowRight}>
+        <Text style={[styles.rowValue, !value && styles.rowValueEmpty]}>
+          {value || i18n.t('common.notAdded')}
+        </Text>
+        {onPress ? <Ionicons name="chevron-forward" size={18} color={colors.textMuted} /> : null}
+      </View>
+    </>
+  );
+  if (!onPress) return <View style={[styles.row, last && styles.rowLast]}>{content}</View>;
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.row, last && styles.rowLast, pressed && styles.rowPressed]}
+      accessibilityRole="button"
+      accessibilityLabel={`${label}: ${value}`}
+    >
+      {content}
+    </Pressable>
   );
 }
 
-function Section({ title, tag, children }) {
+/**
+ * A titled card. `onEdit` shows an Edit button; `locked` shows a lock
+ * instead (details verified from Aadhaar can't be changed).
+ */
+function Section({ title, tag, onEdit, locked, children }) {
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>{title}</Text>
-        {tag ? <Text style={styles.sectionTag}>{tag}</Text> : null}
+        <View style={styles.sectionRight}>
+          {locked ? <Ionicons name="lock-closed" size={13} color={colors.textMuted} /> : null}
+          {tag ? <Text style={styles.sectionTag}>{tag}</Text> : null}
+          {onEdit && !locked ? (
+            <Pressable
+              onPress={onEdit}
+              hitSlop={spacing.sm}
+              style={styles.sectionEdit}
+              accessibilityRole="button"
+              accessibilityLabel={`${i18n.t('profile.edit')}: ${title}`}
+            >
+              <Ionicons name="create-outline" size={15} color={colors.primary} />
+              <Text style={styles.sectionEditText}>{i18n.t('profile.edit')}</Text>
+            </Pressable>
+          ) : null}
+        </View>
       </View>
       <View style={styles.sectionBody}>{children}</View>
     </View>
@@ -55,21 +98,56 @@ function Section({ title, tag, children }) {
 
 export default function Profile() {
   const router = useRouter();
-  const { user, error, refreshing, refresh: onRefresh, reload: load } = useProfile();
+  const { t, i18n: i18next } = useTranslation();
+  const { bySlug } = useCategories(i18next.language);
+  const { user, setUser, error, refreshing, refresh: onRefresh, reload: load } = useProfile();
+  const { clear } = useUser();
+  const [languageOpen, setLanguageOpen] = useState(false);
+
+  const chooseLanguage = useCallback(
+    async (code) => {
+      setLanguageOpen(false);
+      try {
+        const updated = await setAppLanguage(code);
+        setUser(updated);
+      } catch {
+        Alert.alert(t('common.error'), t('language.saveFailed'));
+      }
+    },
+    [setUser, t]
+  );
+
+  const handleDeregister = useCallback(() => {
+    Alert.alert(t('workerProfile.deregisterConfirmTitle'), t('workerProfile.deregisterConfirmBody'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('workerProfile.deregister'),
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            setUser(await deregisterWorker());
+          } catch {
+            Alert.alert(t('common.error'), t('workerProfile.deregisterFailed'));
+          }
+        },
+      },
+    ]);
+  }, [setUser, t]);
 
   const handleSignOut = useCallback(() => {
-    Alert.alert('Sign out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('profile.signOut'), t('profile.signOutConfirm'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Sign out',
+        text: t('profile.signOut'),
         style: 'destructive',
         onPress: async () => {
           await signOut();
+          clear();
           router.replace('/auth');
         },
       },
     ]);
-  }, [router]);
+  }, [clear, router, t]);
 
   const goToEdit = useCallback(() => router.push('/edit-profile'), [router]);
   const goToVerify = useCallback(() => router.push('/aadhaar-verify'), [router]);
@@ -78,12 +156,12 @@ export default function Profile() {
     return (
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <StatusBar style="dark" />
-        <ScreenHeader title="Profile" showBack={false} />
+        <ScreenHeader title={t('profile.title')} showBack={false} />
         <View style={styles.centered}>
           {error ? (
             <>
               <Text style={styles.errorText}>{error}</Text>
-              <Button label="Try again" variant="secondary" onPress={load} />
+              <Button label={t('common.tryAgain')} variant="secondary" onPress={load} />
             </>
           ) : (
             <ActivityIndicator color={colors.primary} />
@@ -96,15 +174,20 @@ export default function Profile() {
   const verified = user.isAadhaarVerified;
   const { done, total } = profileCompletion(user);
   const identityTag = verified
-    ? 'From Aadhaar'
+    ? t('profile.tagAadhaar')
     : user.detailsSource === 'manual'
-      ? 'Self-declared'
+      ? t('profile.tagSelf')
       : null;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar style="dark" />
-      <ScreenHeader title="Profile" showBack={false} actionLabel="Edit" onAction={goToEdit} />
+      <ScreenHeader
+        title={t('profile.title')}
+        showBack={false}
+        actionLabel={t('profile.edit')}
+        onAction={goToEdit}
+      />
 
       <ScrollView
         contentContainerStyle={styles.content}
@@ -117,7 +200,7 @@ export default function Profile() {
           <Avatar user={user} size={64} />
           <View style={styles.identityText}>
             <Text style={[styles.name, !user.name && styles.nameEmpty]} numberOfLines={2}>
-              {user.name || 'Add your name'}
+              {user.name || t('profile.addName')}
             </Text>
             <Text style={styles.email} numberOfLines={1}>
               {user.googleEmail}
@@ -129,16 +212,14 @@ export default function Profile() {
         {done < total && (
           <View style={styles.completion}>
             <View style={styles.completionHeader}>
-              <Text style={styles.completionTitle}>Complete your profile</Text>
-              <Text style={styles.completionCount}>
-                {done} of {total}
-              </Text>
+              <Text style={styles.completionTitle}>{t('profile.completeTitle')}</Text>
+              <Text style={styles.completionCount}>{t('profile.completeCount', { done, total })}</Text>
             </View>
             <View style={styles.progressTrack}>
               <View style={[styles.progressFill, { width: `${(done / total) * 100}%` }]} />
             </View>
             <Text style={styles.completionText}>
-              Add your phone number and address so workers can find and reach you.
+              {t('profile.completeBody')}
             </Text>
           </View>
         )}
@@ -148,10 +229,11 @@ export default function Profile() {
           <View style={[styles.status, styles.statusVerified]}>
             <View style={[styles.statusDot, styles.statusDotVerified]} />
             <View style={styles.statusText}>
-              <Text style={styles.statusTitle}>Aadhaar verified</Text>
+              <Text style={styles.statusTitle}>{t('profile.verifiedTitle')}</Text>
               <Text style={styles.statusBody}>
-                Verified via DigiLocker
-                {user.aadhaarVerifiedAt ? ` on ${formatDate(user.aadhaarVerifiedAt)}` : ''}
+                {user.aadhaarVerifiedAt
+                  ? t('profile.verifiedOn', { date: formatDate(user.aadhaarVerifiedAt) })
+                  : t('profile.verifiedVia')}
                 {user.aadhaarNumber ? `  ·  XXXX XXXX ${user.aadhaarNumber}` : ''}
               </Text>
             </View>
@@ -161,47 +243,110 @@ export default function Profile() {
             <View style={styles.statusHeader}>
               <View style={[styles.statusDot, styles.statusDotPending]} />
               <Text style={[styles.statusTitle, styles.statusTitlePending]}>
-                Aadhaar not verified
+                {t('profile.notVerifiedTitle')}
               </Text>
             </View>
             <Text style={styles.statusBody}>
               {user.detailsSource === 'manual'
-                ? 'Your details are self-declared. Verify with DigiLocker to confirm them and get a verified badge.'
-                : 'Verify with DigiLocker to get a verified badge, or add your details manually for now.'}
+                ? t('profile.notVerifiedManual')
+                : t('profile.notVerifiedEmpty')}
             </Text>
-            <Button label="Verify with DigiLocker" onPress={goToVerify} style={styles.statusButton} />
+            <Button label={t('profile.verifyButton')} onPress={goToVerify} style={styles.statusButton} />
             {user.detailsSource !== 'manual' && (
-              <Button label="Enter details manually" variant="text" onPress={goToEdit} />
+              <Button label={t('profile.enterManually')} variant="text" onPress={goToEdit} />
             )}
           </View>
         )}
 
         {/* ── Details ────────────────────────────────────────────────── */}
-        <Section title="Personal details" tag={identityTag}>
-          <DetailRow label="Full name" value={user.name} />
-          <DetailRow label="Date of birth" value={formatDOB(user.dob)} />
-          <DetailRow label="Gender" value={genderLabel(user.gender)} />
-          <DetailRow label="Address" value={user.address} last />
+        <Section title={t('profile.personal')} tag={identityTag} locked={verified} onEdit={goToEdit}>
+          <DetailRow label={t('profile.fullName')} value={user.name} />
+          <DetailRow label={t('profile.dob')} value={formatDOB(user.dob)} />
+          <DetailRow label={t('profile.gender')} value={genderLabel(user.gender)} />
+          <DetailRow label={t('profile.address')} value={user.address} last />
         </Section>
 
-        <Section title="Contact">
-          <DetailRow label="Mobile number" value={formatPhone(user.phone)} />
-          <DetailRow label="City" value={user.city} />
-          <DetailRow label="PIN code" value={user.pincode} last />
+        {user.isWorker ? (
+          <Section title={t('workerProfile.section')}>
+            <DetailRow
+              label={t('workerProfile.categories')}
+              value={user.worker.categories
+                .map(bySlug)
+                .filter(Boolean)
+                .map((c) => c.name)
+                .join(', ')}
+            />
+            <DetailRow
+              label={t('workerProfile.income')}
+              value={user.worker.incomeBracket ? t(`income.${user.worker.incomeBracket}`) : null}
+            />
+            <DetailRow
+              label={t('federation.manage')}
+              value={
+                user.federation
+                  ? `${user.federation.name} · ${t(STATUS_KEYS[user.federation.status] ?? 'federation.statusNone')}`
+                  : t('federation.statusNone')
+              }
+              onPress={() => router.push('/federations')}
+              last
+            />
+          </Section>
+        ) : null}
+
+        <Section title={t('profile.contact')} onEdit={goToEdit}>
+          <DetailRow label={t('profile.mobile')} value={formatPhone(user.phone)} />
+          <DetailRow label={t('profile.city')} value={user.city} />
+          <DetailRow label={t('profile.pincode')} value={user.pincode} last />
         </Section>
 
-        <Section title="Preferences">
-          <DetailRow label="App language" value={languageLabel(user.preferredLanguage)} last />
+        <Section title={t('profile.preferences')}>
+          <DetailRow
+            label={t('profile.appLanguage')}
+            value={languageLabel(user.preferredLanguage)}
+            onPress={() => setLanguageOpen(true)}
+            last
+          />
         </Section>
 
-        <Button label="Sign out" variant="secondary" onPress={handleSignOut} style={styles.signOut} />
+        <Text style={styles.sectionTitleStandalone}>{t('workerProfile.settings')}</Text>
+        {user.isWorker ? (
+          <Button
+            label={t('workerProfile.deregister')}
+            variant="danger"
+            onPress={handleDeregister}
+            style={styles.workerAction}
+          />
+        ) : (
+          <Button
+            label={t('workerProfile.register')}
+            variant="secondary"
+            onPress={() => router.push('/worker-onboarding')}
+            style={styles.workerAction}
+          />
+        )}
+
+        <Button
+          label={t('profile.signOut')}
+          variant="secondary"
+          onPress={handleSignOut}
+          style={styles.signOut}
+        />
 
         {user.createdAt ? (
           <Text style={styles.footer}>
-            Member since {formatDate(user.createdAt, { month: 'long', year: 'numeric' })}
+            {t('profile.memberSince', {
+              date: formatDate(user.createdAt, { month: 'long', year: 'numeric' }),
+            })}
           </Text>
         ) : null}
       </ScrollView>
+
+      <LanguageSheet
+        visible={languageOpen}
+        value={user.preferredLanguage}
+        onClose={() => setLanguageOpen(false)}
+        onSelect={chooseLanguage}
+      />
     </SafeAreaView>
   );
 }
@@ -351,7 +496,7 @@ const styles = StyleSheet.create({
   },
   sectionHeader: {
     flexDirection: 'row',
-    alignItems: 'baseline',
+    alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: spacing.sm,
   },
@@ -362,9 +507,25 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.8,
   },
+  sectionRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
   sectionTag: {
     ...typography.label,
     color: colors.textMuted,
+  },
+  sectionEdit: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    marginLeft: spacing.sm,
+  },
+  sectionEditText: {
+    ...typography.label,
+    fontWeight: '700',
+    color: colors.primary,
   },
   sectionBody: {
     borderWidth: 1.5,
@@ -383,6 +544,15 @@ const styles = StyleSheet.create({
   rowLast: {
     borderBottomWidth: 0,
   },
+  rowPressed: {
+    opacity: 0.6,
+  },
+  rowRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 1,
+    gap: spacing.xs,
+  },
   rowLabel: {
     ...typography.body,
     color: colors.textMuted,
@@ -399,6 +569,17 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
 
+  sectionTitleStandalone: {
+    ...typography.label,
+    fontWeight: '700',
+    color: colors.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: spacing.sm,
+  },
+  workerAction: {
+    marginBottom: spacing.lg,
+  },
   signOut: {
     marginBottom: spacing.md,
   },

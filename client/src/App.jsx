@@ -6,6 +6,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import FederationRegister from './pages/federation/FederationRegister';
 import FederationStatus from './pages/federation/FederationStatus';
 import GovernmentVerification from './pages/federation/GovernmentVerification';
+import WorkerRequests from './pages/federation/WorkerRequests';
 
 function Dashboard() {
   return (
@@ -43,6 +44,7 @@ function App() {
             <Route element={<ProtectedRoute />}>
               <Route path="/federation/register" element={<FederationRegister />} />
               <Route path="/federation/status" element={<FederationStatus />} />
+              <Route path="/federation/workers" element={<WorkerRequests />} />
               <Route path="/gov/verify" element={<GovernmentVerification />} />
               <Route path="/dashboard" element={<Dashboard />} />
             </Route>
