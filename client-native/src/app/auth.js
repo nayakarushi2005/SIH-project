@@ -23,6 +23,7 @@ import { Trans, useTranslation } from 'react-i18next';
 
 import i18n from '../i18n';
 import { getErrorMessage, googleSignIn } from '../services/api';
+import { useUser } from '../context/UserContext';
 import { applyLanguage } from '../i18n/language';
 import { saveSession } from '../services/session';
 
@@ -54,6 +55,7 @@ function googleErrorMessage(err) {
 
 export default function Auth() {
   const { t } = useTranslation();
+  const { clear, setUser } = useUser();
   const [activeTab, setActiveTab] = useState('login'); // 'login' | 'signup'
   const [loading, setLoading] = useState(false);
   // Store Animated.Value in state to avoid accessing refs during render
@@ -95,6 +97,9 @@ export default function Auth() {
 
       const result = await googleSignIn(idToken);
       await saveSession(result.token, result.user);
+      // Never show a previous account's profile to this one.
+      clear();
+      setUser(result.user);
       // A returning user on a new phone: switch to their language before
       // the Aadhaar screen opens.
       if (result.user?.preferredLanguage) await applyLanguage(result.user.preferredLanguage);
@@ -116,7 +121,7 @@ export default function Auth() {
     } finally {
       setLoading(false);
     }
-  }, [router, t]);
+  }, [clear, router, setUser, t]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
