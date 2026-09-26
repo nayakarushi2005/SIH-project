@@ -8,6 +8,7 @@ const webAuthRoutes = require('./routes/webAuth'); // New web routes
 const federationRoutes = require('./routes/federation'); // Federation management routes
 const categoryRoutes = require('./routes/categories'); // Public job-category catalogue
 const workerRoutes = require('./routes/worker'); // Register / deregister as a worker
+const federationsRoutes = require('./routes/federations'); // App: federations near a worker
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use('/api/web-auth', webAuthRoutes);
 app.use('/api/federation', federationRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/worker', workerRoutes);
+app.use('/api/federations', federationsRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
