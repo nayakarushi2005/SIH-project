@@ -1,0 +1,4064 @@
+{
+  "version": 1,
+  "groups": [
+    {
+      "slug": "home_services",
+      "icon": "home-city",
+      "sortOrder": 1,
+      "names": {
+        "en": "Home services",
+        "hi": "घरेलू सेवाएँ",
+        "mr": "घरगुती सेवा",
+        "bn": "গৃহ পরিষেবা",
+        "ta": "வீட்டு சேவைகள்",
+        "te": "ఇంటి సేవలు"
+      }
+    },
+    {
+      "slug": "repair_maintenance",
+      "icon": "tools",
+      "sortOrder": 2,
+      "names": {
+        "en": "Repair & maintenance",
+        "hi": "मरम्मत और रखरखाव",
+        "mr": "दुरुस्ती आणि देखभाल",
+        "bn": "মেরামত ও রক্ষণাবেক্ষণ",
+        "ta": "பழுது நீக்கம் & பராமரிப்பு",
+        "te": "మరమ్మతు & నిర్వహణ"
+      }
+    },
+    {
+      "slug": "construction",
+      "icon": "hard-hat",
+      "sortOrder": 3,
+      "names": {
+        "en": "Construction",
+        "hi": "निर्माण कार्य",
+        "mr": "बांधकाम",
+        "bn": "নির্মাণ কাজ",
+        "ta": "கட்டுமானம்",
+        "te": "నిర్మాణ పనులు"
+      }
+    },
+    {
+      "slug": "driving_transport",
+      "icon": "steering",
+      "sortOrder": 4,
+      "names": {
+        "en": "Driving & transport",
+        "hi": "ड्राइविंग और परिवहन",
+        "mr": "ड्रायव्हिंग आणि वाहतूक",
+        "bn": "ড্রাইভিং ও পরিবহন",
+        "ta": "ஓட்டுநர் & போக்குவரத்து",
+        "te": "డ్రైవింగ్ & రవాణా"
+      }
+    },
+    {
+      "slug": "delivery_logistics",
+      "icon": "package-variant",
+      "sortOrder": 5,
+      "names": {
+        "en": "Delivery & logistics",
+        "hi": "डिलीवरी और लॉजिस्टिक्स",
+        "mr": "डिलिव्हरी आणि लॉजिस्टिक्स",
+        "bn": "ডেলিভারি ও লজিস্টিকস",
+        "ta": "டெலிவரி & சரக்கு",
+        "te": "డెలివరీ & లాజిస్టిక్స్"
+      }
+    },
+    {
+      "slug": "domestic_help",
+      "icon": "home-heart",
+      "sortOrder": 6,
+      "names": {
+        "en": "Domestic help",
+        "hi": "घरेलू काम",
+        "mr": "घरकाम",
+        "bn": "গৃহকর্ম",
+        "ta": "வீட்டு வேலை",
+        "te": "ఇంటి పని"
+      }
+    },
+    {
+      "slug": "care_health",
+      "icon": "heart-pulse",
+      "sortOrder": 7,
+      "names": {
+        "en": "Care & health",
+        "hi": "देखभाल और स्वास्थ्य",
+        "mr": "काळजी आणि आरोग्य",
+        "bn": "যত্ন ও স্বাস্থ্য",
+        "ta": "பராமரிப்பு & சுகாதாரம்",
+        "te": "సంరక్షణ & ఆరోగ్యం"
+      }
+    },
+    {
+      "slug": "beauty_wellness",
+      "icon": "face-woman-shimmer",
+      "sortOrder": 8,
+      "names": {
+        "en": "Beauty & wellness",
+        "hi": "सौंदर्य और वेलनेस",
+        "mr": "सौंदर्य आणि आरोग्य",
+        "bn": "সৌন্দর্য ও সুস্থতা",
+        "ta": "அழகு & நலம்",
+        "te": "అందం & ఆరోగ్యం"
+      }
+    },
+    {
+      "slug": "food_hospitality",
+      "icon": "silverware-fork-knife",
+      "sortOrder": 9,
+      "names": {
+        "en": "Food & hospitality",
+        "hi": "खाना और आतिथ्य",
+        "mr": "अन्न आणि आदरातिथ्य",
+        "bn": "খাবার ও আতিথেয়তা",
+        "ta": "உணவு & விருந்தோம்பல்",
+        "te": "ఆహారం & ఆతిథ్యం"
+      }
+    },
+    {
+      "slug": "events",
+      "icon": "party-popper",
+      "sortOrder": 10,
+      "names": {
+        "en": "Events",
+        "hi": "कार्यक्रम और इवेंट",
+        "mr": "कार्यक्रम",
+        "bn": "অনুষ্ঠান",
+        "ta": "நிகழ்ச்சிகள்",
+        "te": "కార్యక్రమాలు"
+      }
+    },
+    {
+      "slug": "tailoring_crafts",
+      "icon": "needle",
+      "sortOrder": 11,
+      "names": {
+        "en": "Tailoring & crafts",
+        "hi": "सिलाई और हस्तशिल्प",
+        "mr": "शिवणकाम आणि हस्तकला",
+        "bn": "দর্জি ও হস্তশিল্প",
+        "ta": "தையல் & கைவினை",
+        "te": "దర్జీ & హస్తకళలు"
+      }
+    },
+    {
+      "slug": "agriculture",
+      "icon": "sprout",
+      "sortOrder": 12,
+      "names": {
+        "en": "Agriculture",
+        "hi": "खेती-बाड़ी",
+        "mr": "शेती",
+        "bn": "কৃষি",
+        "ta": "விவசாயம்",
+        "te": "వ్యవసాయం"
+      }
+    },
+    {
+      "slug": "security_facility",
+      "icon": "shield-account",
+      "sortOrder": 13,
+      "names": {
+        "en": "Security & facility",
+        "hi": "सुरक्षा और सुविधा",
+        "mr": "सुरक्षा आणि सुविधा",
+        "bn": "নিরাপত্তা ও সুবিধা",
+        "ta": "பாதுகாப்பு & வசதி",
+        "te": "భద్రత & సౌకర్యాలు"
+      }
+    },
+    {
+      "slug": "retail_office",
+      "icon": "storefront",
+      "sortOrder": 14,
+      "names": {
+        "en": "Retail & office",
+        "hi": "दुकान और ऑफिस",
+        "mr": "दुकान आणि ऑफिस",
+        "bn": "দোকান ও অফিস",
+        "ta": "கடை & அலுவலகம்",
+        "te": "దుకాణం & కార్యాలయం"
+      }
+    },
+    {
+      "slug": "education",
+      "icon": "school",
+      "sortOrder": 15,
+      "names": {
+        "en": "Teaching & training",
+        "hi": "पढ़ाई और प्रशिक्षण",
+        "mr": "शिकवणी आणि प्रशिक्षण",
+        "bn": "শিক্ষা ও প্রশিক্ষণ",
+        "ta": "கற்பித்தல் & பயிற்சி",
+        "te": "బోధన & శిక్షణ"
+      }
+    }
+  ],
+  "categories": [
+    {
+      "slug": "electrician",
+      "group": "home_services",
+      "ncoCode": "7411",
+      "icon": "flash",
+      "sortOrder": 1,
+      "names": {
+        "en": "Electrician",
+        "hi": "इलेक्ट्रीशियन",
+        "mr": "इलेक्ट्रिशियन",
+        "bn": "ইলেকট্রিশিয়ান",
+        "ta": "மின்பணியாளர்",
+        "te": "ఎలక్ట్రీషియన్"
+      },
+      "synonyms": {
+        "en": [
+          "wireman",
+          "electric work",
+          "wiring"
+        ],
+        "hi": [
+          "बिजली वाला",
+          "बिजली मिस्त्री",
+          "bijli wala",
+          "bijli mistri",
+          "wireman"
+        ],
+        "mr": [
+          "वायरमन",
+          "लाईट काम",
+          "वीज काम"
+        ],
+        "bn": [
+          "ইলেকট্রিক মিস্ত্রি",
+          "বিদ্যুৎ মিস্ত্রি"
+        ],
+        "ta": [
+          "எலக்ட்ரீஷியன்",
+          "வயர்மேன்"
+        ],
+        "te": [
+          "కరెంటు పని",
+          "వైర్‌మెన్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "plumber",
+      "group": "home_services",
+      "ncoCode": "7126",
+      "icon": "pipe-wrench",
+      "sortOrder": 2,
+      "names": {
+        "en": "Plumber",
+        "hi": "प्लंबर",
+        "mr": "प्लंबर",
+        "bn": "প্লাম্বার",
+        "ta": "பிளம்பர்",
+        "te": "ప్లంబర్"
+      },
+      "synonyms": {
+        "en": [
+          "pipe fitter",
+          "tap repair",
+          "leakage"
+        ],
+        "hi": [
+          "नल वाला",
+          "पाइप फिटर",
+          "plumber",
+          "nal wala",
+          "pipe wala"
+        ],
+        "mr": [
+          "नळ दुरुस्ती",
+          "पाईप फिटर"
+        ],
+        "bn": [
+          "কলের মিস্ত্রি"
+        ],
+        "ta": [
+          "குழாய் வேலை"
+        ],
+        "te": [
+          "కుళాయి పని",
+          "పైపు పని"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "carpenter",
+      "group": "home_services",
+      "ncoCode": "7115",
+      "icon": "hand-saw",
+      "sortOrder": 3,
+      "names": {
+        "en": "Carpenter",
+        "hi": "बढ़ई",
+        "mr": "सुतार",
+        "bn": "ছুতোর মিস্ত্রি",
+        "ta": "தச்சர்",
+        "te": "వడ్రంగి"
+      },
+      "synonyms": {
+        "en": [
+          "furniture work",
+          "wood work"
+        ],
+        "hi": [
+          "कारपेंटर",
+          "मिस्त्री",
+          "लकड़ी का काम",
+          "badhai",
+          "carpenter",
+          "lakdi ka kaam"
+        ],
+        "mr": [
+          "कारपेंटर",
+          "लाकूड काम"
+        ],
+        "bn": [
+          "কাঠমিস্ত্রি",
+          "কার্পেন্টার"
+        ],
+        "ta": [
+          "கார்பெண்டர்",
+          "மர வேலை"
+        ],
+        "te": [
+          "కార్పెంటర్",
+          "చెక్క పని"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "painter",
+      "group": "home_services",
+      "ncoCode": "7131",
+      "icon": "format-paint",
+      "sortOrder": 4,
+      "names": {
+        "en": "Painter",
+        "hi": "पेंटर",
+        "mr": "रंगारी",
+        "bn": "রং মিস্ত্রি",
+        "ta": "பெயிண்டர்",
+        "te": "పెయింటర్"
+      },
+      "synonyms": {
+        "en": [
+          "wall painting",
+          "house painting",
+          "polish"
+        ],
+        "hi": [
+          "पुताई",
+          "रंगाई",
+          "पेंटिंग",
+          "rangai",
+          "putai",
+          "painter"
+        ],
+        "mr": [
+          "पेंटर",
+          "रंगकाम"
+        ],
+        "bn": [
+          "পেইন্টার",
+          "রঙের কাজ"
+        ],
+        "ta": [
+          "வண்ணம் பூசுபவர்"
+        ],
+        "te": [
+          "రంగులు వేసేవారు"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "cleaning",
+      "group": "home_services",
+      "ncoCode": "9111",
+      "icon": "broom",
+      "sortOrder": 5,
+      "names": {
+        "en": "House cleaning",
+        "hi": "घर की सफ़ाई",
+        "mr": "घराची साफसफाई",
+        "bn": "ঘর পরিষ্কার",
+        "ta": "வீடு சுத்தம்",
+        "te": "ఇంటి శుభ్రత"
+      },
+      "synonyms": {
+        "en": [
+          "deep cleaning",
+          "home cleaning",
+          "cleaner"
+        ],
+        "hi": [
+          "सफ़ाई",
+          "सफाई वाला",
+          "safai",
+          "ghar ki safai",
+          "deep cleaning"
+        ],
+        "mr": [
+          "साफसफाई",
+          "स्वच्छता"
+        ],
+        "bn": [
+          "পরিষ্কারের কাজ",
+          "ক্লিনিং"
+        ],
+        "ta": [
+          "சுத்தம் செய்தல்",
+          "கிளீனிங்"
+        ],
+        "te": [
+          "శుభ్రం చేయడం",
+          "క్లీనింగ్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "pest_control",
+      "group": "home_services",
+      "ncoCode": "7544",
+      "icon": "bug",
+      "sortOrder": 6,
+      "names": {
+        "en": "Pest control",
+        "hi": "कीट नियंत्रण",
+        "mr": "कीटक नियंत्रण",
+        "bn": "পোকামাকড় নিয়ন্ত্রণ",
+        "ta": "பூச்சி கட்டுப்பாடு",
+        "te": "పురుగుల నియంత్రణ"
+      },
+      "synonyms": {
+        "en": [
+          "termite",
+          "cockroach control",
+          "fumigation"
+        ],
+        "hi": [
+          "पेस्ट कंट्रोल",
+          "दीमक",
+          "कॉकरोच",
+          "pest control",
+          "deemak"
+        ],
+        "mr": [
+          "पेस्ट कंट्रोल",
+          "वाळवी"
+        ],
+        "bn": [
+          "পেস্ট কন্ট্রোল",
+          "উইপোকা"
+        ],
+        "ta": [
+          "பெஸ்ட் கண்ட்ரோல்",
+          "கரையான்"
+        ],
+        "te": [
+          "పెస్ట్ కంట్రోల్",
+          "చెదలు"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "gardener",
+      "group": "home_services",
+      "ncoCode": "9214",
+      "icon": "flower",
+      "sortOrder": 7,
+      "names": {
+        "en": "Gardener",
+        "hi": "माली",
+        "mr": "माळी",
+        "bn": "মালী",
+        "ta": "தோட்டக்காரர்",
+        "te": "తోటమాలి"
+      },
+      "synonyms": {
+        "en": [
+          "garden work",
+          "lawn care"
+        ],
+        "hi": [
+          "बागवानी",
+          "mali",
+          "bagwani"
+        ],
+        "mr": [
+          "बागकाम"
+        ],
+        "bn": [
+          "বাগানের কাজ"
+        ],
+        "ta": [
+          "தோட்ட வேலை"
+        ],
+        "te": [
+          "తోట పని"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "water_tank_cleaning",
+      "group": "home_services",
+      "ncoCode": "9129",
+      "icon": "water",
+      "sortOrder": 8,
+      "names": {
+        "en": "Water tank cleaning",
+        "hi": "पानी की टंकी सफ़ाई",
+        "mr": "पाण्याची टाकी साफसफाई",
+        "bn": "জলের ট্যাঙ্ক পরিষ্কার",
+        "ta": "தண்ணீர் தொட்டி சுத்தம்",
+        "te": "నీటి ట్యాంక్ శుభ్రత"
+      },
+      "synonyms": {
+        "en": [
+          "tank cleaning",
+          "sump cleaning"
+        ],
+        "hi": [
+          "टंकी सफ़ाई",
+          "tanki safai",
+          "tank cleaning"
+        ],
+        "mr": [
+          "टाकी साफ करणे"
+        ],
+        "bn": [
+          "ট্যাঙ্ক পরিষ্কার"
+        ],
+        "ta": [
+          "டேங்க் சுத்தம்"
+        ],
+        "te": [
+          "ట్యాంక్ క్లీనింగ్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "sofa_carpet_cleaning",
+      "group": "home_services",
+      "ncoCode": "9129",
+      "icon": "sofa",
+      "sortOrder": 9,
+      "names": {
+        "en": "Sofa & carpet cleaning",
+        "hi": "सोफ़ा और कालीन सफ़ाई",
+        "mr": "सोफा आणि गालिचा साफसफाई",
+        "bn": "সোফা ও কার্পেট পরিষ্কার",
+        "ta": "சோபா & கம்பளம் சுத்தம்",
+        "te": "సోఫా & కార్పెట్ శుభ్రత"
+      },
+      "synonyms": {
+        "en": [
+          "upholstery cleaning",
+          "sofa cleaning"
+        ],
+        "hi": [
+          "सोफ़ा सफ़ाई",
+          "कालीन धुलाई",
+          "sofa cleaning"
+        ],
+        "mr": [
+          "सोफा क्लीनिंग"
+        ],
+        "bn": [
+          "সোফা ক্লিনিং"
+        ],
+        "ta": [
+          "சோபா கிளீனிங்"
+        ],
+        "te": [
+          "సోఫా క్లీనింగ్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "locksmith",
+      "group": "home_services",
+      "ncoCode": "7222",
+      "icon": "key-variant",
+      "sortOrder": 10,
+      "names": {
+        "en": "Locksmith",
+        "hi": "ताला-चाबी मिस्त्री",
+        "mr": "कुलूप-चावी कारागीर",
+        "bn": "তালা-চাবির মিস্ত্রি",
+        "ta": "பூட்டு சாவி தொழிலாளி",
+        "te": "తాళాలు చేసేవారు"
+      },
+      "synonyms": {
+        "en": [
+          "key maker",
+          "lock repair",
+          "duplicate key"
+        ],
+        "hi": [
+          "चाबी वाला",
+          "ताला मरम्मत",
+          "chabi wala",
+          "tala chabi"
+        ],
+        "mr": [
+          "चावी बनवणारा"
+        ],
+        "bn": [
+          "চাবি তৈরি"
+        ],
+        "ta": [
+          "சாவி செய்பவர்"
+        ],
+        "te": [
+          "తాళం చెవి తయారీ"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "technician",
+      "group": "repair_maintenance",
+      "ncoCode": "7412",
+      "icon": "tools",
+      "sortOrder": 1,
+      "names": {
+        "en": "Appliance technician",
+        "hi": "उपकरण टेक्नीशियन",
+        "mr": "उपकरण तंत्रज्ञ",
+        "bn": "যন্ত্রপাতি টেকনিশিয়ান",
+        "ta": "சாதன தொழில்நுட்பர்",
+        "te": "ఉపకరణాల టెక్నీషియన్"
+      },
+      "synonyms": {
+        "en": [
+          "appliance repair",
+          "washing machine repair",
+          "geyser repair",
+          "mixer repair"
+        ],
+        "hi": [
+          "मैकेनिक",
+          "वॉशिंग मशीन रिपेयर",
+          "गीज़र रिपेयर",
+          "technician",
+          "mechanic"
+        ],
+        "mr": [
+          "मेकॅनिक",
+          "वॉशिंग मशीन दुरुस्ती"
+        ],
+        "bn": [
+          "মেকানিক",
+          "ওয়াশিং মেশিন সারাই"
+        ],
+        "ta": [
+          "மெக்கானிக்",
+          "வாஷிங் மெஷின் பழுது"
+        ],
+        "te": [
+          "మెకానిక్",
+          "వాషింగ్ మెషిన్ రిపేర్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "ac_repair",
+      "group": "repair_maintenance",
+      "ncoCode": "7127",
+      "icon": "air-conditioner",
+      "sortOrder": 2,
+      "names": {
+        "en": "AC & fridge repair",
+        "hi": "एसी और फ्रिज रिपेयर",
+        "mr": "एसी आणि फ्रिज दुरुस्ती",
+        "bn": "এসি ও ফ্রিজ সারাই",
+        "ta": "ஏசி & ஃப்ரிட்ஜ் பழுது",
+        "te": "ఏసీ & ఫ్రిజ్ రిపేర్"
+      },
+      "synonyms": {
+        "en": [
+          "ac service",
+          "refrigerator repair",
+          "ac mechanic"
+        ],
+        "hi": [
+          "एसी मैकेनिक",
+          "फ्रिज मैकेनिक",
+          "ac wala",
+          "ac repair",
+          "fridge repair"
+        ],
+        "mr": [
+          "एसी मेकॅनिक"
+        ],
+        "bn": [
+          "এসি মেকানিক"
+        ],
+        "ta": [
+          "ஏசி மெக்கானிக்"
+        ],
+        "te": [
+          "ఏసీ మెకానిక్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "mobile_repair",
+      "group": "repair_maintenance",
+      "ncoCode": "7422",
+      "icon": "cellphone-cog",
+      "sortOrder": 3,
+      "names": {
+        "en": "Mobile phone repair",
+        "hi": "मोबाइल रिपेयर",
+        "mr": "मोबाईल दुरुस्ती",
+        "bn": "মোবাইল সারাই",
+        "ta": "மொபைல் பழுது",
+        "te": "మొబైల్ రిపేర్"
+      },
+      "synonyms": {
+        "en": [
+          "phone repair",
+          "screen replacement"
+        ],
+        "hi": [
+          "मोबाइल ठीक करना",
+          "mobile repair",
+          "phone repair"
+        ],
+        "mr": [
+          "फोन दुरुस्ती"
+        ],
+        "bn": [
+          "ফোন সারাই"
+        ],
+        "ta": [
+          "போன் பழுது"
+        ],
+        "te": [
+          "ఫోన్ రిపేర్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "computer_repair",
+      "group": "repair_maintenance",
+      "ncoCode": "7422",
+      "icon": "laptop",
+      "sortOrder": 4,
+      "names": {
+        "en": "Computer & laptop repair",
+        "hi": "कंप्यूटर और लैपटॉप रिपेयर",
+        "mr": "संगणक आणि लॅपटॉप दुरुस्ती",
+        "bn": "কম্পিউটার ও ল্যাপটপ সারাই",
+        "ta": "கணினி & லேப்டாப் பழுது",
+        "te": "కంప్యూటర్ & ల్యాప్‌టాప్ రిపేర్"
+      },
+      "synonyms": {
+        "en": [
+          "pc repair",
+          "laptop service",
+          "printer repair"
+        ],
+        "hi": [
+          "कंप्यूटर मैकेनिक",
+          "computer repair",
+          "laptop repair"
+        ],
+        "mr": [
+          "कॉम्प्युटर दुरुस्ती"
+        ],
+        "bn": [
+          "কম্পিউটার মেকানিক"
+        ],
+        "ta": [
+          "கம்ப்யூட்டர் சர்வீஸ்"
+        ],
+        "te": [
+          "కంప్యూటర్ సర్వీస్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "tv_electronics_repair",
+      "group": "repair_maintenance",
+      "ncoCode": "7421",
+      "icon": "television",
+      "sortOrder": 5,
+      "names": {
+        "en": "TV & electronics repair",
+        "hi": "टीवी और इलेक्ट्रॉनिक्स रिपेयर",
+        "mr": "टीव्ही आणि इलेक्ट्रॉनिक्स दुरुस्ती",
+        "bn": "টিভি ও ইলেকট্রনিক্স সারাই",
+        "ta": "டிவி & மின்னணு பழுது",
+        "te": "టీవీ & ఎలక్ట్రానిక్స్ రిపేర్"
+      },
+      "synonyms": {
+        "en": [
+          "tv mechanic",
+          "electronics repair"
+        ],
+        "hi": [
+          "टीवी मैकेनिक",
+          "tv repair",
+          "tv mechanic"
+        ],
+        "mr": [
+          "टीव्ही मेकॅनिक"
+        ],
+        "bn": [
+          "টিভি মেকানিক"
+        ],
+        "ta": [
+          "டிவி மெக்கானிக்"
+        ],
+        "te": [
+          "టీవీ మెకానిక్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "ro_service",
+      "group": "repair_maintenance",
+      "ncoCode": "7412",
+      "icon": "water-pump",
+      "sortOrder": 6,
+      "names": {
+        "en": "RO / water purifier service",
+        "hi": "आरओ / वाटर प्यूरीफायर सर्विस",
+        "mr": "आरओ / वॉटर प्युरिफायर सर्व्हिस",
+        "bn": "আরও / জল পরিশোধক সার্ভিস",
+        "ta": "ஆர்ஓ / நீர் சுத்திகரிப்பு சேவை",
+        "te": "ఆర్‌ఓ / వాటర్ ప్యూరిఫైయర్ సర్వీస్"
+      },
+      "synonyms": {
+        "en": [
+          "ro repair",
+          "water filter service"
+        ],
+        "hi": [
+          "आरओ मैकेनिक",
+          "फ़िल्टर सर्विस",
+          "ro service",
+          "ro repair"
+        ],
+        "mr": [
+          "आरओ दुरुस्ती"
+        ],
+        "bn": [
+          "আরও সারাই"
+        ],
+        "ta": [
+          "ஆர்ஓ பழுது"
+        ],
+        "te": [
+          "ఆర్‌ఓ రిపేర్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "bike_mechanic",
+      "group": "repair_maintenance",
+      "ncoCode": "7231",
+      "icon": "motorbike",
+      "sortOrder": 7,
+      "names": {
+        "en": "Two-wheeler mechanic",
+        "hi": "बाइक मैकेनिक",
+        "mr": "दुचाकी मेकॅनिक",
+        "bn": "বাইক মেকানিক",
+        "ta": "இருசக்கர வாகன மெக்கானிக்",
+        "te": "టూ-వీలర్ మెకానిక్"
+      },
+      "synonyms": {
+        "en": [
+          "bike repair",
+          "scooter repair",
+          "puncture"
+        ],
+        "hi": [
+          "बाइक रिपेयर",
+          "पंक्चर वाला",
+          "bike mechanic",
+          "scooty repair",
+          "puncture"
+        ],
+        "mr": [
+          "गाडी दुरुस्ती",
+          "पंक्चर"
+        ],
+        "bn": [
+          "বাইক সারাই"
+        ],
+        "ta": [
+          "பைக் மெக்கானிக்"
+        ],
+        "te": [
+          "బైక్ మెకానిక్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "car_mechanic",
+      "group": "repair_maintenance",
+      "ncoCode": "7231",
+      "icon": "car-wrench",
+      "sortOrder": 8,
+      "names": {
+        "en": "Car mechanic",
+        "hi": "कार मैकेनिक",
+        "mr": "कार मेकॅनिक",
+        "bn": "গাড়ির মেকানিক",
+        "ta": "கார் மெக்கானிக்",
+        "te": "కార్ మెకానిక్"
+      },
+      "synonyms": {
+        "en": [
+          "car repair",
+          "garage",
+          "car service"
+        ],
+        "hi": [
+          "गाड़ी मैकेनिक",
+          "गैराज",
+          "car mechanic",
+          "gaadi mechanic"
+        ],
+        "mr": [
+          "गॅरेज"
+        ],
+        "bn": [
+          "গ্যারেজ"
+        ],
+        "ta": [
+          "கார் பழுது"
+        ],
+        "te": [
+          "కార్ రిపేర్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "cctv_installation",
+      "group": "repair_maintenance",
+      "ncoCode": "7422",
+      "icon": "cctv",
+      "sortOrder": 9,
+      "names": {
+        "en": "CCTV installation",
+        "hi": "सीसीटीवी इंस्टॉलेशन",
+        "mr": "सीसीटीव्ही बसवणे",
+        "bn": "সিসিটিভি ইনস্টলেশন",
+        "ta": "சிசிடிவி பொருத்துதல்",
+        "te": "సీసీటీవీ ఇన్‌స్టాలేషన్"
+      },
+      "synonyms": {
+        "en": [
+          "camera installation",
+          "security camera"
+        ],
+        "hi": [
+          "कैमरा लगाना",
+          "cctv lagana",
+          "camera fitting"
+        ],
+        "mr": [
+          "कॅमेरा बसवणे"
+        ],
+        "bn": [
+          "ক্যামেরা লাগানো"
+        ],
+        "ta": [
+          "கேமரா பொருத்துதல்"
+        ],
+        "te": [
+          "కెమెరా అమర్చడం"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "welder",
+      "group": "repair_maintenance",
+      "ncoCode": "7212",
+      "icon": "hammer-wrench",
+      "sortOrder": 10,
+      "names": {
+        "en": "Welder & fabricator",
+        "hi": "वेल्डर",
+        "mr": "वेल्डर",
+        "bn": "ওয়েল্ডার",
+        "ta": "வெல்டர்",
+        "te": "వెల్డర్"
+      },
+      "synonyms": {
+        "en": [
+          "welding",
+          "fabrication",
+          "grill work"
+        ],
+        "hi": [
+          "वेल्डिंग",
+          "ग्रिल का काम",
+          "welding",
+          "fabrication",
+          "grill wala"
+        ],
+        "mr": [
+          "वेल्डिंग",
+          "ग्रील काम"
+        ],
+        "bn": [
+          "ওয়েল্ডিং",
+          "গ্রিলের কাজ"
+        ],
+        "ta": [
+          "வெல்டிங்",
+          "கிரில் வேலை"
+        ],
+        "te": [
+          "వెల్డింగ్",
+          "గ్రిల్ పని"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "mason",
+      "group": "construction",
+      "ncoCode": "7112",
+      "icon": "wall",
+      "sortOrder": 1,
+      "names": {
+        "en": "Mason",
+        "hi": "राजमिस्त्री",
+        "mr": "गवंडी",
+        "bn": "রাজমিস্ত্রি",
+        "ta": "கொத்தனார்",
+        "te": "తాపీ మేస్త్రీ"
+      },
+      "synonyms": {
+        "en": [
+          "bricklayer",
+          "brick work",
+          "plaster"
+        ],
+        "hi": [
+          "मिस्त्री",
+          "चिनाई",
+          "raj mistri",
+          "mistri",
+          "chinai"
+        ],
+        "mr": [
+          "गवंडी काम"
+        ],
+        "bn": [
+          "ইটের কাজ"
+        ],
+        "ta": [
+          "மேஸ்திரி"
+        ],
+        "te": [
+          "మేస్త్రీ"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "construction_labour",
+      "group": "construction",
+      "ncoCode": "9313",
+      "icon": "account-hard-hat",
+      "sortOrder": 2,
+      "names": {
+        "en": "Construction labourer",
+        "hi": "निर्माण मज़दूर",
+        "mr": "बांधकाम मजूर",
+        "bn": "নির্মাণ শ্রমিক",
+        "ta": "கட்டுமான தொழிலாளி",
+        "te": "భవన నిర్మాణ కార్మికుడు"
+      },
+      "synonyms": {
+        "en": [
+          "labour",
+          "helper",
+          "site labour"
+        ],
+        "hi": [
+          "मज़दूर",
+          "बेलदार",
+          "लेबर",
+          "majdoor",
+          "beldar",
+          "labour"
+        ],
+        "mr": [
+          "मजूर",
+          "बिगारी"
+        ],
+        "bn": [
+          "মজুর",
+          "জোগাড়ে"
+        ],
+        "ta": [
+          "கூலி தொழிலாளி",
+          "சித்தாள்"
+        ],
+        "te": [
+          "కూలీ",
+          "కార్మికుడు"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "tile_fitter",
+      "group": "construction",
+      "ncoCode": "7122",
+      "icon": "grid",
+      "sortOrder": 3,
+      "names": {
+        "en": "Tile & marble fitter",
+        "hi": "टाइल और मार्बल फिटर",
+        "mr": "टाइल आणि मार्बल फिटर",
+        "bn": "টাইল ও মার্বেল মিস্ত্রি",
+        "ta": "டைல் & மார்பிள் பொருத்துநர்",
+        "te": "టైల్ & మార్బుల్ ఫిట్టర్"
+      },
+      "synonyms": {
+        "en": [
+          "tiles work",
+          "flooring",
+          "marble work"
+        ],
+        "hi": [
+          "टाइल मिस्त्री",
+          "मार्बल का काम",
+          "tile wala",
+          "tile fitting"
+        ],
+        "mr": [
+          "फरशी काम",
+          "टाइल काम"
+        ],
+        "bn": [
+          "টাইলসের কাজ"
+        ],
+        "ta": [
+          "டைல்ஸ் வேலை"
+        ],
+        "te": [
+          "టైల్స్ పని"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "pop_false_ceiling",
+      "group": "construction",
+      "ncoCode": "7123",
+      "icon": "ceiling-light",
+      "sortOrder": 4,
+      "names": {
+        "en": "POP & false ceiling",
+        "hi": "पीओपी और फॉल्स सीलिंग",
+        "mr": "पीओपी आणि फॉल्स सीलिंग",
+        "bn": "পিওপি ও ফলস সিলিং",
+        "ta": "பிஓபி & ஃபால்ஸ் சீலிங்",
+        "te": "పీఓపీ & ఫాల్స్ సీలింగ్"
+      },
+      "synonyms": {
+        "en": [
+          "pop work",
+          "gypsum ceiling",
+          "plaster of paris"
+        ],
+        "hi": [
+          "पीओपी का काम",
+          "फॉल्स सीलिंग",
+          "pop work",
+          "false ceiling"
+        ],
+        "mr": [
+          "पीओपी काम"
+        ],
+        "bn": [
+          "পিওপি কাজ"
+        ],
+        "ta": [
+          "பிஓபி வேலை"
+        ],
+        "te": [
+          "పీఓపీ పని"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "bar_bender",
+      "group": "construction",
+      "ncoCode": "7114",
+      "icon": "wrench",
+      "sortOrder": 5,
+      "names": {
+        "en": "Bar bender",
+        "hi": "सरिया बाँधने वाला",
+        "mr": "सळई बांधणारा",
+        "bn": "রড মিস্ত্রি",
+        "ta": "கம்பி கட்டுநர்",
+        "te": "బార్ బెండర్"
+      },
+      "synonyms": {
+        "en": [
+          "steel fixer",
+          "rebar work",
+          "centring"
+        ],
+        "hi": [
+          "सरिया मिस्त्री",
+          "सेंटरिंग",
+          "sariya",
+          "centering",
+          "bar bender"
+        ],
+        "mr": [
+          "सेंट्रिंग काम"
+        ],
+        "bn": [
+          "সেন্টারিং"
+        ],
+        "ta": [
+          "சென்ட்ரிங் வேலை"
+        ],
+        "te": [
+          "సెంట్రింగ్ పని"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "waterproofing",
+      "group": "construction",
+      "ncoCode": "7119",
+      "icon": "water-off",
+      "sortOrder": 6,
+      "names": {
+        "en": "Waterproofing",
+        "hi": "वॉटरप्रूफिंग",
+        "mr": "वॉटरप्रूफिंग",
+        "bn": "ওয়াটারপ্রুফিং",
+        "ta": "நீர்க்காப்பு",
+        "te": "వాటర్‌ప్రూఫింగ్"
+      },
+      "synonyms": {
+        "en": [
+          "leakage repair",
+          "seepage",
+          "roof waterproofing"
+        ],
+        "hi": [
+          "सीलन ठीक करना",
+          "लीकेज रिपेयर",
+          "waterproofing",
+          "seelan"
+        ],
+        "mr": [
+          "गळती दुरुस्ती"
+        ],
+        "bn": [
+          "ড্যাম্প সারাই"
+        ],
+        "ta": [
+          "வாட்டர்ப்ரூஃபிங்",
+          "கசிவு சரிசெய்தல்"
+        ],
+        "te": [
+          "లీకేజీ రిపేర్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "glass_aluminium",
+      "group": "construction",
+      "ncoCode": "7125",
+      "icon": "window-closed-variant",
+      "sortOrder": 7,
+      "names": {
+        "en": "Glass & aluminium work",
+        "hi": "काँच और एल्युमिनियम का काम",
+        "mr": "काच आणि ॲल्युमिनियम काम",
+        "bn": "কাচ ও অ্যালুমিনিয়ামের কাজ",
+        "ta": "கண்ணாடி & அலுமினியம் வேலை",
+        "te": "గాజు & అల్యూమినియం పని"
+      },
+      "synonyms": {
+        "en": [
+          "glazier",
+          "aluminium windows",
+          "glass fitting"
+        ],
+        "hi": [
+          "शीशे का काम",
+          "एल्युमिनियम खिड़की",
+          "kaanch ka kaam",
+          "aluminium fitting"
+        ],
+        "mr": [
+          "काच काम"
+        ],
+        "bn": [
+          "গ্লাস ফিটিং"
+        ],
+        "ta": [
+          "கிளாஸ் பிட்டிங்"
+        ],
+        "te": [
+          "గ్లాస్ ఫిట్టింగ్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "road_site_worker",
+      "group": "construction",
+      "ncoCode": "9312",
+      "icon": "road-variant",
+      "sortOrder": 8,
+      "names": {
+        "en": "Road & site worker",
+        "hi": "सड़क और साइट मज़दूर",
+        "mr": "रस्ता आणि साइट कामगार",
+        "bn": "রাস্তা ও সাইট শ্রমিক",
+        "ta": "சாலை & தள தொழிலாளி",
+        "te": "రోడ్డు & సైట్ కార్మికుడు"
+      },
+      "synonyms": {
+        "en": [
+          "road work",
+          "digging",
+          "earthwork"
+        ],
+        "hi": [
+          "सड़क का काम",
+          "खुदाई",
+          "sadak ka kaam",
+          "khudai"
+        ],
+        "mr": [
+          "रस्ता काम",
+          "खोदकाम"
+        ],
+        "bn": [
+          "রাস্তার কাজ",
+          "মাটি কাটা"
+        ],
+        "ta": [
+          "சாலை வேலை"
+        ],
+        "te": [
+          "రోడ్డు పని",
+          "తవ్వకం"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "driver",
+      "group": "driving_transport",
+      "ncoCode": "8322",
+      "icon": "car",
+      "sortOrder": 1,
+      "names": {
+        "en": "Car driver",
+        "hi": "कार ड्राइवर",
+        "mr": "कार ड्रायव्हर",
+        "bn": "গাড়ির ড্রাইভার",
+        "ta": "கார் ஓட்டுநர்",
+        "te": "కార్ డ్రైవర్"
+      },
+      "synonyms": {
+        "en": [
+          "driver",
+          "chauffeur",
+          "taxi driver",
+          "cab driver"
+        ],
+        "hi": [
+          "ड्राइवर",
+          "गाड़ी चलाना",
+          "driver",
+          "taxi driver",
+          "cab driver"
+        ],
+        "mr": [
+          "ड्रायव्हर",
+          "चालक"
+        ],
+        "bn": [
+          "ড্রাইভার",
+          "চালক"
+        ],
+        "ta": [
+          "டிரைவர்",
+          "ஓட்டுநர்"
+        ],
+        "te": [
+          "డ్రైవర్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "auto_driver",
+      "group": "driving_transport",
+      "ncoCode": null,
+      "icon": "rickshaw",
+      "sortOrder": 2,
+      "names": {
+        "en": "Auto-rickshaw driver",
+        "hi": "ऑटो ड्राइवर",
+        "mr": "रिक्षा चालक",
+        "bn": "অটো চালক",
+        "ta": "ஆட்டோ ஓட்டுநர்",
+        "te": "ఆటో డ్రైవర్"
+      },
+      "synonyms": {
+        "en": [
+          "auto driver",
+          "rickshaw driver"
+        ],
+        "hi": [
+          "ऑटो वाला",
+          "रिक्शा",
+          "auto wala",
+          "auto driver"
+        ],
+        "mr": [
+          "रिक्षावाला",
+          "ऑटो"
+        ],
+        "bn": [
+          "অটোওয়ালা"
+        ],
+        "ta": [
+          "ஆட்டோக்காரர்"
+        ],
+        "te": [
+          "ఆటో వాలా"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "e_rickshaw_driver",
+      "group": "driving_transport",
+      "ncoCode": null,
+      "icon": "rickshaw-electric",
+      "sortOrder": 3,
+      "names": {
+        "en": "E-rickshaw driver",
+        "hi": "ई-रिक्शा ड्राइवर",
+        "mr": "ई-रिक्षा चालक",
+        "bn": "টোটো চালক",
+        "ta": "இ-ரிக்‌ஷா ஓட்டுநர்",
+        "te": "ఈ-రిక్షా డ్రైవర్"
+      },
+      "synonyms": {
+        "en": [
+          "e rickshaw",
+          "toto"
+        ],
+        "hi": [
+          "ई-रिक्शा",
+          "टोटो",
+          "e rickshaw",
+          "battery rickshaw"
+        ],
+        "mr": [
+          "ई रिक्षा"
+        ],
+        "bn": [
+          "টোটো",
+          "ই-রিকশা"
+        ],
+        "ta": [
+          "இ ரிக்‌ஷா"
+        ],
+        "te": [
+          "ఈ రిక్షా"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "bike_taxi",
+      "group": "driving_transport",
+      "ncoCode": "8321",
+      "icon": "motorbike",
+      "sortOrder": 4,
+      "names": {
+        "en": "Bike taxi rider",
+        "hi": "बाइक टैक्सी राइडर",
+        "mr": "बाईक टॅक्सी रायडर",
+        "bn": "বাইক ট্যাক্সি রাইডার",
+        "ta": "பைக் டாக்ஸி ஓட்டுநர்",
+        "te": "బైక్ టాక్సీ రైడర్"
+      },
+      "synonyms": {
+        "en": [
+          "rapido",
+          "bike taxi",
+          "captain"
+        ],
+        "hi": [
+          "बाइक टैक्सी",
+          "रैपिडो",
+          "bike taxi",
+          "rapido"
+        ],
+        "mr": [
+          "बाईक टॅक्सी"
+        ],
+        "bn": [
+          "বাইক ট্যাক্সি"
+        ],
+        "ta": [
+          "பைக் டாக்ஸி"
+        ],
+        "te": [
+          "బైక్ టాక్సీ"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "truck_driver",
+      "group": "driving_transport",
+      "ncoCode": "8332",
+      "icon": "truck",
+      "sortOrder": 5,
+      "names": {
+        "en": "Truck driver",
+        "hi": "ट्रक ड्राइवर",
+        "mr": "ट्रक ड्रायव्हर",
+        "bn": "ট্রাক চালক",
+        "ta": "லாரி ஓட்டுநர்",
+        "te": "లారీ డ్రైవర్"
+      },
+      "synonyms": {
+        "en": [
+          "lorry driver",
+          "tempo driver",
+          "heavy vehicle"
+        ],
+        "hi": [
+          "ट्रक वाला",
+          "टेम्पो ड्राइवर",
+          "truck driver",
+          "tempo driver"
+        ],
+        "mr": [
+          "टेम्पो चालक"
+        ],
+        "bn": [
+          "লরি চালক"
+        ],
+        "ta": [
+          "டிரக் டிரைவர்"
+        ],
+        "te": [
+          "ట్రక్ డ్రైవర్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "bus_driver",
+      "group": "driving_transport",
+      "ncoCode": "8331",
+      "icon": "bus",
+      "sortOrder": 6,
+      "names": {
+        "en": "Bus driver",
+        "hi": "बस ड्राइवर",
+        "mr": "बस चालक",
+        "bn": "বাস চালক",
+        "ta": "பேருந்து ஓட்டுநர்",
+        "te": "బస్సు డ్రైవర్"
+      },
+      "synonyms": {
+        "en": [
+          "school bus driver"
+        ],
+        "hi": [
+          "बस चालक",
+          "bus driver"
+        ],
+        "mr": [
+          "बस ड्रायव्हर"
+        ],
+        "bn": [
+          "বাস ড্রাইভার"
+        ],
+        "ta": [
+          "பஸ் டிரைவர்"
+        ],
+        "te": [
+          "బస్ డ్రైవర్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "machine_operator",
+      "group": "driving_transport",
+      "ncoCode": "8342",
+      "icon": "excavator",
+      "sortOrder": 7,
+      "names": {
+        "en": "JCB / machine operator",
+        "hi": "जेसीबी / मशीन ऑपरेटर",
+        "mr": "जेसीबी / मशीन ऑपरेटर",
+        "bn": "জেসিবি / মেশিন অপারেটর",
+        "ta": "ஜேசிபி / இயந்திர இயக்குநர்",
+        "te": "జేసీబీ / మెషిన్ ఆపరేటర్"
+      },
+      "synonyms": {
+        "en": [
+          "jcb driver",
+          "crane operator",
+          "excavator"
+        ],
+        "hi": [
+          "जेसीबी चालक",
+          "क्रेन ऑपरेटर",
+          "jcb driver",
+          "crane"
+        ],
+        "mr": [
+          "जेसीबी चालक"
+        ],
+        "bn": [
+          "জেসিবি চালক"
+        ],
+        "ta": [
+          "ஜேசிபி டிரைவர்"
+        ],
+        "te": [
+          "జేసీబీ డ్రైవర్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "food_delivery",
+      "group": "delivery_logistics",
+      "ncoCode": "9621",
+      "icon": "moped",
+      "sortOrder": 1,
+      "names": {
+        "en": "Food delivery",
+        "hi": "फ़ूड डिलीवरी",
+        "mr": "फूड डिलिव्हरी",
+        "bn": "খাবার ডেলিভারি",
+        "ta": "உணவு டெலிவரி",
+        "te": "ఫుడ్ డెలివరీ"
+      },
+      "synonyms": {
+        "en": [
+          "zomato",
+          "swiggy",
+          "delivery boy"
+        ],
+        "hi": [
+          "खाना डिलीवरी",
+          "डिलीवरी बॉय",
+          "food delivery",
+          "zomato",
+          "swiggy"
+        ],
+        "mr": [
+          "डिलिव्हरी बॉय"
+        ],
+        "bn": [
+          "ডেলিভারি বয়"
+        ],
+        "ta": [
+          "டெலிவரி பாய்"
+        ],
+        "te": [
+          "డెలివరీ బాయ్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "parcel_delivery",
+      "group": "delivery_logistics",
+      "ncoCode": "9621",
+      "icon": "package-variant-closed",
+      "sortOrder": 2,
+      "names": {
+        "en": "Parcel delivery",
+        "hi": "पार्सल डिलीवरी",
+        "mr": "पार्सल डिलिव्हरी",
+        "bn": "পার্সেল ডেলিভারি",
+        "ta": "பார்சல் டெலிவரி",
+        "te": "పార్సెల్ డెలివరీ"
+      },
+      "synonyms": {
+        "en": [
+          "courier",
+          "package delivery",
+          "amazon delivery"
+        ],
+        "hi": [
+          "कूरियर",
+          "पार्सल",
+          "courier",
+          "parcel delivery"
+        ],
+        "mr": [
+          "कुरिअर"
+        ],
+        "bn": [
+          "কুরিয়ার"
+        ],
+        "ta": [
+          "கூரியர்"
+        ],
+        "te": [
+          "కొరియర్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "grocery_delivery",
+      "group": "delivery_logistics",
+      "ncoCode": "9621",
+      "icon": "cart",
+      "sortOrder": 3,
+      "names": {
+        "en": "Grocery delivery",
+        "hi": "किराना डिलीवरी",
+        "mr": "किराणा डिलिव्हरी",
+        "bn": "মুদি ডেলিভারি",
+        "ta": "மளிகை டெலிவரி",
+        "te": "కిరాణా డెలివరీ"
+      },
+      "synonyms": {
+        "en": [
+          "blinkit",
+          "zepto",
+          "instamart"
+        ],
+        "hi": [
+          "राशन डिलीवरी",
+          "किराना",
+          "grocery delivery",
+          "blinkit",
+          "zepto"
+        ],
+        "mr": [
+          "किराणा"
+        ],
+        "bn": [
+          "মুদিখানা ডেলিভারি"
+        ],
+        "ta": [
+          "மளிகை"
+        ],
+        "te": [
+          "కిరాణా సరుకులు"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "packers_movers",
+      "group": "delivery_logistics",
+      "ncoCode": "9333",
+      "icon": "truck-delivery",
+      "sortOrder": 4,
+      "names": {
+        "en": "Packers & movers",
+        "hi": "पैकर्स और मूवर्स",
+        "mr": "पॅकर्स आणि मूव्हर्स",
+        "bn": "প্যাকার্স ও মুভার্স",
+        "ta": "பேக்கர்ஸ் & மூவர்ஸ்",
+        "te": "ప్యాకర్స్ & మూవర్స్"
+      },
+      "synonyms": {
+        "en": [
+          "shifting",
+          "house shifting",
+          "relocation"
+        ],
+        "hi": [
+          "सामान शिफ्ट करना",
+          "शिफ्टिंग",
+          "shifting",
+          "packers movers"
+        ],
+        "mr": [
+          "सामान हलवणे"
+        ],
+        "bn": [
+          "বাড়ি বদল"
+        ],
+        "ta": [
+          "வீடு மாற்றம்"
+        ],
+        "te": [
+          "ఇల్లు మార్పు"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "loader",
+      "group": "delivery_logistics",
+      "ncoCode": "9333",
+      "icon": "dolly",
+      "sortOrder": 5,
+      "names": {
+        "en": "Loader / helper",
+        "hi": "लोडर / हेल्पर",
+        "mr": "हमाल",
+        "bn": "কুলি / হেল্পার",
+        "ta": "சுமை தூக்குபவர்",
+        "te": "హమాలీ"
+      },
+      "synonyms": {
+        "en": [
+          "loading unloading",
+          "porter",
+          "coolie"
+        ],
+        "hi": [
+          "पल्लेदार",
+          "हम्माल",
+          "कुली",
+          "loader",
+          "palledar",
+          "hammal",
+          "coolie"
+        ],
+        "mr": [
+          "हमाली",
+          "लोडर"
+        ],
+        "bn": [
+          "কুলি",
+          "মাল তোলা"
+        ],
+        "ta": [
+          "கூலி",
+          "லோடுமேன்"
+        ],
+        "te": [
+          "లోడర్",
+          "కూలీ"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "warehouse_worker",
+      "group": "delivery_logistics",
+      "ncoCode": "9321",
+      "icon": "warehouse",
+      "sortOrder": 6,
+      "names": {
+        "en": "Warehouse worker",
+        "hi": "गोदाम कर्मचारी",
+        "mr": "गोदाम कामगार",
+        "bn": "গুদাম কর্মী",
+        "ta": "கிடங்கு தொழிலாளி",
+        "te": "గోదాము కార్మికుడు"
+      },
+      "synonyms": {
+        "en": [
+          "packing",
+          "picker",
+          "godown work"
+        ],
+        "hi": [
+          "गोदाम का काम",
+          "पैकिंग",
+          "godown",
+          "packing",
+          "warehouse"
+        ],
+        "mr": [
+          "पॅकिंग काम"
+        ],
+        "bn": [
+          "প্যাকিং"
+        ],
+        "ta": [
+          "பேக்கிங்"
+        ],
+        "te": [
+          "ప్యాకింగ్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "maid",
+      "group": "domestic_help",
+      "ncoCode": "9111",
+      "icon": "home-heart",
+      "sortOrder": 1,
+      "names": {
+        "en": "Domestic help",
+        "hi": "घरेलू कामगार",
+        "mr": "घरकामगार",
+        "bn": "গৃহকর্মী",
+        "ta": "வீட்டு வேலையாள்",
+        "te": "ఇంటి పనిమనిషి"
+      },
+      "synonyms": {
+        "en": [
+          "maid",
+          "house help",
+          "bai",
+          "servant"
+        ],
+        "hi": [
+          "कामवाली बाई",
+          "नौकरानी",
+          "बर्तन-झाड़ू",
+          "kaamwali",
+          "bai",
+          "maid"
+        ],
+        "mr": [
+          "मोलकरीण",
+          "कामवाली"
+        ],
+        "bn": [
+          "কাজের মাসি",
+          "কাজের লোক"
+        ],
+        "ta": [
+          "வேலைக்காரி",
+          "பணிப்பெண்"
+        ],
+        "te": [
+          "పనిమనిషి"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "cook",
+      "group": "domestic_help",
+      "ncoCode": "5120",
+      "icon": "chef-hat",
+      "sortOrder": 2,
+      "names": {
+        "en": "Cook",
+        "hi": "रसोइया",
+        "mr": "स्वयंपाकी",
+        "bn": "রাঁধুনি",
+        "ta": "சமையல்காரர்",
+        "te": "వంటమనిషి"
+      },
+      "synonyms": {
+        "en": [
+          "chef",
+          "home cook",
+          "khana banana"
+        ],
+        "hi": [
+          "खाना बनाने वाला",
+          "कुक",
+          "महाराज",
+          "cook",
+          "khana banane wala",
+          "maharaj"
+        ],
+        "mr": [
+          "स्वयंपाक",
+          "आचारी"
+        ],
+        "bn": [
+          "রান্নার লোক",
+          "কুক"
+        ],
+        "ta": [
+          "சமையல்",
+          "குக்"
+        ],
+        "te": [
+          "వంటవాడు",
+          "కుక్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "babysitter",
+      "group": "domestic_help",
+      "ncoCode": "5311",
+      "icon": "baby-face-outline",
+      "sortOrder": 3,
+      "names": {
+        "en": "Babysitter / nanny",
+        "hi": "आया / बेबीसिटर",
+        "mr": "आया / बेबीसिटर",
+        "bn": "আয়া / শিশু পরিচর্যাকারী",
+        "ta": "குழந்தை பராமரிப்பாளர்",
+        "te": "ఆయా / బేబీ సిట్టర్"
+      },
+      "synonyms": {
+        "en": [
+          "nanny",
+          "child care",
+          "japa"
+        ],
+        "hi": [
+          "आया",
+          "बच्चा संभालना",
+          "aaya",
+          "babysitter",
+          "japa"
+        ],
+        "mr": [
+          "मुलांचा सांभाळ"
+        ],
+        "bn": [
+          "বেবি সিটার"
+        ],
+        "ta": [
+          "ஆயா"
+        ],
+        "te": [
+          "పిల్లల సంరక్షణ"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "laundry",
+      "group": "domestic_help",
+      "ncoCode": "9121",
+      "icon": "iron",
+      "sortOrder": 4,
+      "names": {
+        "en": "Laundry & ironing",
+        "hi": "धुलाई और इस्त्री",
+        "mr": "धुलाई आणि इस्त्री",
+        "bn": "কাপড় কাচা ও ইস্ত্রি",
+        "ta": "சலவை & இஸ்திரி",
+        "te": "బట్టలు ఉతకడం & ఇస్త్రీ"
+      },
+      "synonyms": {
+        "en": [
+          "dhobi",
+          "ironing",
+          "washerman"
+        ],
+        "hi": [
+          "धोबी",
+          "प्रेस वाला",
+          "इस्त्री",
+          "dhobi",
+          "press wala"
+        ],
+        "mr": [
+          "परीट",
+          "इस्त्रीवाला"
+        ],
+        "bn": [
+          "ধোপা"
+        ],
+        "ta": [
+          "வண்ணான்",
+          "இஸ்திரி"
+        ],
+        "te": [
+          "చాకలి",
+          "ఇస్త్రీ"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "car_washing",
+      "group": "domestic_help",
+      "ncoCode": "9122",
+      "icon": "car-wash",
+      "sortOrder": 5,
+      "names": {
+        "en": "Car washing",
+        "hi": "गाड़ी धुलाई",
+        "mr": "गाडी धुणे",
+        "bn": "গাড়ি ধোয়া",
+        "ta": "கார் கழுவுதல்",
+        "te": "కార్ వాషింగ్"
+      },
+      "synonyms": {
+        "en": [
+          "car cleaning",
+          "car wash"
+        ],
+        "hi": [
+          "कार वॉश",
+          "गाड़ी साफ़ करना",
+          "car wash",
+          "gaadi dhona"
+        ],
+        "mr": [
+          "कार वॉश"
+        ],
+        "bn": [
+          "কার ওয়াশ"
+        ],
+        "ta": [
+          "கார் வாஷ்"
+        ],
+        "te": [
+          "కార్ క్లీనింగ్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "caregiver",
+      "group": "care_health",
+      "ncoCode": "5322",
+      "icon": "account-heart",
+      "sortOrder": 1,
+      "names": {
+        "en": "Elderly caregiver",
+        "hi": "बुज़ुर्गों की देखभाल",
+        "mr": "वृद्धांची काळजी",
+        "bn": "বয়স্কদের পরিচর্যা",
+        "ta": "முதியோர் பராமரிப்பாளர்",
+        "te": "వృద్ధుల సంరక్షకులు"
+      },
+      "synonyms": {
+        "en": [
+          "elder care",
+          "attendant",
+          "old age care"
+        ],
+        "hi": [
+          "बुज़ुर्ग सेवा",
+          "केयरटेकर",
+          "caretaker",
+          "elder care"
+        ],
+        "mr": [
+          "केअरटेकर"
+        ],
+        "bn": [
+          "কেয়ারটেকার"
+        ],
+        "ta": [
+          "கேர்டேக்கர்"
+        ],
+        "te": [
+          "కేర్‌టేకర్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "patient_care",
+      "group": "care_health",
+      "ncoCode": "5321",
+      "icon": "hospital-box",
+      "sortOrder": 2,
+      "names": {
+        "en": "Patient care attendant",
+        "hi": "मरीज़ की देखभाल",
+        "mr": "रुग्ण सेवक",
+        "bn": "রোগীর পরিচর্যাকারী",
+        "ta": "நோயாளி பராமரிப்பாளர்",
+        "te": "రోగి సహాయకులు"
+      },
+      "synonyms": {
+        "en": [
+          "patient attendant",
+          "ward boy",
+          "hospital attendant"
+        ],
+        "hi": [
+          "मरीज़ सेवा",
+          "वार्ड बॉय",
+          "ward boy",
+          "attendant",
+          "marij ki dekhbhal"
+        ],
+        "mr": [
+          "वॉर्ड बॉय"
+        ],
+        "bn": [
+          "ওয়ার্ড বয়",
+          "আয়া"
+        ],
+        "ta": [
+          "வார்டு பாய்"
+        ],
+        "te": [
+          "వార్డ్ బాయ్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "home_nurse",
+      "group": "care_health",
+      "ncoCode": "3221",
+      "icon": "medical-bag",
+      "sortOrder": 3,
+      "names": {
+        "en": "Home nurse",
+        "hi": "होम नर्स",
+        "mr": "होम नर्स",
+        "bn": "হোম নার্স",
+        "ta": "வீட்டு செவிலியர்",
+        "te": "హోమ్ నర్స్"
+      },
+      "synonyms": {
+        "en": [
+          "nurse",
+          "nursing care",
+          "injection"
+        ],
+        "hi": [
+          "नर्स",
+          "नर्सिंग",
+          "nurse",
+          "nursing"
+        ],
+        "mr": [
+          "परिचारिका",
+          "नर्स"
+        ],
+        "bn": [
+          "নার্স",
+          "সেবিকা"
+        ],
+        "ta": [
+          "நர்ஸ்"
+        ],
+        "te": [
+          "నర్సు"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "physiotherapist",
+      "group": "care_health",
+      "ncoCode": "2264",
+      "icon": "human",
+      "sortOrder": 4,
+      "names": {
+        "en": "Physiotherapist",
+        "hi": "फ़िज़ियोथेरेपिस्ट",
+        "mr": "फिजिओथेरपिस्ट",
+        "bn": "ফিজিওথেরাপিস্ট",
+        "ta": "பிசியோதெரபிஸ்ட்",
+        "te": "ఫిజియోథెరపిస్ట్"
+      },
+      "synonyms": {
+        "en": [
+          "physio",
+          "physiotherapy"
+        ],
+        "hi": [
+          "फिज़ियो",
+          "physio",
+          "physiotherapy"
+        ],
+        "mr": [
+          "फिजिओ"
+        ],
+        "bn": [
+          "ফিজিও"
+        ],
+        "ta": [
+          "பிசியோ"
+        ],
+        "te": [
+          "ఫిజియో"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "beautician",
+      "group": "beauty_wellness",
+      "ncoCode": "5142",
+      "icon": "lipstick",
+      "sortOrder": 1,
+      "names": {
+        "en": "Beautician",
+        "hi": "ब्यूटीशियन",
+        "mr": "ब्युटिशियन",
+        "bn": "বিউটিশিয়ান",
+        "ta": "அழகுக்கலை நிபுணர்",
+        "te": "బ్యూటీషియన్"
+      },
+      "synonyms": {
+        "en": [
+          "beauty parlour",
+          "facial",
+          "waxing",
+          "threading"
+        ],
+        "hi": [
+          "ब्यूटी पार्लर",
+          "फेशियल",
+          "parlour",
+          "beauty parlour",
+          "facial"
+        ],
+        "mr": [
+          "ब्युटी पार्लर"
+        ],
+        "bn": [
+          "পার্লার"
+        ],
+        "ta": [
+          "பியூட்டி பார்லர்"
+        ],
+        "te": [
+          "బ్యూటీ పార్లర్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "barber",
+      "group": "beauty_wellness",
+      "ncoCode": "5141",
+      "icon": "content-cut",
+      "sortOrder": 2,
+      "names": {
+        "en": "Barber / hairdresser",
+        "hi": "नाई / हेयरड्रेसर",
+        "mr": "न्हावी / हेअरड्रेसर",
+        "bn": "নাপিত / হেয়ারড্রেসার",
+        "ta": "முடி திருத்துபவர்",
+        "te": "క్షురకుడు / హెయిర్‌డ్రెస్సర్"
+      },
+      "synonyms": {
+        "en": [
+          "haircut",
+          "salon",
+          "hair stylist"
+        ],
+        "hi": [
+          "नाई",
+          "हजाम",
+          "बाल काटना",
+          "nai",
+          "hajam",
+          "haircut",
+          "salon"
+        ],
+        "mr": [
+          "केस कापणे",
+          "सलून"
+        ],
+        "bn": [
+          "চুল কাটা",
+          "সেলুন"
+        ],
+        "ta": [
+          "சலூன்",
+          "முடி வெட்டுதல்"
+        ],
+        "te": [
+          "మంగలి",
+          "సెలూన్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "mehendi_artist",
+      "group": "beauty_wellness",
+      "ncoCode": null,
+      "icon": "hand-back-right",
+      "sortOrder": 3,
+      "names": {
+        "en": "Mehendi artist",
+        "hi": "मेहंदी आर्टिस्ट",
+        "mr": "मेहंदी कलाकार",
+        "bn": "মেহেন্দি শিল্পী",
+        "ta": "மருதாணி கலைஞர்",
+        "te": "మెహందీ కళాకారులు"
+      },
+      "synonyms": {
+        "en": [
+          "henna artist",
+          "mehndi"
+        ],
+        "hi": [
+          "मेहंदी वाली",
+          "मेहंदी लगाना",
+          "mehndi",
+          "mehendi wali"
+        ],
+        "mr": [
+          "मेंदी"
+        ],
+        "bn": [
+          "মেহেদি"
+        ],
+        "ta": [
+          "மெஹந்தி"
+        ],
+        "te": [
+          "గోరింటాకు"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "makeup_artist",
+      "group": "beauty_wellness",
+      "ncoCode": "5142",
+      "icon": "brush",
+      "sortOrder": 4,
+      "names": {
+        "en": "Makeup artist",
+        "hi": "मेकअप आर्टिस्ट",
+        "mr": "मेकअप आर्टिस्ट",
+        "bn": "মেকআপ আর্টিস্ট",
+        "ta": "ஒப்பனை கலைஞர்",
+        "te": "మేకప్ ఆర్టిస్ట్"
+      },
+      "synonyms": {
+        "en": [
+          "bridal makeup",
+          "makeup"
+        ],
+        "hi": [
+          "मेकअप",
+          "दुल्हन मेकअप",
+          "makeup",
+          "bridal makeup"
+        ],
+        "mr": [
+          "मेकअप"
+        ],
+        "bn": [
+          "মেকআপ"
+        ],
+        "ta": [
+          "மேக்கப்"
+        ],
+        "te": [
+          "మేకప్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "massage_therapist",
+      "group": "beauty_wellness",
+      "ncoCode": null,
+      "icon": "spa",
+      "sortOrder": 5,
+      "names": {
+        "en": "Massage therapist",
+        "hi": "मालिश / मसाज थेरेपिस्ट",
+        "mr": "मालिश / मसाज थेरपिस्ट",
+        "bn": "মালিশ / ম্যাসাজ থেরাপিস্ট",
+        "ta": "மசாஜ் சிகிச்சையாளர்",
+        "te": "మసాజ్ థెరపిస్ట్"
+      },
+      "synonyms": {
+        "en": [
+          "massage",
+          "spa",
+          "body massage"
+        ],
+        "hi": [
+          "मालिश वाला",
+          "मसाज",
+          "malish",
+          "massage"
+        ],
+        "mr": [
+          "मालिश"
+        ],
+        "bn": [
+          "মালিশ"
+        ],
+        "ta": [
+          "மசாஜ்"
+        ],
+        "te": [
+          "మర్దన"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "fitness_trainer",
+      "group": "beauty_wellness",
+      "ncoCode": "3423",
+      "icon": "yoga",
+      "sortOrder": 6,
+      "names": {
+        "en": "Yoga / fitness trainer",
+        "hi": "योग / फ़िटनेस ट्रेनर",
+        "mr": "योग / फिटनेस ट्रेनर",
+        "bn": "যোগ / ফিটনেস প্রশিক্ষক",
+        "ta": "யோகா / உடற்பயிற்சி பயிற்சியாளர்",
+        "te": "యోగా / ఫిట్‌నెస్ ట్రైనర్"
+      },
+      "synonyms": {
+        "en": [
+          "yoga teacher",
+          "gym trainer",
+          "personal trainer"
+        ],
+        "hi": [
+          "योग शिक्षक",
+          "जिम ट्रेनर",
+          "yoga teacher",
+          "gym trainer"
+        ],
+        "mr": [
+          "योग शिक्षक"
+        ],
+        "bn": [
+          "যোগ শিক্ষক"
+        ],
+        "ta": [
+          "யோகா ஆசிரியர்"
+        ],
+        "te": [
+          "యోగా టీచర్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "catering",
+      "group": "food_hospitality",
+      "ncoCode": "5131",
+      "icon": "silverware-fork-knife",
+      "sortOrder": 1,
+      "names": {
+        "en": "Catering staff",
+        "hi": "कैटरिंग स्टाफ़",
+        "mr": "केटरिंग कर्मचारी",
+        "bn": "ক্যাটারিং কর্মী",
+        "ta": "கேட்டரிங் பணியாளர்",
+        "te": "క్యాటరింగ్ సిబ్బంది"
+      },
+      "synonyms": {
+        "en": [
+          "caterer",
+          "halwai",
+          "wedding catering"
+        ],
+        "hi": [
+          "हलवाई",
+          "कैटरर",
+          "halwai",
+          "catering"
+        ],
+        "mr": [
+          "आचारी",
+          "केटरर"
+        ],
+        "bn": [
+          "ক্যাটারার"
+        ],
+        "ta": [
+          "சமையல் ஒப்பந்தம்",
+          "கேட்டரிங்"
+        ],
+        "te": [
+          "క్యాటరర్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "waiter",
+      "group": "food_hospitality",
+      "ncoCode": "5131",
+      "icon": "room-service",
+      "sortOrder": 2,
+      "names": {
+        "en": "Waiter",
+        "hi": "वेटर",
+        "mr": "वेटर",
+        "bn": "ওয়েটার",
+        "ta": "பரிமாறுபவர்",
+        "te": "వెయిటర్"
+      },
+      "synonyms": {
+        "en": [
+          "server",
+          "steward"
+        ],
+        "hi": [
+          "बैरा",
+          "वेटर",
+          "waiter",
+          "bera"
+        ],
+        "mr": [
+          "वाढपी"
+        ],
+        "bn": [
+          "পরিবেশক"
+        ],
+        "ta": [
+          "வெயிட்டர்",
+          "சர்வர்"
+        ],
+        "te": [
+          "సర్వర్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "street_food_vendor",
+      "group": "food_hospitality",
+      "ncoCode": "5212",
+      "icon": "food-variant",
+      "sortOrder": 3,
+      "names": {
+        "en": "Street food vendor",
+        "hi": "ठेले / स्ट्रीट फ़ूड विक्रेता",
+        "mr": "रस्त्यावरील खाद्य विक्रेता",
+        "bn": "রাস্তার খাবার বিক্রেতা",
+        "ta": "தெருவோர உணவு விற்பனையாளர்",
+        "te": "వీధి ఆహార విక్రేత"
+      },
+      "synonyms": {
+        "en": [
+          "food stall",
+          "hawker",
+          "chaiwala"
+        ],
+        "hi": [
+          "ठेला",
+          "चाय वाला",
+          "खोमचा",
+          "thela",
+          "chai wala",
+          "rehri"
+        ],
+        "mr": [
+          "गाडीवाला",
+          "चहावाला"
+        ],
+        "bn": [
+          "ফেরিওয়ালা",
+          "চা-ওয়ালা"
+        ],
+        "ta": [
+          "தள்ளுவண்டி",
+          "டீக்கடை"
+        ],
+        "te": [
+          "తోపుడు బండి",
+          "టీ కొట్టు"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "hotel_housekeeping",
+      "group": "food_hospitality",
+      "ncoCode": "9112",
+      "icon": "bed",
+      "sortOrder": 4,
+      "names": {
+        "en": "Hotel housekeeping",
+        "hi": "होटल हाउसकीपिंग",
+        "mr": "हॉटेल हाउसकीपिंग",
+        "bn": "হোটেল হাউসকিপিং",
+        "ta": "ஹோட்டல் ஹவுஸ்கீப்பிங்",
+        "te": "హోటల్ హౌస్‌కీపింగ్"
+      },
+      "synonyms": {
+        "en": [
+          "room boy",
+          "room attendant"
+        ],
+        "hi": [
+          "रूम बॉय",
+          "होटल सफ़ाई",
+          "room boy",
+          "housekeeping"
+        ],
+        "mr": [
+          "रूम बॉय"
+        ],
+        "bn": [
+          "রুম বয়"
+        ],
+        "ta": [
+          "ரூம் பாய்"
+        ],
+        "te": [
+          "రూమ్ బాయ్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "baker",
+      "group": "food_hospitality",
+      "ncoCode": "7512",
+      "icon": "bread-slice",
+      "sortOrder": 5,
+      "names": {
+        "en": "Baker",
+        "hi": "बेकर",
+        "mr": "बेकर",
+        "bn": "বেকারি কর্মী",
+        "ta": "பேக்கர்",
+        "te": "బేకర్"
+      },
+      "synonyms": {
+        "en": [
+          "bakery",
+          "cake maker"
+        ],
+        "hi": [
+          "बेकरी",
+          "केक बनाना",
+          "bakery",
+          "cake"
+        ],
+        "mr": [
+          "बेकरी"
+        ],
+        "bn": [
+          "বেকারি"
+        ],
+        "ta": [
+          "பேக்கரி"
+        ],
+        "te": [
+          "బేకరీ"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "kitchen_helper",
+      "group": "food_hospitality",
+      "ncoCode": "9412",
+      "icon": "pot-steam",
+      "sortOrder": 6,
+      "names": {
+        "en": "Kitchen helper",
+        "hi": "रसोई सहायक",
+        "mr": "स्वयंपाकघर मदतनीस",
+        "bn": "রান্নাঘরের সাহায্যকারী",
+        "ta": "சமையலறை உதவியாளர்",
+        "te": "వంటగది సహాయకులు"
+      },
+      "synonyms": {
+        "en": [
+          "dishwasher",
+          "kitchen staff",
+          "cleaning utensils"
+        ],
+        "hi": [
+          "बर्तन धोना",
+          "किचन हेल्पर",
+          "kitchen helper",
+          "bartan"
+        ],
+        "mr": [
+          "भांडी घासणे"
+        ],
+        "bn": [
+          "বাসন মাজা"
+        ],
+        "ta": [
+          "பாத்திரம் கழுவுதல்"
+        ],
+        "te": [
+          "గిన్నెలు తోమడం"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "event_staff",
+      "group": "events",
+      "ncoCode": null,
+      "icon": "party-popper",
+      "sortOrder": 1,
+      "names": {
+        "en": "Event staff",
+        "hi": "इवेंट स्टाफ़",
+        "mr": "इव्हेंट कर्मचारी",
+        "bn": "ইভেন্ট কর্মী",
+        "ta": "நிகழ்ச்சி பணியாளர்",
+        "te": "ఈవెంట్ సిబ్బంది"
+      },
+      "synonyms": {
+        "en": [
+          "event helper",
+          "wedding staff",
+          "promoter"
+        ],
+        "hi": [
+          "शादी का काम",
+          "इवेंट हेल्पर",
+          "event staff",
+          "shaadi"
+        ],
+        "mr": [
+          "लग्न काम"
+        ],
+        "bn": [
+          "বিয়েবাড়ির কাজ"
+        ],
+        "ta": [
+          "திருமண வேலை"
+        ],
+        "te": [
+          "పెళ్లి పనులు"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "photographer",
+      "group": "events",
+      "ncoCode": "3431",
+      "icon": "camera",
+      "sortOrder": 2,
+      "names": {
+        "en": "Photographer",
+        "hi": "फ़ोटोग्राफ़र",
+        "mr": "छायाचित्रकार",
+        "bn": "ফটোগ্রাফার",
+        "ta": "புகைப்படக் கலைஞர்",
+        "te": "ఫోటోగ్రాఫర్"
+      },
+      "synonyms": {
+        "en": [
+          "photography",
+          "wedding photographer"
+        ],
+        "hi": [
+          "फ़ोटो खींचना",
+          "फोटोग्राफर",
+          "photographer",
+          "photo"
+        ],
+        "mr": [
+          "फोटोग्राफर"
+        ],
+        "bn": [
+          "ছবি তোলা"
+        ],
+        "ta": [
+          "போட்டோகிராபர்"
+        ],
+        "te": [
+          "ఫోటోలు తీసేవారు"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "videographer",
+      "group": "events",
+      "ncoCode": "3521",
+      "icon": "video",
+      "sortOrder": 3,
+      "names": {
+        "en": "Videographer",
+        "hi": "वीडियोग्राफ़र",
+        "mr": "व्हिडिओग्राफर",
+        "bn": "ভিডিওগ্রাফার",
+        "ta": "வீடியோ கலைஞர்",
+        "te": "వీడియోగ్రాఫర్"
+      },
+      "synonyms": {
+        "en": [
+          "video shooting",
+          "cameraman",
+          "video editing"
+        ],
+        "hi": [
+          "वीडियो वाला",
+          "कैमरामैन",
+          "video",
+          "cameraman"
+        ],
+        "mr": [
+          "कॅमेरामन"
+        ],
+        "bn": [
+          "ক্যামেরাম্যান"
+        ],
+        "ta": [
+          "கேமராமேன்"
+        ],
+        "te": [
+          "కెమెరామెన్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "dj_sound",
+      "group": "events",
+      "ncoCode": "3521",
+      "icon": "speaker",
+      "sortOrder": 4,
+      "names": {
+        "en": "DJ & sound",
+        "hi": "डीजे और साउंड",
+        "mr": "डीजे आणि साउंड",
+        "bn": "ডিজে ও সাউন্ড",
+        "ta": "டிஜே & ஒலி அமைப்பு",
+        "te": "డీజే & సౌండ్"
+      },
+      "synonyms": {
+        "en": [
+          "dj",
+          "sound system",
+          "light and sound"
+        ],
+        "hi": [
+          "डीजे वाला",
+          "साउंड सिस्टम",
+          "dj",
+          "sound"
+        ],
+        "mr": [
+          "डीजे"
+        ],
+        "bn": [
+          "ডিজে"
+        ],
+        "ta": [
+          "டிஜே"
+        ],
+        "te": [
+          "డీజే"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "decorator",
+      "group": "events",
+      "ncoCode": "3432",
+      "icon": "balloon",
+      "sortOrder": 5,
+      "names": {
+        "en": "Decorator",
+        "hi": "डेकोरेटर / सजावट",
+        "mr": "सजावटकार",
+        "bn": "ডেকোরেটর",
+        "ta": "அலங்காரம் செய்பவர்",
+        "te": "డెకరేటర్"
+      },
+      "synonyms": {
+        "en": [
+          "flower decoration",
+          "balloon decoration",
+          "event decor"
+        ],
+        "hi": [
+          "सजावट",
+          "फूल सजावट",
+          "decoration",
+          "decorator"
+        ],
+        "mr": [
+          "सजावट"
+        ],
+        "bn": [
+          "সাজসজ্জা"
+        ],
+        "ta": [
+          "அலங்காரம்"
+        ],
+        "te": [
+          "అలంకరణ"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "tent_pandal",
+      "group": "events",
+      "ncoCode": null,
+      "icon": "tent",
+      "sortOrder": 6,
+      "names": {
+        "en": "Tent & pandal work",
+        "hi": "टेंट और पंडाल का काम",
+        "mr": "मंडप आणि टेंट काम",
+        "bn": "প্যান্ডেল ও তাঁবুর কাজ",
+        "ta": "பந்தல் வேலை",
+        "te": "టెంట్ & పందిరి పని"
+      },
+      "synonyms": {
+        "en": [
+          "tent house",
+          "shamiana",
+          "stage setup"
+        ],
+        "hi": [
+          "टेंट हाउस",
+          "शामियाना",
+          "tent wala",
+          "pandal"
+        ],
+        "mr": [
+          "मंडप"
+        ],
+        "bn": [
+          "প্যান্ডেল"
+        ],
+        "ta": [
+          "பந்தல்"
+        ],
+        "te": [
+          "షామియానా"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "tailor",
+      "group": "tailoring_crafts",
+      "ncoCode": "7531",
+      "icon": "needle",
+      "sortOrder": 1,
+      "names": {
+        "en": "Tailor",
+        "hi": "दर्ज़ी",
+        "mr": "शिंपी",
+        "bn": "দর্জি",
+        "ta": "தையல்காரர்",
+        "te": "దర్జీ"
+      },
+      "synonyms": {
+        "en": [
+          "stitching",
+          "alteration",
+          "sewing"
+        ],
+        "hi": [
+          "सिलाई",
+          "दर्जी",
+          "darzi",
+          "silai",
+          "tailor"
+        ],
+        "mr": [
+          "टेलर",
+          "शिवणकाम"
+        ],
+        "bn": [
+          "সেলাই"
+        ],
+        "ta": [
+          "டெய்லர்",
+          "தையல்"
+        ],
+        "te": [
+          "టైలర్",
+          "కుట్టు పని"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "embroidery",
+      "group": "tailoring_crafts",
+      "ncoCode": "7533",
+      "icon": "flower-pollen",
+      "sortOrder": 2,
+      "names": {
+        "en": "Embroidery / zari work",
+        "hi": "कढ़ाई / ज़री का काम",
+        "mr": "भरतकाम / जरीकाम",
+        "bn": "এমব্রয়ডারি / জরির কাজ",
+        "ta": "எம்பிராய்டரி / ஜரிகை வேலை",
+        "te": "ఎంబ్రాయిడరీ / జరీ పని"
+      },
+      "synonyms": {
+        "en": [
+          "zardozi",
+          "aari work",
+          "embroidery"
+        ],
+        "hi": [
+          "कढ़ाई",
+          "ज़रदोज़ी",
+          "आरी का काम",
+          "kadhai",
+          "zari",
+          "zardozi"
+        ],
+        "mr": [
+          "भरतकाम"
+        ],
+        "bn": [
+          "সূচিকর্ম",
+          "জরি"
+        ],
+        "ta": [
+          "ஆரி வேலை"
+        ],
+        "te": [
+          "మగ్గం వర్క్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "cobbler",
+      "group": "tailoring_crafts",
+      "ncoCode": "7536",
+      "icon": "shoe-formal",
+      "sortOrder": 3,
+      "names": {
+        "en": "Cobbler / shoe repair",
+        "hi": "मोची",
+        "mr": "चांभार",
+        "bn": "মুচি",
+        "ta": "செருப்பு தைப்பவர்",
+        "te": "చెప్పులు కుట్టేవారు"
+      },
+      "synonyms": {
+        "en": [
+          "shoe repair",
+          "shoemaker"
+        ],
+        "hi": [
+          "जूते ठीक करना",
+          "mochi",
+          "joota repair"
+        ],
+        "mr": [
+          "चप्पल दुरुस्ती"
+        ],
+        "bn": [
+          "জুতো সারাই"
+        ],
+        "ta": [
+          "செருப்பு பழுது"
+        ],
+        "te": [
+          "చెప్పుల రిపేర్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "potter",
+      "group": "tailoring_crafts",
+      "ncoCode": "7314",
+      "icon": "pot-mix",
+      "sortOrder": 4,
+      "names": {
+        "en": "Potter",
+        "hi": "कुम्हार",
+        "mr": "कुंभार",
+        "bn": "কুমোর",
+        "ta": "குயவர்",
+        "te": "కుమ్మరి"
+      },
+      "synonyms": {
+        "en": [
+          "pottery",
+          "clay work"
+        ],
+        "hi": [
+          "मिट्टी के बर्तन",
+          "kumhar",
+          "pottery"
+        ],
+        "mr": [
+          "मातीकाम"
+        ],
+        "bn": [
+          "মাটির কাজ"
+        ],
+        "ta": [
+          "மண்பாண்டம்"
+        ],
+        "te": [
+          "మట్టి పాత్రలు"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "weaver",
+      "group": "tailoring_crafts",
+      "ncoCode": "7318",
+      "icon": "texture-box",
+      "sortOrder": 5,
+      "names": {
+        "en": "Handloom weaver",
+        "hi": "हथकरघा बुनकर",
+        "mr": "हातमाग विणकर",
+        "bn": "তাঁতি",
+        "ta": "கைத்தறி நெசவாளர்",
+        "te": "చేనేత కార్మికుడు"
+      },
+      "synonyms": {
+        "en": [
+          "weaving",
+          "handloom",
+          "powerloom"
+        ],
+        "hi": [
+          "बुनकर",
+          "बुनाई",
+          "जुलाहा",
+          "bunkar",
+          "handloom"
+        ],
+        "mr": [
+          "विणकाम"
+        ],
+        "bn": [
+          "তাঁত"
+        ],
+        "ta": [
+          "நெசவு"
+        ],
+        "te": [
+          "నేత"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "upholstery",
+      "group": "tailoring_crafts",
+      "ncoCode": "7534",
+      "icon": "sofa-single",
+      "sortOrder": 6,
+      "names": {
+        "en": "Upholstery",
+        "hi": "सोफ़ा / गद्दी का काम",
+        "mr": "सोफा / गादी काम",
+        "bn": "সোফা ও গদির কাজ",
+        "ta": "சோபா அப்ஹோல்ஸ்டரி",
+        "te": "సోఫా అప్హోల్స్టరీ"
+      },
+      "synonyms": {
+        "en": [
+          "sofa repair",
+          "cushion work",
+          "curtain stitching"
+        ],
+        "hi": [
+          "सोफ़ा रिपेयर",
+          "गद्दी बनाना",
+          "sofa repair",
+          "gaddi"
+        ],
+        "mr": [
+          "सोफा दुरुस्ती"
+        ],
+        "bn": [
+          "সোফা সারাই"
+        ],
+        "ta": [
+          "சோபா பழுது"
+        ],
+        "te": [
+          "సోఫా రిపేర్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "farm_labour",
+      "group": "agriculture",
+      "ncoCode": "9211",
+      "icon": "sprout",
+      "sortOrder": 1,
+      "names": {
+        "en": "Farm labourer",
+        "hi": "खेत मज़दूर",
+        "mr": "शेतमजूर",
+        "bn": "খেতমজুর",
+        "ta": "விவசாயக் கூலி",
+        "te": "వ్యవసాయ కూలీ"
+      },
+      "synonyms": {
+        "en": [
+          "farm work",
+          "harvesting",
+          "field labour"
+        ],
+        "hi": [
+          "खेती का काम",
+          "कटाई",
+          "kheti",
+          "khet majdoor",
+          "katai"
+        ],
+        "mr": [
+          "शेतीकाम"
+        ],
+        "bn": [
+          "চাষের কাজ"
+        ],
+        "ta": [
+          "வயல் வேலை"
+        ],
+        "te": [
+          "పొలం పని"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "tractor_driver",
+      "group": "agriculture",
+      "ncoCode": "8341",
+      "icon": "tractor",
+      "sortOrder": 2,
+      "names": {
+        "en": "Tractor driver",
+        "hi": "ट्रैक्टर ड्राइवर",
+        "mr": "ट्रॅक्टर चालक",
+        "bn": "ট্রাক্টর চালক",
+        "ta": "டிராக்டர் ஓட்டுநர்",
+        "te": "ట్రాక్టర్ డ్రైవర్"
+      },
+      "synonyms": {
+        "en": [
+          "tractor operator",
+          "harvester operator"
+        ],
+        "hi": [
+          "ट्रैक्टर चलाना",
+          "tractor driver"
+        ],
+        "mr": [
+          "ट्रॅक्टर ड्रायव्हर"
+        ],
+        "bn": [
+          "ট্রাক্টর ড্রাইভার"
+        ],
+        "ta": [
+          "டிராக்டர் டிரைவர்"
+        ],
+        "te": [
+          "ట్రాక్టర్ నడపడం"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "dairy_worker",
+      "group": "agriculture",
+      "ncoCode": "9212",
+      "icon": "cow",
+      "sortOrder": 3,
+      "names": {
+        "en": "Dairy & cattle care",
+        "hi": "डेयरी और पशुपालन",
+        "mr": "दुग्धव्यवसाय आणि पशुपालन",
+        "bn": "দুগ্ধ ও গবাদি পশু পালন",
+        "ta": "பால்பண்ணை & கால்நடை பராமரிப்பு",
+        "te": "పాడి & పశువుల సంరక్షణ"
+      },
+      "synonyms": {
+        "en": [
+          "milking",
+          "cattle",
+          "dairy farm"
+        ],
+        "hi": [
+          "दूध निकालना",
+          "पशुपालन",
+          "dairy",
+          "doodh",
+          "gaay bhains"
+        ],
+        "mr": [
+          "गाई म्हशी"
+        ],
+        "bn": [
+          "গরু পালন"
+        ],
+        "ta": [
+          "மாடு மேய்த்தல்"
+        ],
+        "te": [
+          "పశువుల పెంపకం"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "fishery_worker",
+      "group": "agriculture",
+      "ncoCode": "9216",
+      "icon": "fish",
+      "sortOrder": 4,
+      "names": {
+        "en": "Fishery worker",
+        "hi": "मछली पालन कर्मचारी",
+        "mr": "मत्स्यव्यवसाय कामगार",
+        "bn": "মৎস্যজীবী",
+        "ta": "மீன்பிடி தொழிலாளி",
+        "te": "మత్స్యకారుడు"
+      },
+      "synonyms": {
+        "en": [
+          "fisherman",
+          "fish farming"
+        ],
+        "hi": [
+          "मछुआरा",
+          "मछली पालन",
+          "machhli",
+          "fisherman"
+        ],
+        "mr": [
+          "मच्छीमार",
+          "कोळी"
+        ],
+        "bn": [
+          "জেলে",
+          "মাছ চাষ"
+        ],
+        "ta": [
+          "மீனவர்"
+        ],
+        "te": [
+          "చేపల వేట"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "security_guard",
+      "group": "security_facility",
+      "ncoCode": "5414",
+      "icon": "shield-account",
+      "sortOrder": 1,
+      "names": {
+        "en": "Security guard",
+        "hi": "सिक्योरिटी गार्ड",
+        "mr": "सुरक्षा रक्षक",
+        "bn": "নিরাপত্তারক্ষী",
+        "ta": "பாதுகாவலர்",
+        "te": "సెక్యూరిటీ గార్డ్"
+      },
+      "synonyms": {
+        "en": [
+          "guard",
+          "bouncer",
+          "security"
+        ],
+        "hi": [
+          "गार्ड",
+          "सुरक्षा गार्ड",
+          "guard",
+          "security"
+        ],
+        "mr": [
+          "सिक्युरिटी गार्ड"
+        ],
+        "bn": [
+          "সিকিউরিটি গার্ড"
+        ],
+        "ta": [
+          "செக்யூரிட்டி"
+        ],
+        "te": [
+          "గార్డ్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "watchman",
+      "group": "security_facility",
+      "ncoCode": "5414",
+      "icon": "account-eye",
+      "sortOrder": 2,
+      "names": {
+        "en": "Watchman / chowkidar",
+        "hi": "चौकीदार",
+        "mr": "चौकीदार / वॉचमन",
+        "bn": "দারোয়ান",
+        "ta": "காவலாளி",
+        "te": "వాచ్‌మెన్"
+      },
+      "synonyms": {
+        "en": [
+          "chowkidar",
+          "gatekeeper",
+          "night guard"
+        ],
+        "hi": [
+          "चौकीदार",
+          "गेटकीपर",
+          "chowkidar",
+          "watchman"
+        ],
+        "mr": [
+          "वॉचमन",
+          "रखवालदार"
+        ],
+        "bn": [
+          "দারোয়ান",
+          "চৌকিদার"
+        ],
+        "ta": [
+          "வாட்ச்மேன்"
+        ],
+        "te": [
+          "కాపలాదారు"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "office_housekeeping",
+      "group": "security_facility",
+      "ncoCode": "9112",
+      "icon": "spray-bottle",
+      "sortOrder": 3,
+      "names": {
+        "en": "Office housekeeping",
+        "hi": "ऑफ़िस हाउसकीपिंग",
+        "mr": "ऑफिस हाउसकीपिंग",
+        "bn": "অফিস হাউসকিপিং",
+        "ta": "அலுவலக ஹவுஸ்கீப்பிங்",
+        "te": "ఆఫీస్ హౌస్‌కీపింగ్"
+      },
+      "synonyms": {
+        "en": [
+          "office cleaning",
+          "janitor",
+          "facility staff"
+        ],
+        "hi": [
+          "ऑफ़िस सफ़ाई",
+          "हाउसकीपिंग",
+          "housekeeping",
+          "office safai"
+        ],
+        "mr": [
+          "हाउसकीपिंग"
+        ],
+        "bn": [
+          "হাউসকিপিং"
+        ],
+        "ta": [
+          "ஹவுஸ்கீப்பிங்"
+        ],
+        "te": [
+          "హౌస్‌కీపింగ్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "sweeper",
+      "group": "security_facility",
+      "ncoCode": "9613",
+      "icon": "trash-can",
+      "sortOrder": 4,
+      "names": {
+        "en": "Sweeper / sanitation worker",
+        "hi": "सफ़ाई कर्मचारी",
+        "mr": "सफाई कामगार",
+        "bn": "ঝাড়ুদার / সাফাই কর্মী",
+        "ta": "துப்புரவு தொழிலாளி",
+        "te": "పారిశుద్ధ్య కార్మికుడు"
+      },
+      "synonyms": {
+        "en": [
+          "sanitation",
+          "garbage collection",
+          "sweeping"
+        ],
+        "hi": [
+          "झाड़ू लगाना",
+          "कूड़ा उठाना",
+          "safai karmchari",
+          "jhadu"
+        ],
+        "mr": [
+          "झाडू काम"
+        ],
+        "bn": [
+          "ঝাড়ু দেওয়া"
+        ],
+        "ta": [
+          "துப்புரவு"
+        ],
+        "te": [
+          "ఊడ్చడం"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "shop_assistant",
+      "group": "retail_office",
+      "ncoCode": "5223",
+      "icon": "storefront",
+      "sortOrder": 1,
+      "names": {
+        "en": "Shop assistant",
+        "hi": "दुकान सहायक",
+        "mr": "दुकान सहाय्यक",
+        "bn": "দোকান কর্মী",
+        "ta": "கடை உதவியாளர்",
+        "te": "షాప్ అసిస్టెంట్"
+      },
+      "synonyms": {
+        "en": [
+          "salesman",
+          "counter boy",
+          "shop helper"
+        ],
+        "hi": [
+          "दुकान पर काम",
+          "सेल्समैन",
+          "salesman",
+          "dukan ka kaam"
+        ],
+        "mr": [
+          "दुकानात काम"
+        ],
+        "bn": [
+          "দোকানের কাজ"
+        ],
+        "ta": [
+          "கடை வேலை"
+        ],
+        "te": [
+          "దుకాణం పని"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "sales_executive",
+      "group": "retail_office",
+      "ncoCode": "5243",
+      "icon": "briefcase",
+      "sortOrder": 2,
+      "names": {
+        "en": "Field sales executive",
+        "hi": "फ़ील्ड सेल्स एग्ज़िक्यूटिव",
+        "mr": "फील्ड सेल्स एक्झिक्युटिव्ह",
+        "bn": "ফিল্ড সেলস এক্সিকিউটিভ",
+        "ta": "கள விற்பனை நிர்வாகி",
+        "te": "ఫీల్డ్ సేల్స్ ఎగ్జిక్యూటివ్"
+      },
+      "synonyms": {
+        "en": [
+          "marketing",
+          "sales",
+          "field work"
+        ],
+        "hi": [
+          "मार्केटिंग",
+          "सेल्स",
+          "marketing",
+          "sales"
+        ],
+        "mr": [
+          "मार्केटिंग"
+        ],
+        "bn": [
+          "মার্কেটিং"
+        ],
+        "ta": [
+          "மார்க்கெட்டிங்"
+        ],
+        "te": [
+          "మార్కెటింగ్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "data_entry",
+      "group": "retail_office",
+      "ncoCode": "4132",
+      "icon": "keyboard",
+      "sortOrder": 3,
+      "names": {
+        "en": "Data entry operator",
+        "hi": "डेटा एंट्री ऑपरेटर",
+        "mr": "डेटा एंट्री ऑपरेटर",
+        "bn": "ডেটা এন্ট্রি অপারেটর",
+        "ta": "தரவு உள்ளீட்டாளர்",
+        "te": "డేటా ఎంట్రీ ఆపరేటర్"
+      },
+      "synonyms": {
+        "en": [
+          "computer operator",
+          "typing",
+          "typist"
+        ],
+        "hi": [
+          "कंप्यूटर ऑपरेटर",
+          "टाइपिंग",
+          "data entry",
+          "computer operator"
+        ],
+        "mr": [
+          "संगणक ऑपरेटर"
+        ],
+        "bn": [
+          "কম্পিউটার অপারেটর"
+        ],
+        "ta": [
+          "கம்ப்யூட்டர் ஆபரேட்டர்"
+        ],
+        "te": [
+          "కంప్యూటర్ ఆపరేటర్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "telecaller",
+      "group": "retail_office",
+      "ncoCode": "4222",
+      "icon": "headset",
+      "sortOrder": 4,
+      "names": {
+        "en": "Telecaller",
+        "hi": "टेलीकॉलर",
+        "mr": "टेलिकॉलर",
+        "bn": "টেলিকলার",
+        "ta": "தொலைபேசி அழைப்பாளர்",
+        "te": "టెలికాలర్"
+      },
+      "synonyms": {
+        "en": [
+          "call centre",
+          "customer care",
+          "bpo"
+        ],
+        "hi": [
+          "कॉल सेंटर",
+          "कस्टमर केयर",
+          "call center",
+          "telecalling"
+        ],
+        "mr": [
+          "कॉल सेंटर"
+        ],
+        "bn": [
+          "কল সেন্টার"
+        ],
+        "ta": [
+          "கால் சென்டர்"
+        ],
+        "te": [
+          "కాల్ సెంటర్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "office_assistant",
+      "group": "retail_office",
+      "ncoCode": null,
+      "icon": "account-tie",
+      "sortOrder": 5,
+      "names": {
+        "en": "Office assistant / peon",
+        "hi": "ऑफ़िस सहायक / चपरासी",
+        "mr": "ऑफिस सहाय्यक / शिपाई",
+        "bn": "অফিস সহকারী / পিয়ন",
+        "ta": "அலுவலக உதவியாளர்",
+        "te": "ఆఫీస్ అసిస్టెంట్ / ప్యూన్"
+      },
+      "synonyms": {
+        "en": [
+          "peon",
+          "office boy"
+        ],
+        "hi": [
+          "चपरासी",
+          "ऑफ़िस बॉय",
+          "peon",
+          "office boy"
+        ],
+        "mr": [
+          "शिपाई",
+          "ऑफिस बॉय"
+        ],
+        "bn": [
+          "পিয়ন"
+        ],
+        "ta": [
+          "பியூன்",
+          "ஆபீஸ் பாய்"
+        ],
+        "te": [
+          "ప్యూన్",
+          "ఆఫీస్ బాయ్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "cashier",
+      "group": "retail_office",
+      "ncoCode": "5230",
+      "icon": "cash-register",
+      "sortOrder": 6,
+      "names": {
+        "en": "Cashier",
+        "hi": "कैशियर",
+        "mr": "रोखपाल",
+        "bn": "ক্যাশিয়ার",
+        "ta": "காசாளர்",
+        "te": "క్యాషియర్"
+      },
+      "synonyms": {
+        "en": [
+          "billing",
+          "billing counter"
+        ],
+        "hi": [
+          "बिलिंग",
+          "कैश काउंटर",
+          "cashier",
+          "billing"
+        ],
+        "mr": [
+          "कॅशियर",
+          "बिलिंग"
+        ],
+        "bn": [
+          "বিলিং"
+        ],
+        "ta": [
+          "பில்லிங்"
+        ],
+        "te": [
+          "బిల్లింగ్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "receptionist",
+      "group": "retail_office",
+      "ncoCode": "4226",
+      "icon": "desk",
+      "sortOrder": 7,
+      "names": {
+        "en": "Receptionist",
+        "hi": "रिसेप्शनिस्ट",
+        "mr": "स्वागतिका",
+        "bn": "রিসেপশনিস্ট",
+        "ta": "வரவேற்பாளர்",
+        "te": "రిసెప్షనిస్ట్"
+      },
+      "synonyms": {
+        "en": [
+          "front desk",
+          "front office"
+        ],
+        "hi": [
+          "रिसेप्शन",
+          "फ्रंट डेस्क",
+          "reception",
+          "front desk"
+        ],
+        "mr": [
+          "रिसेप्शनिस्ट"
+        ],
+        "bn": [
+          "রিসেপশন"
+        ],
+        "ta": [
+          "ரிசெப்ஷனிஸ்ட்"
+        ],
+        "te": [
+          "రిసెప్షన్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "home_tutor",
+      "group": "education",
+      "ncoCode": "2359",
+      "icon": "school",
+      "sortOrder": 1,
+      "names": {
+        "en": "Home tutor",
+        "hi": "होम ट्यूटर",
+        "mr": "शिकवणी शिक्षक",
+        "bn": "গৃহশিক্ষক",
+        "ta": "வீட்டு ஆசிரியர்",
+        "te": "హోమ్ ట్యూటర్"
+      },
+      "synonyms": {
+        "en": [
+          "tuition",
+          "teacher",
+          "coaching"
+        ],
+        "hi": [
+          "ट्यूशन",
+          "मास्टर जी",
+          "tuition",
+          "teacher",
+          "padhana"
+        ],
+        "mr": [
+          "शिकवणी",
+          "ट्यूशन"
+        ],
+        "bn": [
+          "টিউশন",
+          "মাস্টারমশাই"
+        ],
+        "ta": [
+          "டியூஷன்"
+        ],
+        "te": [
+          "ట్యూషన్"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "music_teacher",
+      "group": "education",
+      "ncoCode": "2354",
+      "icon": "music",
+      "sortOrder": 2,
+      "names": {
+        "en": "Music teacher",
+        "hi": "संगीत शिक्षक",
+        "mr": "संगीत शिक्षक",
+        "bn": "সংগীত শিক্ষক",
+        "ta": "இசை ஆசிரியர்",
+        "te": "సంగీత ఉపాధ్యాయులు"
+      },
+      "synonyms": {
+        "en": [
+          "guitar teacher",
+          "singing teacher",
+          "tabla"
+        ],
+        "hi": [
+          "गाना सिखाना",
+          "गिटार टीचर",
+          "music teacher",
+          "sangeet"
+        ],
+        "mr": [
+          "गायन शिक्षक"
+        ],
+        "bn": [
+          "গানের মাস্টার"
+        ],
+        "ta": [
+          "பாட்டு ஆசிரியர்"
+        ],
+        "te": [
+          "సంగీతం నేర్పించేవారు"
+        ]
+      },
+      "disabledCities": []
+    },
+    {
+      "slug": "driving_instructor",
+      "group": "education",
+      "ncoCode": "5165",
+      "icon": "steering",
+      "sortOrder": 3,
+      "names": {
+        "en": "Driving instructor",
+        "hi": "ड्राइविंग इंस्ट्रक्टर",
+        "mr": "ड्रायव्हिंग प्रशिक्षक",
+        "bn": "ড্রাইভিং প্রশিক্ষক",
+        "ta": "ஓட்டுநர் பயிற்றுநர்",
+        "te": "డ్రైవింగ్ శిక్షకులు"
+      },
+      "synonyms": {
+        "en": [
+          "driving school",
+          "driving teacher"
+        ],
+        "hi": [
+          "ड्राइविंग सिखाना",
+          "ड्राइविंग स्कूल",
+          "driving school"
+        ],
+        "mr": [
+          "ड्रायव्हिंग स्कूल"
+        ],
+        "bn": [
+          "ড্রাইভিং স্কুল"
+        ],
+        "ta": [
+          "டிரைவிங் ஸ்கூல்"
+        ],
+        "te": [
+          "డ్రైవింగ్ స్కూల్"
+        ]
+      },
+      "disabledCities": []
+    }
+  ]
+}
