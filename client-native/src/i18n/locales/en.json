@@ -239,6 +239,8 @@
     "manage": "Federation",
     "manageTitle": "Federations near you",
     "requestFailed": "Could not send the request.",
-    "leaveFailed": "Could not leave the federation."
+    "leaveFailed": "Could not leave the federation.",
+    "current": "Your federation",
+    "unlisted": "No longer listed near you"
   }
 }

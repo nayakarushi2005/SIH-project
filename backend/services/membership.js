@@ -115,14 +115,16 @@ async function leaveMembership(user, { quiet = false } = {}) {
   if (res.modifiedCount === 0 && !quiet) fail('not_member', 404);
 }
 
-/** Latest membership that the worker did not leave — shown on the profile. */
+/**
+ * The worker's most recent membership, shown on the profile — null once
+ * they left it. Still returned if the federation was deleted (name null),
+ * so an active one can be seen and left.
+ */
 async function currentMembership(userId) {
-  const m = await FederationMembership.findOne({ user: userId, status: { $ne: 'left' } })
-    .sort({ createdAt: -1 })
-    .populate('federation', 'name')
-    .lean();
-  if (!m || !m.federation) return null;
-  return { id: String(m.federation._id), name: m.federation.name, status: m.status };
+  const m = await FederationMembership.findOne({ user: userId }).sort({ createdAt: -1 }).lean();
+  if (!m || m.status === 'left') return null;
+  const federation = await Federation.findById(m.federation).select('name').lean();
+  return { id: String(m.federation), name: federation?.name ?? null, status: m.status };
 }
 
 async function buildProfile(user) {
@@ -165,29 +167,41 @@ async function listRequests(federationId, status = 'pending') {
   });
 }
 
-async function decideRequest(federationId, membershipId, action, reason) {
+/**
+ * Move one of this federation's memberships from `from` to a new status in
+ * a single conditional update, so a worker cancelling at the same moment
+ * can't be overwritten. 404 if it isn't theirs, 409 if it already moved on.
+ */
+async function transition(federationId, membershipId, from, set) {
   await loadVerifiedFederation(federationId);
   if (!isId(membershipId)) fail('not_found', 404);
-  const m = await FederationMembership.findOne({ _id: membershipId, federation: federationId });
-  if (!m) fail('not_found', 404);
-  if (m.status !== 'pending') fail('not_pending', 409);
-  m.status = action === 'accept' ? 'verified' : 'rejected';
-  m.decidedAt = new Date();
-  m.rejectionReason = action === 'reject' ? (String(reason || '').trim().slice(0, 300) || null) : null;
-  await m.save();
+  let m;
+  try {
+    m = await FederationMembership.findOneAndUpdate(
+      { _id: membershipId, federation: federationId, status: from },
+      { $set: { ...set, decidedAt: new Date() } },
+      { new: true }
+    ).lean();
+  } catch (err) {
+    if (err.code === 11000) fail('not_pending', 409);
+    throw err;
+  }
+  if (!m) {
+    const exists = await FederationMembership.findOne({ _id: membershipId, federation: federationId });
+    fail(exists ? 'not_pending' : 'not_found', exists ? 409 : 404);
+  }
   return { id: String(m._id), status: m.status };
 }
 
-async function removeMember(federationId, membershipId) {
-  await loadVerifiedFederation(federationId);
-  if (!isId(membershipId)) fail('not_found', 404);
-  const m = await FederationMembership.findOne({ _id: membershipId, federation: federationId });
-  if (!m) fail('not_found', 404);
-  if (m.status !== 'verified') fail('not_pending', 409);
-  m.status = 'removed';
-  m.decidedAt = new Date();
-  await m.save();
-  return { id: String(m._id), status: m.status };
+function decideRequest(federationId, membershipId, action, reason) {
+  return transition(federationId, membershipId, 'pending', {
+    status: action === 'accept' ? 'verified' : 'rejected',
+    rejectionReason: action === 'reject' ? String(reason || '').trim().slice(0, 300) || null : null,
+  });
+}
+
+function removeMember(federationId, membershipId) {
+  return transition(federationId, membershipId, 'verified', { status: 'removed' });
 }
 
 /** Express helper: turn a MembershipError into a JSON response. */

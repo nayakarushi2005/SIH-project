@@ -44,7 +44,7 @@ const handleRefresh = async (req, res) => {
     
     if (!refreshTokenString) {
       // No refresh token means they are completely logged out
-      return res.status(403).json({ message: 'Session expired. Please log in again.' });
+      return res.status(403).json({ message: 'Session expired. Please log in again.', code: 'session_expired' });
     }
 
     // 2. Find the refresh token in the database
@@ -53,14 +53,14 @@ const handleRefresh = async (req, res) => {
     if (!tokenDoc) {
       // Token is not in DB (invalidated or fake), clear the cookie and force logout
       res.clearCookie('refreshToken');
-      return res.status(403).json({ message: 'Invalid session. Please log in again.' });
+      return res.status(403).json({ message: 'Invalid session. Please log in again.', code: 'session_expired' });
     }
 
     // 3. Double-check expiration (MongoDB TTL usually handles this, but it's good practice)
     if (tokenDoc.expiresAt < new Date()) {
       await RefreshToken.findByIdAndDelete(tokenDoc._id);
       res.clearCookie('refreshToken');
-      return res.status(403).json({ message: 'Session expired. Please log in again.' });
+      return res.status(403).json({ message: 'Session expired. Please log in again.', code: 'session_expired' });
     }
 
     // 4. Token is valid! Generate a NEW access token using the user info stored in the token document

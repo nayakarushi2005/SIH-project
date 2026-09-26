@@ -126,3 +126,25 @@ test('GET /me carries the federation summary; a rejection stays visible', async 
   const res = await request(app).get('/api/auth/me').set(authHeader(w));
   expect(res.body.federation).toEqual({ id: String(a._id), name: a.name, status: 'rejected' });
 });
+
+test('profile shows the latest membership, not an older rejection', async () => {
+  const a = await fed();
+  const b = await fed();
+  const w = await worker();
+  await FederationMembership.create({ user: w._id, federation: a._id, status: 'rejected', createdAt: new Date(Date.now() - 60000) });
+  await request(app).post('/api/worker/federation').set(authHeader(w)).send({ federationId: String(b._id) });
+  await request(app).delete('/api/worker/federation').set(authHeader(w));
+  const res = await request(app).get('/api/auth/me').set(authHeader(w));
+  expect(res.body.federation).toBeNull();
+});
+
+test('a membership whose federation was deleted still shows, so it can be left', async () => {
+  const a = await fed();
+  const w = await worker();
+  await request(app).post('/api/worker/federation').set(authHeader(w)).send({ federationId: String(a._id) });
+  await Federation.deleteOne({ _id: a._id });
+  const me = await request(app).get('/api/auth/me').set(authHeader(w));
+  expect(me.body.federation).toEqual({ id: String(a._id), name: null, status: 'pending' });
+  const left = await request(app).delete('/api/worker/federation').set(authHeader(w));
+  expect(left.status).toBe(200);
+});
