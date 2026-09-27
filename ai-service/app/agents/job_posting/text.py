@@ -3,7 +3,7 @@
 import re
 import unicodedata
 
-from app.agents.common.lexicon import in_script, nfc
+from app.agents.common.lexicon import SCRIPT, in_script, nfc
 from app.agents.job_posting.state import DESC_MAX, DESC_MIN
 
 _FILLERS = (
@@ -28,6 +28,9 @@ _LEADING_FILLER = re.compile(
     re.IGNORECASE,
 )
 _SENTENCE_END = ".।?!"
+# At least this share of a draft's letters must be in the session's script
+# (a Hindi draft may keep a brand name like "Asian Paints", not be English).
+_SCRIPT_SHARE_MIN = 0.6
 
 
 def _collapse(text: str) -> str:
@@ -54,10 +57,25 @@ def clean_dictation(text: str, max_len: int = DESC_MAX) -> str:
     return _cut(t, max_len)
 
 
+def _in_target_script(c: str, lang: str) -> bool:
+    rx = SCRIPT.get(lang)
+    if rx is not None:
+        return bool(rx.match(c))
+    return "LATIN" in unicodedata.name(c, "")  # English
+
+
+def _mostly_in_script(text: str, lang: str) -> bool:
+    letters = [c for c in text if unicodedata.category(c)[0] in "LM"]
+    if not letters:
+        return False
+    share = sum(_in_target_script(c, lang) for c in letters) / len(letters)
+    return share >= _SCRIPT_SHARE_MIN
+
+
 def sanitize_draft(text: str, lang: str, max_len: int = DESC_MAX) -> str | None:
     """An LLM draft fit to show and speak, or None if it is too short or in the wrong script."""
     t = "".join(" " if unicodedata.category(c) == "Cc" else c for c in nfc(text or ""))
     t = _cut(_collapse(t), max_len)
-    if len(t) < DESC_MIN or not in_script(t, lang):
+    if len(t) < DESC_MIN or not in_script(t, lang) or not _mostly_in_script(t, lang):
         return None
     return t

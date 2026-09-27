@@ -86,9 +86,14 @@ def initial_state(
 
 def filled(state: JobPostingState) -> dict:
     """What the app puts into the job form (and submits after adding a photo)."""
+    description = state.get("description")
+    if description is None and state.get("handoff"):
+        # Handed off while confirming the draft: give the form the draft to
+        # edit rather than an empty box.
+        description = state.get("description_draft")
     return {
         "category": state.get("category"),
-        "description": state.get("description"),
+        "description": description,
         "price": state.get("price"),
         "expectedDurationMins": state.get("duration_mins"),
         "address": state.get("address"),

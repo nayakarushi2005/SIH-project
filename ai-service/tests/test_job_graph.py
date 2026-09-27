@@ -321,6 +321,24 @@ def test_text_helpers():
 
 
 @pytest.mark.parametrize(
+    "text,lang,ok",
+    [
+        # one target-script character is not enough
+        ("The kitchen tap is leaking, नल.", "hi", False),
+        ("The kitchen tap is leaking badly, please fix it ক", "bn", False),
+        ("Replace the fan regulator and check the wiring ప", "te", False),
+        # a mostly-native draft with a brand name is fine
+        ("रसोई में Asian Paints की दीवार पर पेंट करना है।", "hi", True),
+        ("রান্নাঘরের কল থেকে জল পড়ছে, পাইপ বদলাতে হবে।", "bn", True),
+        # English drafts must be (mostly) Latin letters
+        ("Kitchen tap is leaking badly near the sink.", "en", True),
+    ],
+)
+def test_sanitize_draft_needs_most_letters_in_the_session_script(text, lang, ok):
+    assert (sanitize_draft(text, lang) is not None) is ok
+
+
+@pytest.mark.parametrize(
     "lang,reply,step",
     [
         ("hi", "नहीं, काम का दाम बदलो", "price"),
@@ -363,3 +381,99 @@ async def test_load_session_reads_kind_from_the_raw_checkpoint(monkeypatch):
     with pytest.raises(ServiceError) as err:
         await sessions.load_session(onboarding_graph, "s1", user)
     assert err.value.code == "not_found"
+
+
+@pytest.mark.parametrize(
+    "lang,reply",
+    [
+        ("en", "House no 5, Gandhi Nagar"),
+        ("en", "Plot no 7"),
+        ("en", "No. 12, Station Road"),
+        ("hi", "बस स्टैंड"),
+        ("hi", "बस स्टैंड के पास"),
+        ("hi", "मकान नंबर 5, नहीं 6"),
+    ],
+)
+async def test_address_with_a_no_or_done_word_is_still_an_address(lang, reply):
+    c = Convo(lang=lang)
+    await c.to_price()
+    await c.tap(price=500)
+    await c.tap(durationMins=120)
+    s = await c.say(reply)
+    assert s["step"] == "confirm" and s["address"] == reply
+
+
+@pytest.mark.parametrize(
+    "lang,reply",
+    [
+        ("en", "no"),
+        ("en", "No thanks."),
+        ("en", "done"),
+        ("hi", "नहीं"),
+        ("hi", "नहीं जी"),
+        ("hi", "बस"),
+        ("hi", "हो गया"),
+        ("hi", "छोड़ो, पता नहीं देना"),  # SKIP lexicon phrase, any length
+        ("mr", "नाही"),
+        ("bn", "না"),
+        ("ta", "இல்லை"),
+        ("te", "లేదు"),
+    ],
+)
+async def test_bare_no_or_done_skips_the_address(lang, reply):
+    c = Convo(lang=lang)
+    await c.to_price()
+    await c.tap(price=500)
+    await c.tap(durationMins=120)
+    s = await c.say(reply)
+    assert s["step"] == "confirm" and s["address"] is None
+    assert msg(lang, "address_skip") in s["speak"]
+
+
+async def test_handoff_while_confirming_the_draft_prefills_the_description():
+    c = Convo()
+    await c.start()
+    await c.tap(category="plumber")
+    s = await c.tap(description="Kitchen tap is leaking badly.")
+    assert s["step"] == "description_confirm" and filled(s)["description"] is None
+    for _ in range(10):
+        s = await c.say("hmm")
+        if s["handoff"]:
+            break
+    assert s["step"] == "handoff" and s["description"] is None
+    assert filled(s)["description"] == "Kitchen tap is leaking badly."
+
+
+@pytest.mark.parametrize(
+    "mins,expected",
+    [
+        (30, "30 minutes"),
+        (60, "one hour"),
+        (90, "one hour 30 minutes"),
+        (120, "2 hours"),
+        (150, "2 hours 30 minutes"),
+        (240, "half a day"),
+        (480, "a full day"),
+        (1440, "one day"),
+        (2880, "2 days"),
+        (10_080, "7 days"),
+    ],
+)
+def test_say_duration_is_not_rounded_away(mins, expected):
+    from app.agents.job_posting.graph import _say_duration
+
+    assert _say_duration("en", mins) == expected
+
+
+@pytest.mark.parametrize("lang", LANGS)
+@pytest.mark.parametrize("mins", [15, 30, 45, 60, 90, 120, 150, 240, 480, 1440, 2880, 4320])
+def test_spoken_durations_parse_back_in_every_language(lang, mins):
+    """What the assistant says back ("about 1 hour 30 minutes") means the same
+    thing if the user repeats it. A single day is the exception: said alone,
+    "one day" of work is a working day (480), so 1440 is not round-tripped."""
+    from app.agents.common.parsers import parse_duration
+    from app.agents.job_posting.graph import _say_duration
+
+    said = _say_duration(lang, mins)
+    assert in_script(said, lang)
+    assert parse_duration(said, lang) == (480 if mins == 1440 else mins)
