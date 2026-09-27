@@ -5,6 +5,7 @@ import httpx
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.agents.job_posting.graph import build_graph as build_job_graph
 from app.agents.onboarding.catalog import CatalogCache
 from app.agents.onboarding.extract import GeminiExtractor, NullExtractor
 from app.agents.onboarding.graph import build_graph
@@ -14,6 +15,7 @@ from app.errors import ServiceError, service_error_handler
 from app.llm import ConfigError, make_chat_model
 from app.node_client import NodeClient
 from app.ratelimit import RateLimiter
+from app.routes.job_posting import router as job_posting_router
 from app.routes.onboarding import router as onboarding_router
 
 log = logging.getLogger(__name__)
@@ -45,6 +47,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.graph = build_graph(
             app.state.extractor, app.state.catalogs.get, app.state.checkpointer
         )
+        app.state.job_graph = build_job_graph(
+            app.state.extractor, app.state.catalogs.get, app.state.checkpointer
+        )
         app.state.limiter = RateLimiter()
         try:
             yield
@@ -55,6 +60,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app = FastAPI(title="SIH AI service", lifespan=lifespan)
     app.add_exception_handler(ServiceError, service_error_handler)
     app.include_router(onboarding_router)
+    app.include_router(job_posting_router)
     if settings.cors_origins:
         app.add_middleware(
             CORSMiddleware,

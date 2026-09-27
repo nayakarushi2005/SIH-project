@@ -1,5 +1,7 @@
 import asyncio
 
+import pytest
+
 from app.agents.onboarding.extract import SYSTEM_PROMPT, GeminiExtractor, IncomeOut
 
 
@@ -42,3 +44,25 @@ async def test_timeout_returns_none():
 async def test_error_returns_none():
     s = FakeStructured(error=RuntimeError("quota"))
     assert await GeminiExtractor(FakeModel(s), 5).extract(IncomeOut, lang="en", question="q", transcript="t") is None
+
+
+@pytest.mark.live
+async def test_live_drafts_a_hindi_job_description():
+    from app.agents.common.lexicon import in_script
+    from app.agents.job_posting.extract import DRAFT_SYSTEM_PROMPT, DescriptionOut
+    from app.config import get_settings
+    from app.llm import make_chat_model
+
+    settings = get_settings()
+    if not settings.vertex_configured:
+        pytest.skip("Vertex AI is not configured")
+    out = await GeminiExtractor(make_chat_model(settings), 20).extract(
+        DescriptionOut,
+        lang="hi",
+        question="Describe the work",
+        transcript="mere kitchen ka nal tapak raha hai neeche pipe se, do din se",
+        system=DRAFT_SYSTEM_PROMPT,
+    )
+    assert out is not None
+    assert in_script(out.description, "hi")
+    assert 10 <= len(out.description) <= 500
