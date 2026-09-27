@@ -580,7 +580,12 @@
     "forbidden": "हे संभाषण दुसऱ्याचे आहे.",
     "rate_limited": "खूप जास्त विनंत्या. कृपया वेग कमी करा.",
     "backend_unavailable": "अ‍ॅप सर्व्हर आत्ता उपलब्ध नाही. कृपया पुन्हा प्रयत्न करा.",
-    "unauthorized": "कृपया पुन्हा साइन इन करा."
+    "unauthorized": "कृपया पुन्हा साइन इन करा.",
+    "job_withdraw_reason_required": "रद्द करण्याचे कारण निवडा.",
+    "job_withdraw_note_required": "तुम्ही का रद्द करत आहात ते थोडक्यात सांगा.",
+    "job_withdraw_note_length": "{{max}} अक्षरांपेक्षा कमी लिहा.",
+    "job_withdraw_window_over": "हे काम रद्द करण्याची वेळ संपली आहे. कृपया जाऊन काम करा, किंवा ग्राहकाशी बोला.",
+    "job_cannot_retry": "कोणीही न स्वीकारलेले कामच पुन्हा शोधता येते."
   },
   "durations": {
     "m30": "30 मिनिटे",
@@ -624,7 +629,29 @@
     "startCodeHint": "कारागीर पोहोचल्यावर हा त्याला सांगा.",
     "startCodeA11y": "स्टार्ट कोड {{code}}",
     "rated": "तुम्ही या कामाला रेट केले",
-    "rateButton": "तुमच्या कारागिराला रेट करा"
+    "rateButton": "तुमच्या कारागिराला रेट करा",
+    "searchingFor": "कारागीर शोधत आहोत · {{time}} बाकी",
+    "searchingEnding": "शोध पूर्ण होत आहे…",
+    "workerRating": "★ {{rating}} ({{n}})",
+    "workerNew": "नवीन कारागीर",
+    "workerJobs": "पूर्ण केलेली कामे: {{n}}",
+    "workerExperience": "अनुभव: {{n}} वर्षे",
+    "workerFallbackName": "तुमचा कारागीर",
+    "workerVerified": "Aadhaar पडताळलेले",
+    "cancelJob": "काम रद्द करा",
+    "keepJob": "काम ठेवा",
+    "cancelConfirmTitle": "हे काम रद्द करायचे?",
+    "cancelConfirmBody": "एखाद्या कारागिराने काम स्वीकारले असल्यास, त्याला काम रद्द झाल्याचे दिसेल.",
+    "cancelFailedTitle": "रद्द करता आले नाही",
+    "expiredBody": "20 मिनिटांत कोणत्याही कारागिराने काम स्वीकारले नाही. पुन्हा शोधा, किंवा जास्त प्रतिसादासाठी किंमत वाढवा.",
+    "searchAgain": "पुन्हा शोधा",
+    "raisePrice": "किंमत वाढवा / बदला",
+    "retryFailedTitle": "पुन्हा शोधता आले नाही",
+    "editTitle": "बदला आणि पुन्हा शोधा",
+    "editBody": "जास्त किंमत किंवा स्पष्ट वर्णनामुळे कारागीर लवकर होकार देतात.",
+    "priceLabel": "किंमत",
+    "descriptionLabel": "कामाचे वर्णन करा",
+    "raiseBy": "किंमत {{amount}} ने वाढवा"
   },
   "categories": {
     "loadFailed": "कामाच्या श्रेणींची यादी रिकामी आहे."
@@ -653,7 +680,21 @@
     "withdrawConfirmBody": "ग्राहकाला दुसऱ्या कामगाराशी जोडले जाईल. माघार घेतल्याने तुम्हाला मिळणारी कामे अनेकदा कमी होतात.",
     "keepJob": "काम ठेवा",
     "withdrawAction": "माघार घ्या",
-    "withdrawFailedTitle": "माघार घेता आली नाही"
+    "withdrawFailedTitle": "माघार घेता आली नाही",
+    "withdrawButtonTimed": "येणे जमणार नाही? रद्द करा ({{time}} बाकी)",
+    "cancelWindowOver": "हे काम रद्द करण्याची वेळ संपली आहे.",
+    "withdrawReasonLabel": "तुम्ही का रद्द करत आहात?",
+    "withdrawNoteLabel": "थोडक्यात कारण सांगा",
+    "withdrawNoteOptional": "आणखी काही सांगायचे? (ऐच्छिक)"
+  },
+  "withdrawReasons": {
+    "too_far": "खूप दूर आहे",
+    "price_too_low": "किंमत खूप कमी आहे",
+    "emergency": "वैयक्तिक आणीबाणी",
+    "vehicle_issue": "गाडीत बिघाड",
+    "client_unreachable": "ग्राहकाशी संपर्क होत नाही",
+    "job_details_wrong": "कामाची माहिती चुकीची होती",
+    "other": "इतर कारण"
   },
   "offer": {
     "newRequest": "नवीन कामाची विनंती",

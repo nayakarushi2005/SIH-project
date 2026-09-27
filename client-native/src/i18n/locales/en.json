@@ -580,7 +580,12 @@
     "forbidden": "This conversation belongs to someone else.",
     "rate_limited": "Too many requests. Please slow down.",
     "backend_unavailable": "The app server is not reachable right now. Please try again.",
-    "unauthorized": "Please sign in again."
+    "unauthorized": "Please sign in again.",
+    "job_withdraw_reason_required": "Choose why you’re cancelling.",
+    "job_withdraw_note_required": "Tell us briefly why you’re cancelling.",
+    "job_withdraw_note_length": "Keep it under {{max}} characters.",
+    "job_withdraw_window_over": "The time to cancel this job is over. Please go and do the job, or call the client.",
+    "job_cannot_retry": "Only a job nobody accepted can be searched again."
   },
   "durations": {
     "m30": "30 min",
@@ -624,7 +629,29 @@
     "startCodeHint": "Share it with the worker when they arrive.",
     "startCodeA11y": "Start code {{code}}",
     "rated": "You rated this job",
-    "rateButton": "Rate your worker"
+    "rateButton": "Rate your worker",
+    "searchingFor": "Finding a worker · {{time}} left",
+    "searchingEnding": "Finishing the search…",
+    "workerRating": "★ {{rating}} ({{n}})",
+    "workerNew": "New worker",
+    "workerJobs": "Jobs done: {{n}}",
+    "workerExperience": "Experience: {{n}} yr",
+    "workerFallbackName": "Your worker",
+    "workerVerified": "Aadhaar verified",
+    "cancelJob": "Cancel job",
+    "keepJob": "Keep job",
+    "cancelConfirmTitle": "Cancel this job?",
+    "cancelConfirmBody": "If a worker has already accepted, they’ll see that the job is cancelled.",
+    "cancelFailedTitle": "Could not cancel",
+    "expiredBody": "No worker accepted within 20 minutes. Search again, or raise the price to get more interest.",
+    "searchAgain": "Search again",
+    "raisePrice": "Raise price / edit",
+    "retryFailedTitle": "Could not search again",
+    "editTitle": "Change and search again",
+    "editBody": "A higher price or a clearer description helps workers say yes.",
+    "priceLabel": "Price",
+    "descriptionLabel": "Describe the work",
+    "raiseBy": "Raise price by {{amount}}"
   },
   "categories": {
     "loadFailed": "The job category list is empty."
@@ -653,7 +680,21 @@
     "withdrawConfirmBody": "The client will be matched with another worker. Withdrawing often lowers the jobs you’re offered.",
     "keepJob": "Keep job",
     "withdrawAction": "Withdraw",
-    "withdrawFailedTitle": "Could not withdraw"
+    "withdrawFailedTitle": "Could not withdraw",
+    "withdrawButtonTimed": "Can’t make it? Cancel ({{time}} left)",
+    "cancelWindowOver": "The time to cancel this job is over.",
+    "withdrawReasonLabel": "Why are you cancelling?",
+    "withdrawNoteLabel": "Tell us briefly why",
+    "withdrawNoteOptional": "Anything to add? (optional)"
+  },
+  "withdrawReasons": {
+    "too_far": "Too far away",
+    "price_too_low": "Price too low",
+    "emergency": "Personal emergency",
+    "vehicle_issue": "Vehicle problem",
+    "client_unreachable": "Can’t reach the client",
+    "job_details_wrong": "Job details were wrong",
+    "other": "Other reason"
   },
   "offer": {
     "newRequest": "New job request",

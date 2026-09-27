@@ -12,12 +12,14 @@ import {
   saveWorkerProfile,
   sendWorkerLocation,
 } from '../services/api';
+import { useUser } from './UserContext';
 import { getCurrentCoords } from '../services/location';
 import { getToken } from '../services/session';
 
-// While online and the app is open. Offers last 20 minutes, so polling is
-// plenty until push notifications land; the heartbeat keeps the worker
-// visible to matching (the server drops workers silent for 3 minutes).
+// While online and the app is open, on every screen. Offers stay open until
+// the client's search ends (up to 20 minutes), so polling is plenty until
+// push notifications land; the heartbeat keeps the worker visible to
+// matching (the server drops workers silent for 3 minutes).
 const OFFER_POLL_MS = 5 * 1000;
 const HEARTBEAT_MS = 60 * 1000;
 
@@ -40,26 +42,25 @@ async function fetchWorkerState() {
 /**
  * App-wide worker state, so offers pop up on any screen:
  *   profile — undefined while loading, null if not a worker, else the profile
- *   online  — whether this worker is taking jobs
+ *   online  — whether this worker is taking jobs: their own switch, kept by
+ *             the server, so it resumes wherever and whenever the app opens
  *   offers  — open offers, oldest-expiring first
  */
 export function WorkerModeProvider({ children }) {
+  const { user } = useUser();
+  const userId = user?.id ?? null;
   const [profile, setProfile] = useState(undefined);
   const [online, setOnline] = useState(false);
   const [offers, setOffers] = useState([]);
   const [appActive, setAppActive] = useState(AppState.currentState === 'active');
   // Offers answered on this device, hidden until the server stops sending them.
   const answered = useRef(new Set());
-  const onlineRef = useRef(false);
-
-  useEffect(() => {
-    onlineRef.current = online;
-  }, [online]);
 
   const reset = useCallback(() => {
     setProfile(null);
     setOnline(false);
     setOffers([]);
+    answered.current = new Set();
   }, []);
 
   const applyState = useCallback(
@@ -105,26 +106,39 @@ export function WorkerModeProvider({ children }) {
     }
   }, [reset]);
 
-  // Load once, and catch up whenever the app returns to the foreground: beat
-  // first, so a worker who was away a few minutes is visible again.
+  // Load for whoever is signed in — at launch, and again after signing in or
+  // switching accounts, so offers start without visiting the worker screen.
+  const loadedFor = useRef(null);
   useEffect(() => {
-    fetchWorkerState().then(applyState);
-    const sub = AppState.addEventListener('change', async (state) => {
+    if (userId === loadedFor.current) return;
+    const signedOut = loadedFor.current !== null && !userId;
+    loadedFor.current = userId;
+    if (signedOut) reset();
+    else if (userId) fetchWorkerState().then(applyState);
+  }, [userId, applyState, reset]);
+
+  // Catch up whenever the app returns to the foreground (the effect below
+  // beats and polls again).
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
       setAppActive(state === 'active');
-      if (state === 'active') {
-        if (onlineRef.current) await heartbeat();
-        refresh();
-      }
+      if (state === 'active') refresh();
     });
     return () => sub.remove();
-  }, [applyState, heartbeat, refresh]);
+  }, [refresh]);
 
   useEffect(() => {
     if (!online || !appActive) return undefined;
-    pollOffers();
+    // Beat right away (next tick): while the app was closed or in the
+    // background the server dropped this worker from matching.
+    const first = setTimeout(() => {
+      heartbeat();
+      pollOffers();
+    }, 0);
     const poll = setInterval(pollOffers, OFFER_POLL_MS);
     const beat = setInterval(heartbeat, HEARTBEAT_MS);
     return () => {
+      clearTimeout(first);
       clearInterval(poll);
       clearInterval(beat);
     };

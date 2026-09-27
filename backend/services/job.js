@@ -4,11 +4,41 @@
  */
 
 const Category = require('../models/Category');
+const User = require('../models/User');
+const WorkerProfile = require('../models/WorkerProfile');
+const WorkerStats = require('../models/WorkerStats');
 const { isOwnedJobPhoto } = require('./cloudinary');
 const { fieldError } = require('./errors');
 const { LANGUAGES } = require('./profile');
 
 const MAX_PHOTOS = 5;
+
+// After accepting, a worker can back out (with a reason) for this long, like
+// a ride captain. Later, only a start-code lockout lets them withdraw.
+const WORKER_CANCEL_WINDOW_MS = 5 * 60 * 1000;
+
+// Why a worker withdraws — shown as a list in the app; 'other' needs a note.
+const WITHDRAW_REASONS = [
+  'too_far',
+  'price_too_low',
+  'emergency',
+  'vehicle_issue',
+  'client_unreachable',
+  'job_details_wrong',
+  'other',
+];
+const MAX_WITHDRAW_NOTE = 200;
+
+// Statuses in which the client sees the assigned worker's (masked) phone.
+const CONTACT_STATUSES = ['ASSIGNED', 'IN_PROGRESS'];
+
+/** "9876543210" → "98XXXXXX10". The full number never leaves the server. */
+function maskPhone(phone) {
+  if (!phone) return null;
+  const digits = String(phone).replace(/\D/g, '');
+  if (digits.length < 6) return null;
+  return `${digits.slice(0, 2)}${'X'.repeat(digits.length - 4)}${digits.slice(-2)}`;
+}
 
 /** The slugs among `slugs` that are active job categories (models/Category.js). */
 async function activeCategorySlugs(slugs) {
@@ -37,12 +67,62 @@ function toGeoPoint(v) {
 }
 
 /**
- * Shape returned to the app for a job, as seen by `viewerId` (the client or
- * the assigned worker). Only the client ever sees the start code.
+ * What a client sees about the workers assigned to `jobs`: a Map from worker
+ * id to { name, photo, phoneMasked, aadhaarVerified, rating, completedJobs,
+ * experienceYears }. Pass it to toJob as `workers`.
  */
-function toJob(job, viewerId) {
+async function assignedWorkerCards(jobs) {
+  const ids = [...new Set(jobs.filter((j) => j.assignedWorker).map((j) => String(j.assignedWorker)))];
+  if (ids.length === 0) return new Map();
+
+  const [users, profiles, stats] = await Promise.all([
+    User.find({ _id: { $in: ids } }).select('name googleAvatar phone isAadhaarVerified').lean(),
+    WorkerProfile.find({ user: { $in: ids } }).select('user experienceYears').lean(),
+    WorkerStats.find({ worker: { $in: ids } }).select('worker ratingSum ratingCount completedTotal').lean(),
+  ]);
+  const profileOf = new Map(profiles.map((p) => [String(p.user), p]));
+  const statsOf = new Map(stats.map((s) => [String(s.worker), s]));
+
+  return new Map(
+    users.map((u) => {
+      const s = statsOf.get(String(u._id)) ?? {};
+      const ratingCount = s.ratingCount ?? 0;
+      return [
+        String(u._id),
+        {
+          id: u._id,
+          name: u.name,
+          photo: u.googleAvatar,
+          phoneMasked: maskPhone(u.phone),
+          aadhaarVerified: !!u.isAadhaarVerified,
+          rating: {
+            average: ratingCount ? Math.round((s.ratingSum / ratingCount) * 10) / 10 : null,
+            count: ratingCount,
+          },
+          completedJobs: s.completedTotal ?? 0,
+          experienceYears: profileOf.get(String(u._id))?.experienceYears ?? null,
+        },
+      ];
+    })
+  );
+}
+
+/** Until when the assigned worker may still withdraw, or null outside the window. */
+function cancelDeadline(job) {
+  if (job.status !== 'ASSIGNED' || !job.assignedAt) return null;
+  return new Date(job.assignedAt.getTime() + WORKER_CANCEL_WINDOW_MS);
+}
+
+/**
+ * Shape returned to the app for a job, as seen by `viewerId` (the client or
+ * the assigned worker). Only the client ever sees the start code, and the
+ * assigned worker's details (from assignedWorkerCards) — their masked phone
+ * only while the job is under way.
+ */
+function toJob(job, viewerId, { workers } = {}) {
   const [lng, lat] = job.location.coordinates;
   const isClient = String(job.client) === String(viewerId);
+  const card = isClient && job.assignedWorker ? workers?.get(String(job.assignedWorker)) : null;
   return {
     id: job._id,
     category: job.category,
@@ -57,11 +137,19 @@ function toJob(job, viewerId) {
     clientAadhaarVerified: job.clientAadhaarVerified,
     status: job.status,
     assignedWorker: job.assignedWorker,
+    worker: card
+      ? { ...card, phoneMasked: CONTACT_STATUSES.includes(job.status) ? card.phoneMasked : null }
+      : null,
     startCode: isClient && job.status === 'ASSIGNED' ? job.startCode : null,
+    // While SEARCHING: when the search gives up (the job then EXPIRES).
+    searchDeadline: job.status === 'SEARCHING' ? (job.dispatch?.searchDeadline ?? null) : null,
+    // Only the assigned worker: until when they may still withdraw.
+    cancelDeadline: isClient ? null : cancelDeadline(job),
     createdAt: job.createdAt,
     assignedAt: job.assignedAt,
     startedAt: job.startedAt,
     completedAt: job.completedAt,
+    expiredAt: job.expiredAt,
     feedbackGiven: !!job.feedbackAt,
   };
 }
@@ -72,7 +160,8 @@ function toJob(job, viewerId) {
  * address only once they accept.
  */
 function toOffer(job, workerId) {
-  const offer = job.dispatch.offers.find((o) => String(o.worker) === String(workerId));
+  // A worker can hold offers from several searches; the newest is the open one.
+  const offer = job.dispatch.offers.findLast((o) => String(o.worker) === String(workerId));
   return {
     jobId: job._id,
     category: job.category,
@@ -179,10 +268,65 @@ async function validateNewJob(user, body) {
   return { job, errors };
 }
 
+// What a client may change when retrying an expired job.
+const EDITABLE_FIELDS = ['category', 'description', 'price', 'expectedDurationMins', 'address'];
+
+/**
+ * Validates changes to an expired job before it's searched again. Only the
+ * fields present in `body` are checked and returned.
+ * Returns { fields, errors } — errors is keyed by field name.
+ */
+async function validateJobEdits(user, body) {
+  const fields = {};
+  const errors = {};
+
+  for (const field of EDITABLE_FIELDS) {
+    if (body?.[field] === undefined) continue;
+    try {
+      fields[field] = validators[field](body[field], user);
+    } catch (message) {
+      errors[field] = message;
+    }
+  }
+
+  if (fields.category && !(await activeCategorySlugs([fields.category])).has(fields.category)) {
+    errors.category = fieldError('job_category_required', 'Choose a service.');
+  }
+
+  return { fields, errors };
+}
+
+/**
+ * Validates a worker's reason for withdrawing: { reason, note }.
+ * Returns { fields: { reason, note }, errors } — errors is keyed by field name.
+ */
+function validateWithdrawal(body) {
+  const errors = {};
+  const reason = body?.reason;
+  const note = typeof body?.note === 'string' ? body.note.trim().replace(/\s+/g, ' ') : '';
+
+  if (!WITHDRAW_REASONS.includes(reason)) {
+    errors.reason = fieldError('job_withdraw_reason_required', 'Choose why you’re cancelling.');
+  } else if (reason === 'other' && note.length < 3) {
+    errors.note = fieldError('job_withdraw_note_required', 'Tell us briefly why you’re cancelling.');
+  }
+  if (note.length > MAX_WITHDRAW_NOTE) {
+    errors.note = fieldError('job_withdraw_note_length', `Keep it under ${MAX_WITHDRAW_NOTE} characters.`, {
+      max: MAX_WITHDRAW_NOTE,
+    });
+  }
+  return { fields: { reason, note: note || null }, errors };
+}
+
 module.exports = {
+  WITHDRAW_REASONS,
+  WORKER_CANCEL_WINDOW_MS,
   activeCategorySlugs,
+  assignedWorkerCards,
   toGeoPoint,
   toJob,
   toOffer,
+  validateJobEdits,
   validateNewJob,
+  validateWithdrawal,
 };

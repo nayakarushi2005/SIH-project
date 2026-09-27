@@ -580,7 +580,12 @@
     "forbidden": "यह बातचीत किसी और की है।",
     "rate_limited": "बहुत सारे अनुरोध। कृपया धीमा करें।",
     "backend_unavailable": "ऐप सर्वर अभी उपलब्ध नहीं है। कृपया फिर से कोशिश करें।",
-    "unauthorized": "कृपया फिर से साइन इन करें।"
+    "unauthorized": "कृपया फिर से साइन इन करें।",
+    "job_withdraw_reason_required": "रद्द करने का कारण चुनें।",
+    "job_withdraw_note_required": "संक्षेप में बताएँ कि आप क्यों रद्द कर रहे हैं।",
+    "job_withdraw_note_length": "{{max}} अक्षरों से कम में लिखें।",
+    "job_withdraw_window_over": "इस काम को रद्द करने का समय खत्म हो गया है। कृपया जाकर काम करें, या ग्राहक से बात करें।",
+    "job_cannot_retry": "केवल वही काम फिर से खोजा जा सकता है जिसे किसी ने स्वीकार नहीं किया।"
   },
   "durations": {
     "m30": "30 मिनट",
@@ -624,7 +629,29 @@
     "startCodeHint": "कारीगर के पहुँचने पर उसे यह बताएँ।",
     "startCodeA11y": "स्टार्ट कोड {{code}}",
     "rated": "आपने इस काम को रेट किया",
-    "rateButton": "अपने कारीगर को रेट करें"
+    "rateButton": "अपने कारीगर को रेट करें",
+    "searchingFor": "कारीगर ढूँढ रहे हैं · {{time}} बाकी",
+    "searchingEnding": "खोज पूरी हो रही है…",
+    "workerRating": "★ {{rating}} ({{n}})",
+    "workerNew": "नया कारीगर",
+    "workerJobs": "पूरे किए काम: {{n}}",
+    "workerExperience": "अनुभव: {{n}} साल",
+    "workerFallbackName": "आपका कारीगर",
+    "workerVerified": "Aadhaar सत्यापित",
+    "cancelJob": "काम रद्द करें",
+    "keepJob": "काम रखें",
+    "cancelConfirmTitle": "यह काम रद्द करें?",
+    "cancelConfirmBody": "अगर किसी कारीगर ने काम स्वीकार कर लिया है, तो उसे दिखेगा कि काम रद्द हो गया है।",
+    "cancelFailedTitle": "रद्द नहीं हो सका",
+    "expiredBody": "20 मिनट में किसी कारीगर ने काम स्वीकार नहीं किया। फिर से खोजें, या ज़्यादा रुचि के लिए दाम बढ़ाएँ।",
+    "searchAgain": "फिर से खोजें",
+    "raisePrice": "दाम बढ़ाएँ / बदलें",
+    "retryFailedTitle": "फिर से खोज नहीं सके",
+    "editTitle": "बदलें और फिर से खोजें",
+    "editBody": "ज़्यादा दाम या साफ़ विवरण से कारीगर जल्दी हाँ कहते हैं।",
+    "priceLabel": "दाम",
+    "descriptionLabel": "काम के बारे में लिखें",
+    "raiseBy": "दाम {{amount}} बढ़ाएँ"
   },
   "categories": {
     "loadFailed": "काम की श्रेणियों की सूची खाली है।"
@@ -653,7 +680,21 @@
     "withdrawConfirmBody": "ग्राहक को किसी दूसरे कामगार से जोड़ा जाएगा। हटने से आपको मिलने वाले काम अक्सर कम हो जाते हैं।",
     "keepJob": "काम रखें",
     "withdrawAction": "हटें",
-    "withdrawFailedTitle": "हट नहीं सके"
+    "withdrawFailedTitle": "हट नहीं सके",
+    "withdrawButtonTimed": "नहीं आ पाएँगे? रद्द करें ({{time}} बाकी)",
+    "cancelWindowOver": "इस काम को रद्द करने का समय खत्म हो गया है।",
+    "withdrawReasonLabel": "आप क्यों रद्द कर रहे हैं?",
+    "withdrawNoteLabel": "संक्षेप में कारण बताएँ",
+    "withdrawNoteOptional": "कुछ और बताना है? (वैकल्पिक)"
+  },
+  "withdrawReasons": {
+    "too_far": "बहुत दूर है",
+    "price_too_low": "दाम बहुत कम है",
+    "emergency": "निजी आपात स्थिति",
+    "vehicle_issue": "गाड़ी में दिक्कत",
+    "client_unreachable": "ग्राहक से संपर्क नहीं हो रहा",
+    "job_details_wrong": "काम की जानकारी गलत थी",
+    "other": "कोई और कारण"
   },
   "offer": {
     "newRequest": "नया काम का अनुरोध",

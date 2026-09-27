@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Linking, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -6,6 +6,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import Button from './Button';
 import TextField from './TextField';
+import WithdrawSheet from './WithdrawSheet';
 import { colors, radius, spacing, typography } from '../constants/theme';
 import useCategories from '../hooks/useCategories';
 import {
@@ -14,9 +15,12 @@ import {
   getFieldErrors,
   getJob,
   startJob,
-  withdrawJob,
 } from '../services/api';
-import { formatDuration, formatPrice, jobStatus } from '../utils/job';
+import { formatCountdown, formatDuration, formatPrice, jobStatus } from '../utils/job';
+
+// While the job is waiting for the worker, check now and then whether the
+// client cancelled it (until push notifications land).
+const JOB_POLL_MS = 15 * 1000;
 
 function openDirections({ lat, lng }) {
   Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`);
@@ -33,7 +37,11 @@ export default function WorkerJobCard({ jobId, onChanged }) {
   const [error, setError] = useState(null);
   const [code, setCode] = useState('');
   const [codeError, setCodeError] = useState(null);
-  const [busy, setBusy] = useState(null); // 'start' | 'complete' | 'withdraw'
+  const [busy, setBusy] = useState(null); // 'start' | 'complete'
+  const [withdrawing, setWithdrawing] = useState(false); // reason sheet open
+  // Too many wrong start codes: withdrawing is the only way out, window or not.
+  const [lockedOut, setLockedOut] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
 
   const load = useCallback(async () => {
     try {
@@ -55,6 +63,22 @@ export default function WorkerJobCard({ jobId, onChanged }) {
     }, [load])
   );
 
+  const waiting = job?.status === 'ASSIGNED';
+  useEffect(() => {
+    if (!waiting) return undefined;
+    const poll = setInterval(load, JOB_POLL_MS);
+    return () => clearInterval(poll);
+  }, [waiting, load]);
+
+  // Ticks the cancellation-window countdown.
+  const cancelDeadline = job?.cancelDeadline ? new Date(job.cancelDeadline).getTime() : 0;
+  const cancelLeft = cancelDeadline - now;
+  useEffect(() => {
+    if (cancelDeadline <= Date.now()) return undefined;
+    const tick = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(tick);
+  }, [cancelDeadline]);
+
   const handleStart = useCallback(async () => {
     setBusy('start');
     try {
@@ -63,6 +87,7 @@ export default function WorkerJobCard({ jobId, onChanged }) {
       setCodeError(null);
     } catch (err) {
       const message = getFieldErrors(err).code ?? getErrorMessage(err);
+      if (err?.response?.status === 429) setLockedOut(true);
       if (err?.response?.status === 400) setCodeError(message);
       else Alert.alert(t('workerJob.startFailedTitle'), message);
     } finally {
@@ -91,30 +116,10 @@ export default function WorkerJobCard({ jobId, onChanged }) {
     ]);
   }, [jobId, onChanged, t]);
 
-  const handleWithdraw = useCallback(() => {
-    Alert.alert(
-      t('workerJob.withdrawConfirmTitle'),
-      t('workerJob.withdrawConfirmBody'),
-      [
-        { text: t('workerJob.keepJob'), style: 'cancel' },
-        {
-          text: t('workerJob.withdrawAction'),
-          style: 'destructive',
-          onPress: async () => {
-            setBusy('withdraw');
-            try {
-              await withdrawJob(jobId);
-              onChanged();
-            } catch (err) {
-              Alert.alert(t('workerJob.withdrawFailedTitle'), getErrorMessage(err));
-            } finally {
-              setBusy(null);
-            }
-          },
-        },
-      ]
-    );
-  }, [jobId, onChanged, t]);
+  const handleWithdrawn = useCallback(() => {
+    setWithdrawing(false);
+    onChanged();
+  }, [onChanged]);
 
   if (!job) {
     return (
@@ -185,15 +190,26 @@ export default function WorkerJobCard({ jobId, onChanged }) {
             loading={busy === 'start'}
             disabled={code.length !== 4 || !!busy}
           />
-          <Button
-            label={t('workerJob.withdrawButton')}
-            variant="text"
-            onPress={handleWithdraw}
-            disabled={!!busy}
-            style={styles.withdraw}
-          />
+          {lockedOut || cancelLeft > 0 ? (
+            <Button
+              label={
+                lockedOut
+                  ? t('workerJob.withdrawButton')
+                  : t('workerJob.withdrawButtonTimed', { time: formatCountdown(cancelLeft) })
+              }
+              variant="text"
+              onPress={() => setWithdrawing(true)}
+              disabled={!!busy}
+              style={styles.withdraw}
+            />
+          ) : (
+            <Text style={[styles.muted, styles.windowOver]}>{t('workerJob.cancelWindowOver')}</Text>
+          )}
         </>
       )}
+      {withdrawing ? (
+        <WithdrawSheet jobId={jobId} onClose={() => setWithdrawing(false)} onDone={handleWithdrawn} />
+      ) : null}
     </View>
   );
 }
@@ -269,5 +285,9 @@ const styles = StyleSheet.create({
   },
   withdraw: {
     alignSelf: 'center',
+  },
+  windowOver: {
+    ...typography.label,
+    textAlign: 'center',
   },
 });
