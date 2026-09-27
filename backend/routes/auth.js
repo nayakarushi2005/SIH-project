@@ -5,7 +5,7 @@ const User = require('../models/User');
 const { initiateDigilocker, verifyDigilocker } = require('../services/meonApi');
 const verifyToken = require('../middleware/verifyToken');
 const { buildProfile } = require('../services/membership');
-const { splitFieldErrors } = require('../services/errors');
+const { sendError, splitFieldErrors } = require('../services/errors');
 const { IDENTITY_FIELDS, toProfile, validateProfileUpdate } = require('../services/profile');
 
 const router = express.Router();
@@ -168,7 +168,7 @@ router.patch('/me', verifyToken, async (req, res) => {
     return res.status(200).json(await buildProfile(user));
   } catch (err) {
     console.error('Profile update error:', err.message);
-    return res.status(500).json({ error: 'Could not save your profile.' });
+    return sendError(res, 500, 'profile_save_failed', 'Could not save your profile.');
   }
 });
 

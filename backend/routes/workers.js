@@ -2,7 +2,7 @@ const express = require('express');
 const Job = require('../models/Job');
 const WorkerProfile = require('../models/WorkerProfile');
 const verifyToken = require('../middleware/verifyToken');
-const { splitFieldErrors } = require('../services/errors');
+const { sendError, splitFieldErrors } = require('../services/errors');
 const { workerInsights } = require('../services/graph');
 const { toGeoPoint, toOffer } = require('../services/job');
 const {
@@ -28,12 +28,13 @@ function readLocation(body, res) {
   try {
     return toGeoPoint(body?.location);
   } catch (thrown) {
-    const { fields, fieldCodes } = splitFieldErrors({ location: thrown });
+    const { fields, fieldCodes, fieldParams } = splitFieldErrors({ location: thrown });
     res.status(400).json({
       error: fields.location,
       code: 'validation',
       fields,
       fieldCodes,
+      fieldParams,
     });
     return null;
   }
@@ -41,6 +42,9 @@ function readLocation(body, res) {
 
 const notRegistered = (res) =>
   res.status(404).json({ error: 'Register as a worker first.', code: 'NOT_REGISTERED' });
+
+const notRegisteredWorker = (res) =>
+  sendError(res, 404, 'worker_not_registered', 'Not registered as a worker');
 
 // ────────────────────────────────────────────────────────────────────────────
 // GET /api/workers/me
@@ -55,7 +59,7 @@ router.get('/me', verifyToken, async (req, res) => {
     return res.status(200).json(toWorkerProfile(profile));
   } catch (err) {
     console.error('Worker profile fetch error:', err.message);
-    return res.status(500).json({ error: 'Could not load your worker profile.' });
+    return sendError(res, 500, 'worker_load_failed', 'Could not load your worker profile.');
   }
 });
 
@@ -71,7 +75,14 @@ router.put('/me', verifyToken, async (req, res) => {
 
   const { fields, errors } = await validateWorkerProfile(req.body);
   if (Object.keys(errors).length > 0) {
-    return res.status(400).json({ error: 'Please fix the highlighted fields.', fields: errors });
+    const { fields: errFields, fieldCodes, fieldParams } = splitFieldErrors(errors);
+    return res.status(400).json({
+      error: 'Please fix the highlighted fields.',
+      code: 'validation',
+      fields: errFields,
+      fieldCodes,
+      fieldParams,
+    });
   }
 
   try {
@@ -86,7 +97,7 @@ router.put('/me', verifyToken, async (req, res) => {
     return res.status(200).json(toWorkerProfile(profile));
   } catch (err) {
     console.error('Worker profile save error:', err.message);
-    return res.status(500).json({ error: 'Could not save your worker profile.' });
+    return sendError(res, 500, 'worker_update_failed', 'Could not save your worker profile.');
   }
 });
 
@@ -104,7 +115,7 @@ router.post('/me/online', verifyToken, requireAadhaar, async (req, res) => {
     const profile = await ensureWorkerProfile(req.user);
     if (!profile || !req.user.isWorker) return notRegistered(res);
     if (!profile.isActive) {
-      return res.status(403).json({ error: 'Your worker account isn’t active.' });
+      return sendError(res, 403, 'worker_inactive', 'Your worker account isn’t active.');
     }
 
     profile.isOnline = true;
@@ -114,7 +125,7 @@ router.post('/me/online', verifyToken, requireAadhaar, async (req, res) => {
     return res.status(200).json(toWorkerProfile(profile));
   } catch (err) {
     console.error('Worker online error:', err.message);
-    return res.status(500).json({ error: 'Could not go online.' });
+    return sendError(res, 500, 'worker_update_failed', 'Could not go online.');
   }
 });
 
@@ -135,11 +146,11 @@ router.post('/me/location', verifyToken, async (req, res) => {
       { location, lastSeenAt: new Date() },
       { new: true }
     );
-    if (!profile) return res.status(409).json({ error: 'You are offline.' });
+    if (!profile) return sendError(res, 409, 'worker_offline', 'You are offline.');
     return res.status(204).end();
   } catch (err) {
     console.error('Worker location error:', err.message);
-    return res.status(500).json({ error: 'Could not update your location.' });
+    return sendError(res, 500, 'worker_update_failed', 'Could not update your location.');
   }
 });
 
@@ -154,11 +165,11 @@ router.post('/me/offline', verifyToken, async (req, res) => {
       { isOnline: false },
       { new: true }
     );
-    if (!profile) return res.status(404).json({ error: 'Not registered as a worker' });
+    if (!profile) return notRegisteredWorker(res);
     return res.status(200).json(toWorkerProfile(profile));
   } catch (err) {
     console.error('Worker offline error:', err.message);
-    return res.status(500).json({ error: 'Could not go offline.' });
+    return sendError(res, 500, 'worker_update_failed', 'Could not go offline.');
   }
 });
 
@@ -173,7 +184,7 @@ router.get('/me/offers', verifyToken, async (req, res) => {
 
   try {
     const profile = await WorkerProfile.findOne({ user: me }).select('currentJob');
-    if (!profile) return res.status(404).json({ error: 'Not registered as a worker' });
+    if (!profile) return notRegisteredWorker(res);
     if (profile.currentJob) return res.status(200).json([]); // busy — can't accept anyway
 
     const jobs = await Job.find({
@@ -188,7 +199,7 @@ router.get('/me/offers', verifyToken, async (req, res) => {
     return res.status(200).json(jobs.map((job) => toOffer(job, me)));
   } catch (err) {
     console.error('Worker offers error:', err.message);
-    return res.status(500).json({ error: 'Could not load your offers.' });
+    return sendError(res, 500, 'worker_load_failed', 'Could not load your offers.');
   }
 });
 
@@ -203,12 +214,12 @@ router.get('/me/offers', verifyToken, async (req, res) => {
 router.get('/me/insights', verifyToken, async (req, res) => {
   try {
     if (!(await WorkerProfile.exists({ user: req.user._id }))) {
-      return res.status(404).json({ error: 'Not registered as a worker' });
+      return notRegisteredWorker(res);
     }
     return res.status(200).json(await workerInsights(req.user._id));
   } catch (err) {
     console.error('Worker insights error:', err.message);
-    return res.status(500).json({ error: 'Could not load your insights.' });
+    return sendError(res, 500, 'worker_load_failed', 'Could not load your insights.');
   }
 });
 
