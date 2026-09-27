@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Alert, KeyboardAvoidingView, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -16,7 +16,7 @@ import useCategories from '../hooks/useCategories';
 import { getErrorMessage, getFieldErrors } from '../services/api';
 
 const MAX_SKILLS = 10; // backend: MAX_CATEGORIES in services/worker.js
-const RADIUS_OPTIONS = [2, 5, 10, 15, 25].map((km) => ({ value: km, label: `${km} km` }));
+const RADIUS_KM = [2, 5, 10, 15, 25];
 
 function toForm(profile) {
   return {
@@ -33,12 +33,16 @@ function toForm(profile) {
  */
 export default function WorkerProfile() {
   const router = useRouter();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { groups } = useCategories(i18n.language);
   const { profile, saveProfile } = useWorkerMode();
   const [form, setForm] = useState(() => toForm(profile));
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
+  const radiusOptions = useMemo(
+    () => RADIUS_KM.map((km) => ({ value: km, label: t('distance.km', { n: km }) })),
+    [t]
+  );
 
   const setField = useCallback((field, value) => {
     setForm((f) => ({ ...f, [field]: value }));
@@ -57,12 +61,12 @@ export default function WorkerProfile() {
       } else if (err?.response?.data?.code === 'NOT_REGISTERED') {
         router.replace('/worker-onboarding');
       } else {
-        Alert.alert('Could not save', getErrorMessage(err));
+        Alert.alert(t('workerProfile.saveFailedTitle'), getErrorMessage(err));
       }
     } finally {
       setSaving(false);
     }
-  }, [form, router, saveProfile]);
+  }, [form, router, saveProfile, t]);
 
   // Not a worker yet — registration is the onboarding flow.
   if (profile === null) return <Redirect href="/worker-onboarding" />;
@@ -70,12 +74,12 @@ export default function WorkerProfile() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <StatusBar style="dark" />
-      <ScreenHeader title="Work profile" fallbackHref="/worker" />
+      <ScreenHeader title={t('workerProfile.title')} fallbackHref="/worker" />
 
       <KeyboardAvoidingView style={styles.flex} behavior="padding">
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <CategoryPicker
-            label="Services you offer"
+            label={t('workerProfile.servicesLabel')}
             groups={groups}
             selected={form.skills}
             onChange={(v) => setField('skills', v)}
@@ -83,15 +87,15 @@ export default function WorkerProfile() {
             error={errors.skills}
           />
           <OptionGroup
-            label="How far will you travel?"
-            options={RADIUS_OPTIONS}
+            label={t('workerProfile.radiusLabel')}
+            options={radiusOptions}
             value={form.serviceRadiusKm}
             onChange={(v) => setField('serviceRadiusKm', v)}
             error={errors.serviceRadiusKm}
           />
           <TextField
-            label="Years of experience (optional)"
-            placeholder="e.g. 5"
+            label={t('workerProfile.experienceLabel')}
+            placeholder={t('workerProfile.experiencePlaceholder')}
             value={form.experienceYears}
             onChangeText={(v) => setField('experienceYears', v.replace(/\D/g, '').slice(0, 2))}
             error={errors.experienceYears}
@@ -99,19 +103,19 @@ export default function WorkerProfile() {
             maxLength={2}
           />
           <TextField
-            label="About you (optional)"
-            placeholder="e.g. 10 years fixing home wiring, fans and inverters"
+            label={t('workerProfile.bioLabel')}
+            placeholder={t('workerProfile.bioPlaceholder')}
             value={form.bio}
             onChangeText={(v) => setField('bio', v)}
             error={errors.bio}
-            hint="Clients see this when you’re assigned to their job."
+            hint={t('workerProfile.bioHint')}
             multiline
             maxLength={300}
           />
         </ScrollView>
 
         <View style={styles.footer}>
-          <Button label="Save changes" onPress={handleSave} loading={saving} />
+          <Button label={t('common.saveChanges')} onPress={handleSave} loading={saving} />
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>

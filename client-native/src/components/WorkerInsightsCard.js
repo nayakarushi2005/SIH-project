@@ -20,7 +20,7 @@ function Chip({ label, tone }) {
 }
 
 function improveLabel(t, item, bySlug) {
-  if (item.type === 'skill') return `${bySlug(item.id)?.name ?? item.id} skills`;
+  if (item.type === 'skill') return t('insights.skillSuffix', { name: bySlug(item.id)?.name ?? item.id });
   return traitLabel(t, item.id, 'improve');
 }
 
@@ -50,23 +50,21 @@ export default function WorkerInsightsCard() {
             <Ionicons name="star" size={18} color={colors.warning} />
             <Text style={styles.statValue}>{rating.average != null ? rating.average.toFixed(1) : '—'}</Text>
           </View>
-          <Text style={styles.statLabel}>
-            {rating.count} rating{rating.count === 1 ? '' : 's'}
-          </Text>
+          <Text style={styles.statLabel}>{t('insights.ratingCount', { count: rating.count })}</Text>
         </View>
         <View style={styles.stat}>
           <Text style={styles.statValue}>{completedJobs}</Text>
-          <Text style={styles.statLabel}>jobs completed</Text>
+          <Text style={styles.statLabel}>{t('insights.jobsCompleted')}</Text>
         </View>
       </View>
 
       {rating.count === 0 ? (
-        <Text style={styles.muted}>Client feedback will show up here after your first rated job.</Text>
+        <Text style={styles.muted}>{t('insights.emptyBody')}</Text>
       ) : (
         <>
           {strengths.length > 0 ? (
             <>
-              <Text style={styles.label}>Clients appreciate</Text>
+              <Text style={styles.label}>{t('insights.strengths')}</Text>
               <View style={styles.chips}>
                 {strengths.map((s) => (
                   <Chip key={s.trait} label={traitLabel(t, s.trait, 'good')} />
@@ -77,7 +75,7 @@ export default function WorkerInsightsCard() {
 
           {specialties.length > 0 ? (
             <>
-              <Text style={styles.label}>Known for</Text>
+              <Text style={styles.label}>{t('insights.specialties')}</Text>
               <View style={styles.chips}>
                 {specialties.map((s) => (
                   <Chip key={s.specialty} label={s.specialty.replace(/^./, (c) => c.toUpperCase())} />
@@ -88,15 +86,13 @@ export default function WorkerInsightsCard() {
 
           {improve.length > 0 ? (
             <>
-              <Text style={styles.label}>Areas to improve</Text>
+              <Text style={styles.label}>{t('insights.improve')}</Text>
               <View style={styles.chips}>
                 {improve.map((i) => (
                   <Chip key={`${i.type}-${i.id}`} label={improveLabel(t, i, bySlug)} tone="improve" />
                 ))}
               </View>
-              <Text style={styles.muted}>
-                Free government skill courses for these areas will be suggested here soon.
-              </Text>
+              <Text style={styles.muted}>{t('insights.coursesNote')}</Text>
             </>
           ) : null}
         </>

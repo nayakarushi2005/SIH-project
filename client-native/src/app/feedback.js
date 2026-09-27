@@ -24,24 +24,17 @@ import useCategories from '../hooks/useCategories';
 import { getErrorMessage, getFieldErrors, getJob, submitFeedback } from '../services/api';
 import { TRAITS, traitLabel } from '../utils/traits';
 
-const RATING_LABELS = ['', 'Poor', 'Okay', 'Good', 'Very good', 'Excellent'];
-const REHIRE_OPTIONS = [
-  { value: true, label: 'Yes' },
-  { value: false, label: 'No' },
-];
-const BLOCK_OPTIONS = [{ value: 'block', label: 'Don’t send me this worker again' }];
-
-function StarRating({ value, onChange, error }) {
+function StarRating({ t, value, onChange, error }) {
   return (
     <View style={styles.starsWrapper}>
-      <View style={styles.stars} accessibilityRole="adjustable" accessibilityLabel="Rating">
+      <View style={styles.stars} accessibilityRole="adjustable" accessibilityLabel={t('feedback.ratingA11y')}>
         {[1, 2, 3, 4, 5].map((n) => (
           <Pressable
             key={n}
             onPress={() => onChange(n)}
             hitSlop={4}
             accessibilityRole="button"
-            accessibilityLabel={`${n} star${n > 1 ? 's' : ''}`}
+            accessibilityLabel={t('feedback.starA11y', { n })}
             accessibilityState={{ selected: value === n }}
           >
             <Ionicons
@@ -53,7 +46,7 @@ function StarRating({ value, onChange, error }) {
         ))}
       </View>
       <Text style={[styles.ratingLabel, error && styles.ratingError]}>
-        {error || RATING_LABELS[value] || 'Tap to rate'}
+        {error || (value ? t(`feedback.rating.${value}`) : t('feedback.tapToRate'))}
       </Text>
     </View>
   );
@@ -73,6 +66,17 @@ export default function Feedback() {
     () => TRAITS.map((tr) => ({ value: tr.id, label: traitLabel(t, tr.id, 'bad') })),
     [t]
   );
+  const REHIRE_OPTIONS = useMemo(
+    () => [
+      { value: true, label: t('feedback.yes') },
+      { value: false, label: t('feedback.no') },
+    ],
+    [t]
+  );
+  const BLOCK_OPTIONS = useMemo(
+    () => [{ value: 'block', label: t('feedback.block.block') }],
+    [t]
+  );
   const [job, setJob] = useState(null);
   const [form, setForm] = useState({ rating: 0, praised: [], criticized: [], rehire: null, block: false, comment: '' });
   const [errors, setErrors] = useState({});
@@ -81,8 +85,12 @@ export default function Feedback() {
   useEffect(() => {
     getJob(jobId)
       .then(setJob)
-      .catch((err) => Alert.alert('Could not load the job', getErrorMessage(err), [{ text: 'OK', onPress: () => router.back() }]));
-  }, [jobId, router]);
+      .catch((err) =>
+        Alert.alert(t('feedback.loadFailedTitle'), getErrorMessage(err), [
+          { text: t('feedback.ok'), onPress: () => router.back() },
+        ])
+      );
+  }, [jobId, router, t]);
 
   const setField = useCallback((field, value) => {
     setForm((f) => ({ ...f, [field]: value }));
@@ -98,7 +106,7 @@ export default function Feedback() {
 
   const handleSubmit = useCallback(async () => {
     if (!form.rating) {
-      setErrors({ rating: 'Choose a star rating first.' });
+      setErrors({ rating: t('feedback.ratingRequired') });
       return;
     }
     setSaving(true);
@@ -111,23 +119,23 @@ export default function Feedback() {
         block: form.rehire === false && form.block,
         comment: form.comment,
       });
-      Alert.alert('Thanks for your feedback', 'It helps us match you with the right workers.');
+      Alert.alert(t('feedback.thanksTitle'), t('feedback.thanksBody'));
       router.back();
     } catch (err) {
       const fieldErrors = getFieldErrors(err);
       if (Object.keys(fieldErrors).length > 0) setErrors(fieldErrors);
-      else Alert.alert('Could not send feedback', getErrorMessage(err));
+      else Alert.alert(t('feedback.sendFailedTitle'), getErrorMessage(err));
     } finally {
       setSaving(false);
     }
-  }, [form, jobId, router]);
+  }, [form, jobId, router, t]);
 
   const service = job ? bySlug(job.category) : null;
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <StatusBar style="dark" />
-      <ScreenHeader title="Rate your worker" fallbackHref="/bookings" />
+      <ScreenHeader title={t('feedback.title')} fallbackHref="/bookings" />
 
       {!job ? (
         <View style={styles.centered}>
@@ -143,11 +151,11 @@ export default function Feedback() {
               </Text>
             </View>
 
-            <Text style={styles.question}>How was the work?</Text>
-            <StarRating value={form.rating} onChange={(v) => setField('rating', v)} error={errors.rating} />
+            <Text style={styles.question}>{t('feedback.question')}</Text>
+            <StarRating t={t} value={form.rating} onChange={(v) => setField('rating', v)} error={errors.rating} />
 
             <OptionGroup
-              label="What went well?"
+              label={t('feedback.whatWentWell')}
               options={GOOD_OPTIONS}
               value={form.praised}
               onChange={(v) => setTraits('praised', v)}
@@ -155,7 +163,7 @@ export default function Feedback() {
               multiple
             />
             <OptionGroup
-              label="What could be better?"
+              label={t('feedback.couldBeBetter')}
               options={BAD_OPTIONS}
               value={form.criticized}
               onChange={(v) => setTraits('criticized', v)}
@@ -163,7 +171,7 @@ export default function Feedback() {
               multiple
             />
             <OptionGroup
-              label="Would you hire them again?"
+              label={t('feedback.wouldRehire')}
               options={REHIRE_OPTIONS}
               value={form.rehire}
               onChange={(v) => setField('rehire', v)}
@@ -171,30 +179,28 @@ export default function Feedback() {
             />
             {form.rehire === false ? (
               <OptionGroup
-                label="Block"
+                label={t('feedback.blockLabel')}
                 options={BLOCK_OPTIONS}
                 value={form.block ? ['block'] : []}
                 onChange={(v) => setField('block', v.length > 0)}
-                hint="They won’t be offered your jobs in future."
+                hint={t('feedback.blockHint')}
                 multiple
               />
             ) : null}
             <TextField
-              label="Anything else? (optional)"
-              placeholder="Tell us more about the work"
+              label={t('feedback.commentLabel')}
+              placeholder={t('feedback.commentPlaceholder')}
               value={form.comment}
               onChangeText={(v) => setField('comment', v)}
               error={errors.comment}
               multiline
               maxLength={500}
             />
-            <Text style={styles.privacy}>
-              Your rating shapes which workers you’re matched with. Workers see a summary, never your name.
-            </Text>
+            <Text style={styles.privacy}>{t('feedback.privacy')}</Text>
           </ScrollView>
 
           <View style={styles.footer}>
-            <Button label="Submit feedback" onPress={handleSubmit} loading={saving} />
+            <Button label={t('feedback.submit')} onPress={handleSubmit} loading={saving} />
           </View>
         </KeyboardAvoidingView>
       )}

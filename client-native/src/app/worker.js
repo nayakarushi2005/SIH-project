@@ -18,7 +18,7 @@ import { getErrorMessage, isAadhaarRequired } from '../services/api';
 
 /** Worker dashboard: go online, see the active job, manage the work profile. */
 export default function WorkerHome() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { bySlug } = useCategories(i18n.language);
   const router = useRouter();
   const { profile, online, refresh, goOnline, goOffline } = useWorkerMode();
@@ -44,19 +44,19 @@ export default function WorkerHome() {
       else await goOnline();
     } catch (err) {
       if (isAadhaarRequired(err)) {
-        Alert.alert('Verify your Aadhaar', getErrorMessage(err), [
-          { text: 'Not now', style: 'cancel' },
-          { text: 'Verify', onPress: () => router.push('/aadhaar-verify') },
+        Alert.alert(t('worker.verifyAadhaarTitle'), getErrorMessage(err), [
+          { text: t('worker.notNow'), style: 'cancel' },
+          { text: t('worker.verify'), onPress: () => router.push('/aadhaar-verify') },
         ]);
       } else {
-        Alert.alert(online ? 'Could not go offline' : 'Could not go online', getErrorMessage(err));
+        Alert.alert(online ? t('worker.offlineFailedTitle') : t('worker.onlineFailedTitle'), getErrorMessage(err));
       }
     } finally {
       setToggling(false);
     }
-  }, [goOffline, goOnline, online, router]);
+  }, [goOffline, goOnline, online, router, t]);
 
-  const header = <ScreenHeader title="Worker mode" fallbackHref="/profile" />;
+  const header = <ScreenHeader title={t('worker.title')} fallbackHref="/profile" />;
 
   if (profile === undefined) {
     return (
@@ -78,11 +78,11 @@ export default function WorkerHome() {
             later asks for Aadhaar verification if it's still missing. */}
         <EmptyState
           icon="briefcase-outline"
-          title="Earn with jobs near you"
-          body="Register the work you do, go online, and accept the job requests you want."
+          title={t('worker.emptyTitle')}
+          body={t('worker.emptyBody')}
         >
           <Button
-            label="Become a worker"
+            label={t('worker.becomeWorker')}
             onPress={() => router.push('/worker-onboarding')}
             style={styles.stretch}
           />
@@ -108,17 +108,17 @@ export default function WorkerHome() {
         <View style={[styles.status, online && styles.statusOnline]}>
           <View style={styles.statusRow}>
             <View style={[styles.dot, online && styles.dotOnline]} />
-            <Text style={styles.statusTitle}>{online ? 'You’re online' : 'You’re offline'}</Text>
+            <Text style={styles.statusTitle}>{online ? t('worker.online') : t('worker.offline')}</Text>
           </View>
           <Text style={styles.statusBody}>
             {profile.currentJob
-              ? 'Finish your current job to get new requests.'
+              ? t('worker.statusCurrentJob')
               : online
-                ? 'Waiting for job requests. Keep the app open — requests pop up here and stay open for 20 minutes.'
-                : 'Go online to start getting job requests near you.'}
+                ? t('worker.statusWaiting')
+                : t('worker.statusOffline')}
           </Text>
           <Button
-            label={online ? 'Go offline' : 'Go online'}
+            label={online ? t('worker.goOffline') : t('worker.goOnline')}
             variant={online ? 'secondary' : 'primary'}
             onPress={toggleOnline}
             loading={toggling}
@@ -128,17 +128,17 @@ export default function WorkerHome() {
         {/* ── Current job ────────────────────────────────────────── */}
         {profile.currentJob ? (
           <>
-            <Text style={styles.sectionTitle}>Current job</Text>
+            <Text style={styles.sectionTitle}>{t('worker.currentJob')}</Text>
             <WorkerJobCard jobId={profile.currentJob} onChanged={refresh} />
           </>
         ) : null}
 
         {/* ── Feedback insights (knowledge graph) ────────────────── */}
-        <Text style={styles.sectionTitle}>What clients say</Text>
+        <Text style={styles.sectionTitle}>{t('worker.whatClientsSay')}</Text>
         <WorkerInsightsCard />
 
         {/* ── Work profile ───────────────────────────────────────── */}
-        <Text style={styles.sectionTitle}>Work profile</Text>
+        <Text style={styles.sectionTitle}>{t('worker.workProfile')}</Text>
         <View style={styles.summary}>
           <View style={styles.summaryRow}>
             <Ionicons name="construct-outline" size={18} color={colors.textMuted} />
@@ -146,10 +146,10 @@ export default function WorkerHome() {
           </View>
           <View style={styles.summaryRow}>
             <Ionicons name="navigate-outline" size={18} color={colors.textMuted} />
-            <Text style={styles.summaryText}>Jobs within {profile.serviceRadiusKm} km</Text>
+            <Text style={styles.summaryText}>{t('worker.jobsWithin', { km: profile.serviceRadiusKm })}</Text>
           </View>
           <Button
-            label="Edit work profile"
+            label={t('worker.editProfile')}
             variant="text"
             onPress={() => router.push('/worker-profile')}
             style={styles.editButton}
