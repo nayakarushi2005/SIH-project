@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import Avatar from './Avatar';
 import Button from './Button';
+import JobPaymentButton from './JobPaymentButton';
 import RetryJobSheet from './RetryJobSheet';
 import { colors, radius, spacing, typography } from '../constants/theme';
 import useCategories from '../hooks/useCategories';
@@ -181,6 +182,7 @@ export default function JobCard({ job, onRate, onChanged }) {
             />
           ) : null
         ) : null}
+        <JobPaymentButton job={job} />
         {job.status === 'EXPIRED' ? (
           <View style={styles.expired}>
             <Text style={styles.expiredText}>{t('jobCard.expiredBody')}</Text>
