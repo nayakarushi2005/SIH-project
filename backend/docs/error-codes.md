@@ -70,3 +70,25 @@ feedback_criticized_invalid — Choose what could be better from the list.
 feedback_traits_conflict — Something can’t be both good and bad — pick one.
 feedback_rehire_invalid — Answer yes or no.
 feedback_comment_length — Keep your comment under 500 characters.
+payment_job_not_completed — You can pay once the job is completed.
+payment_already_paid — This job is already paid for.
+payments_not_configured — Online payments aren’t set up yet.
+payment_order_failed — Could not start the payment. Please try again.
+payment_verification_failed — We couldn’t verify this payment.
+payment_verify_failed — Could not confirm the payment. Please check again shortly.
+payment_update_failed — Could not record the payment.
+payment_load_failed — Could not load the payment.
+receipt_not_found — Receipt not found
+receipt_link_expired — This receipt link has expired. Open it again from the app.
+receipt_failed — Could not open the receipt.
+earnings_load_failed — Could not load your earnings.
+payout_holder_name_invalid — Enter the name exactly as it is on your bank account.
+payout_account_number_invalid — Enter a valid account number (9–18 digits).
+payout_account_number_mismatch — The account numbers don’t match.
+payout_ifsc_invalid — Enter a valid 11-character IFSC code.
+payout_ifsc_not_found — We couldn’t find a bank branch with this IFSC code.
+payout_profile_incomplete — Add your phone number and PIN code to your profile first.
+payout_account_failed — We couldn’t register this bank account. Please check the details and try again.
+payout_worker_only — Register as a worker to add bank details.
+payout_account_load_failed — Could not load your bank details.
+payout_account_save_failed — Could not save your bank details.

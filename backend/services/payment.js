@@ -124,7 +124,12 @@ async function confirmOnlinePayment(payment, razorpayPaymentId) {
     throw { code: 'payment_mismatch' };
   }
   if (rp.status === 'authorized') {
-    await razorpay.capturePayment(rp.id, payment.amountPaise);
+    try {
+      await razorpay.capturePayment(rp.id, payment.amountPaise);
+    } catch (err) {
+      // Auto-capture (or the webhook) may have got there first.
+      if ((await razorpay.fetchPayment(rp.id)).status !== 'captured') throw err;
+    }
   } else if (rp.status !== 'captured') {
     throw { code: 'payment_not_completed' };
   }

@@ -133,6 +133,10 @@ export default function WorkerHome() {
           </>
         ) : null}
 
+        {/* ── Earnings and payouts ───────────────────────────────── */}
+        <Text style={styles.sectionTitle}>{t('earnings.sectionTitle')}</Text>
+        <Button label={t('earnings.open')} variant="secondary" onPress={() => router.push('/earnings')} />
+
         {/* ── Feedback insights (knowledge graph) ────────────────── */}
         <Text style={styles.sectionTitle}>{t('worker.whatClientsSay')}</Text>
         <WorkerInsightsCard />
