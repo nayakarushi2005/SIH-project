@@ -92,3 +92,7 @@ payout_account_failed — We couldn’t register this bank account. Please check
 payout_worker_only — Register as a worker to add bank details.
 payout_account_load_failed — Could not load your bank details.
 payout_account_save_failed — Could not save your bank details.
+heatmap_workers_only — Register as a worker to see where the work is.
+heatmap_bounds_invalid — Map bounds are missing or invalid.
+heatmap_area_too_large — Zoom in to a city to see the map.
+heatmap_load_failed — Could not load the map.

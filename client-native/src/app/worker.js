@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import Button from '../components/Button';
 import EmptyState from '../components/EmptyState';
+import HeatmapCard from '../components/HeatmapCard';
 import ScreenHeader from '../components/ScreenHeader';
 import WorkerInsightsCard from '../components/WorkerInsightsCard';
 import WorkerJobCard from '../components/WorkerJobCard';
@@ -136,6 +137,9 @@ export default function WorkerHome() {
         {/* ── Earnings and payouts ───────────────────────────────── */}
         <Text style={styles.sectionTitle}>{t('earnings.sectionTitle')}</Text>
         <Button label={t('earnings.open')} variant="secondary" onPress={() => router.push('/earnings')} />
+
+        {/* ── Where the work is (demand heatmap) ────────────────── */}
+        <HeatmapCard mode="demand" />
 
         {/* ── Feedback insights (knowledge graph) ────────────────── */}
         <Text style={styles.sectionTitle}>{t('worker.whatClientsSay')}</Text>
