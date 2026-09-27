@@ -1,22 +1,25 @@
-"""HTTP API for the voice onboarding assistant.
+"""HTTP API for the voice job-posting assistant.
 
-POST /v1/onboarding/sessions               {lang?} start → first thing to say
-POST /v1/onboarding/sessions/{sid}/turns   {transcript} or {selection} → next thing to say
-GET  /v1/onboarding/sessions/{sid}         last thing said (resume)
+POST /v1/job-posting/sessions               {lang?, category?} start → first thing to say
+POST /v1/job-posting/sessions/{sid}/turns   {transcript} or {selection} → next thing to say
+GET  /v1/job-posting/sessions/{sid}         last thing said (resume)
 """
 
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, Request
+from pydantic import Field
 
-from app.agents.onboarding.graph import build_graph
-from app.agents.onboarding.state import filled, initial_state
+from app.agents.job_posting.state import KIND, filled, initial_state
 from app.auth import current_user
 from app.errors import ServiceError
-from app.node_client import get_node
-from app.sessions import StartIn, TurnIn, _now, config_for, load_session, session_lock  # noqa: F401
+from app.sessions import StartIn, TurnIn, _now, config_for, load_session, session_lock
 
-router = APIRouter(prefix="/v1/onboarding")
+router = APIRouter(prefix="/v1/job-posting")
+
+
+class JobStartIn(StartIn):
+    category: str | None = Field(default=None, max_length=64)  # a known slug, else ignored
 
 
 def _output(values: dict) -> dict:
@@ -33,19 +36,18 @@ def _output(values: dict) -> dict:
 
 @router.post("/sessions", status_code=201)
 async def start_session(
-    request: Request, body: StartIn | None = None, user: dict = Depends(current_user)
+    request: Request, body: JobStartIn | None = None, user: dict = Depends(current_user)
 ):
     request.app.state.limiter.check(str(user["id"]))
-    try:
-        nearby = await get_node(request).get_nearby_federations(user["_token"])
-        options = nearby.get("federations", [])
-    except ServiceError:
-        options = []  # no location / backend hiccup → skip the federation step
     sid = uuid4().hex
     lang = body.lang if body else None
-    state = {**initial_state(user, options, now=_now(), lang=lang), "turn": {"kind": "start"}}
-    await request.app.state.catalogs.get(state["lang"])
-    values = await request.app.state.graph.ainvoke(state, config_for(sid))
+    category = body.category if body else None
+    state = initial_state(user, now=_now(), lang=lang, category=category)
+    catalog = await request.app.state.catalogs.get(state["lang"])
+    if state["category"] not in catalog.slugs:
+        state["category"] = None
+    state = {**state, "turn": {"kind": "start"}}
+    values = await request.app.state.job_graph.ainvoke(state, config_for(sid))
     return {"sessionId": sid, **_output(values)}
 
 
@@ -56,7 +58,7 @@ async def take_turn(sid: str, body: TurnIn, request: Request, user: dict = Depen
     if lock.locked():
         raise ServiceError(409, "Still working on your last answer.", "busy")
     async with lock:
-        values = await load_session(request.app.state.graph, sid, user, kind=None)
+        values = await load_session(request.app.state.job_graph, sid, user, kind=KIND)
         if values.get("done") or values.get("handoff"):
             raise ServiceError(409, "This conversation is already finished.", "finished")
         # Fetch the catalogue first: if the backend is down we fail here,
@@ -66,17 +68,10 @@ async def take_turn(sid: str, body: TurnIn, request: Request, user: dict = Depen
             turn = {"kind": "speech", "transcript": body.transcript}
         else:
             turn = {"kind": "tap", "selection": body.selection}
-        values = await request.app.state.graph.ainvoke({"turn": turn}, config_for(sid))
+        values = await request.app.state.job_graph.ainvoke({"turn": turn}, config_for(sid))
     return _output(values)
 
 
 @router.get("/sessions/{sid}")
 async def get_session(sid: str, request: Request, user: dict = Depends(current_user)):
-    return _output(await load_session(request.app.state.graph, sid, user, kind=None))
-
-
-def rebuild_graph_for_tests(app) -> None:
-    """A fresh graph over the same checkpointer — like a service restart."""
-    app.state.graph = build_graph(
-        app.state.extractor, app.state.catalogs.get, app.state.checkpointer
-    )
+    return _output(await load_session(request.app.state.job_graph, sid, user, kind=KIND))
