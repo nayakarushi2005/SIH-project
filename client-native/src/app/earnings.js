@@ -27,7 +27,9 @@ const TONES = {
 function paymentStatus(p) {
   if (p.status === 'PENDING') return ['earnings.status.pending', 'warning'];
   if (p.method === 'cash') return ['earnings.status.cash', 'primary'];
-  if (p.payout.status === 'SETTLED') return ['earnings.status.settled', 'primary'];
+  if (p.payout.status === 'SETTLED') {
+    return [p.payout.simulated ? 'earnings.status.settledTest' : 'earnings.status.settled', 'primary'];
+  }
   if (p.payout.status === 'FAILED') return ['earnings.status.failed', 'danger'];
   return ['earnings.status.onTheWay', 'warning'];
 }
@@ -153,6 +155,13 @@ export default function Earnings() {
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
       >
+        {data.payouts?.testMode ? (
+          <View style={styles.testBanner}>
+            <Ionicons name="flask-outline" size={16} color={colors.warning} />
+            <Text style={styles.testBannerText}>{t('earnings.testBanner')}</Text>
+          </View>
+        ) : null}
+
         {/* ── Totals ─────────────────────────────────────────────── */}
         <View style={styles.totals}>
           <View style={styles.total}>
@@ -250,6 +259,19 @@ const styles = StyleSheet.create({
     padding: spacing.lg - spacing.xs,
     paddingBottom: spacing.xl,
     gap: spacing.sm + 4,
+  },
+  testBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    padding: spacing.sm + 2,
+    borderRadius: radius.md,
+    backgroundColor: colors.warningSoft,
+  },
+  testBannerText: {
+    ...typography.label,
+    flex: 1,
+    color: colors.warning,
   },
   totals: {
     flexDirection: 'row',

@@ -18,6 +18,11 @@ function isConfigured() {
   return !!(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET);
 }
 
+/** True unless live keys (rzp_live_…) are set — no real money can move. */
+function isTestMode() {
+  return !String(process.env.RAZORPAY_KEY_ID ?? '').startsWith('rzp_live_');
+}
+
 function rzp() {
   if (!client) {
     client = new Razorpay({
@@ -138,6 +143,7 @@ module.exports = {
   errorText,
   fetchPayment,
   isConfigured,
+  isTestMode,
   keyId,
   lookupIfsc,
   transferToLinkedAccount,

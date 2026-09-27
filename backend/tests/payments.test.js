@@ -37,6 +37,22 @@ afterEach(async () => {
 });
 afterAll(db.close);
 
+/**
+ * Settles pending payouts and waits for any settle already running in the
+ * background (saving an account or confirming a payment starts one), so the
+ * payout has reached its final status.
+ */
+async function settleAndWait(workerId) {
+  await settlePendingPayouts(workerId);
+  for (let i = 0; i < 50; i += 1) {
+    const p = await Payment.findOne();
+    if (!['PENDING', 'PROCESSING'].includes(p.payout.status)) return p;
+    await new Promise((r) => setTimeout(r, 20));
+    await settlePendingPayouts(workerId);
+  }
+  return Payment.findOne();
+}
+
 const sign = (payload, secret) => crypto.createHmac('sha256', secret).update(payload).digest('hex');
 
 async function completedJob(overrides = {}) {
@@ -277,8 +293,7 @@ describe('payout account', () => {
     const stored = await PayoutAccount.findOne().lean();
     expect(JSON.stringify(stored)).not.toContain('123456789012');
 
-    await settlePendingPayouts(worker._id);
-    const payment = await Payment.findOne();
+    const payment = await settleAndWait(worker._id);
     expect(payment.payout).toMatchObject({ status: 'SETTLED', mode: 'simulated', accountLast4: '9012' });
   });
 
@@ -294,6 +309,21 @@ describe('payout account', () => {
       .set(authHeader(worker))
       .send({ ...BANK, accountNumber: '999988887777', confirmAccountNumber: '999988887777' });
     expect(res.body.account.holdPayoutsUntil).toBeTruthy();
+  });
+
+  test('in test mode the screen gets simulated/test info and sample bank details; live keys get none', async () => {
+    const { worker } = await completedJob();
+    process.env.RAZORPAY_KEY_ID = 'rzp_test_abc';
+    const test = await request(app).get('/api/payments/payout-account').set(authHeader(worker));
+    expect(test.body).toEqual({
+      account: null,
+      payouts: { mode: 'simulated', testMode: true, testBank: { accountNumber: '1234567890', ifsc: 'HDFC0000001' } },
+    });
+
+    process.env.RAZORPAY_KEY_ID = 'rzp_live_abc';
+    const live = await request(app).get('/api/payments/payout-account').set(authHeader(worker));
+    expect(live.body.payouts).toEqual({ mode: 'simulated', testMode: false, testBank: null });
+    delete process.env.RAZORPAY_KEY_ID;
   });
 
   test('bad details come back as coded field errors', async () => {
@@ -342,10 +372,10 @@ describe('payout account', () => {
       .set(authHeader(client))
       .send({ orderId: 'order_1', paymentId: 'pay_1', signature: sign('order_1|pay_1', 'key-secret') });
 
-    await settlePendingPayouts(worker._id);
+    const payment = await settleAndWait(worker._id);
     expect(razorpay.transferToLinkedAccount).toHaveBeenCalledTimes(1);
     expect(razorpay.transferToLinkedAccount).toHaveBeenCalledWith('pay_1', 'acc_123', 45000, expect.anything());
-    expect((await Payment.findOne()).payout).toMatchObject({ status: 'SETTLED', transferId: 'trf_1' });
+    expect(payment.payout).toMatchObject({ status: 'SETTLED', transferId: 'trf_1' });
   });
 });
 

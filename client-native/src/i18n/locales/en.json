@@ -104,7 +104,8 @@
       "cash": "Paid in cash",
       "settled": "Sent to your bank",
       "onTheWay": "On the way to your bank",
-      "failed": "Payout failed, we’ll retry"
+      "failed": "Payout failed, we’ll retry",
+      "settledTest": "Sent to your bank (test)"
     },
     "gotCash": "I got cash",
     "cashConfirmTitle": "Received {{amount}} in cash?",
@@ -114,7 +115,8 @@
     "cashFailedTitle": "Couldn’t record the payment",
     "receipt": "Receipt",
     "loadFailed": "Couldn’t load your earnings.",
-    "retry": "Try again"
+    "retry": "Try again",
+    "testBanner": "Test mode: payments and payouts are practice only. No real money moves."
   },
   "payoutAccount": {
     "title": "Bank details",
@@ -131,7 +133,11 @@
     "save": "Save bank details",
     "savedTitle": "Bank details saved",
     "savedBody": "Payments will be sent to {{bank}} ····{{last4}}.",
-    "saveFailedTitle": "Couldn’t save bank details"
+    "saveFailedTitle": "Couldn’t save bank details",
+    "testTitle": "Test mode",
+    "testBodySimulated": "Payouts are recorded in the app only. No real money moves, so you can use test bank details.",
+    "testBodyRoute": "Payouts go to a Razorpay test account for this worker. No real money moves, so you can use test bank details.",
+    "fillTest": "Fill test bank details"
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",

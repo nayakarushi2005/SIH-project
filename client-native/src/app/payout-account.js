@@ -10,6 +10,7 @@ import Button from '../components/Button';
 import ScreenHeader from '../components/ScreenHeader';
 import TextField from '../components/TextField';
 import { colors, radius, spacing, typography } from '../constants/theme';
+import { useUser } from '../context/UserContext';
 import { getErrorMessage, getFieldErrors } from '../services/api';
 import { getPayoutAccount, savePayoutAccount } from '../services/payments';
 
@@ -22,19 +23,35 @@ const EMPTY = { holderName: '', accountNumber: '', confirmAccountNumber: '', ifs
 export default function PayoutAccount() {
   const { t } = useTranslation();
   const router = useRouter();
+  const { user } = useUser();
   const [current, setCurrent] = useState(undefined); // undefined = loading, null = none yet
+  const [payouts, setPayouts] = useState(null); // { mode, testMode, testBank }
   const [form, setForm] = useState(EMPTY);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     getPayoutAccount()
-      .then((account) => {
+      .then(({ account, payouts: info }) => {
         setCurrent(account);
+        setPayouts(info);
         if (account) setForm((f) => ({ ...f, holderName: account.holderName, ifsc: account.ifsc }));
       })
       .catch(() => setCurrent(null));
   }, []);
+
+  // Test mode only: sample details that pass validation, in the worker's name.
+  const fillTestDetails = useCallback(() => {
+    const bank = payouts?.testBank;
+    if (!bank) return;
+    setForm((f) => ({
+      holderName: f.holderName || user?.name || '',
+      accountNumber: bank.accountNumber,
+      confirmAccountNumber: bank.accountNumber,
+      ifsc: bank.ifsc,
+    }));
+    setErrors({});
+  }, [payouts, user]);
 
   const setField = useCallback((field, value) => {
     setForm((f) => ({ ...f, [field]: value }));
@@ -71,6 +88,20 @@ export default function PayoutAccount() {
       ) : (
         <KeyboardAvoidingView style={styles.flex} behavior="padding">
           <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+            {payouts?.testMode ? (
+              <View style={styles.testBox}>
+                <View style={styles.testTitleRow}>
+                  <Ionicons name="flask-outline" size={18} color={colors.warning} />
+                  <Text style={styles.testTitle}>{t('payoutAccount.testTitle')}</Text>
+                </View>
+                <Text style={styles.testBody}>
+                  {payouts.mode === 'route' ? t('payoutAccount.testBodyRoute') : t('payoutAccount.testBodySimulated')}
+                </Text>
+                {payouts.testBank ? (
+                  <Button label={t('payoutAccount.fillTest')} variant="secondary" onPress={fillTestDetails} />
+                ) : null}
+              </View>
+            ) : null}
             <Text style={styles.intro}>{t('payoutAccount.intro')}</Text>
             {current ? (
               <Text style={styles.current}>
@@ -154,6 +185,26 @@ const styles = StyleSheet.create({
     padding: spacing.lg - spacing.xs,
     paddingBottom: spacing.xl,
     gap: spacing.md,
+  },
+  testBox: {
+    gap: spacing.sm,
+    padding: spacing.sm + 4,
+    borderRadius: radius.md,
+    backgroundColor: colors.warningSoft,
+  },
+  testTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  testTitle: {
+    ...typography.body,
+    fontWeight: '700',
+    color: colors.warning,
+  },
+  testBody: {
+    ...typography.label,
+    color: colors.text,
   },
   intro: {
     ...typography.body,

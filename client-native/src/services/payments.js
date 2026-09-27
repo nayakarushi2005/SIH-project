@@ -44,10 +44,13 @@ export async function getEarnings() {
   return res.data;
 }
 
-/** The worker's bank details for payouts (last 4 digits only), or null. */
+/**
+ * The worker's bank details for payouts (last 4 digits only) and how payouts
+ * work here: { account | null, payouts: { mode, testMode, testBank | null } }.
+ */
 export async function getPayoutAccount() {
   const res = await api.get('/payments/payout-account');
-  return res.data.account;
+  return res.data;
 }
 
 /**

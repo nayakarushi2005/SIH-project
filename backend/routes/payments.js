@@ -15,7 +15,7 @@ const {
   settlePendingPayouts,
   toPayment,
 } = require('../services/payment');
-const { savePayoutAccount, toPayoutAccount, validatePayoutAccount } = require('../services/payout');
+const { payoutInfo, savePayoutAccount, toPayoutAccount, validatePayoutAccount } = require('../services/payout');
 const razorpay = require('../services/razorpay');
 const { renderReceiptPdf } = require('../services/receipt');
 
@@ -252,6 +252,7 @@ router.get('/earnings', verifyToken, async (req, res) => {
         awaitingClient: totals.awaitingClient / 100,
       },
       payoutAccount: toPayoutAccount(account),
+      payouts: payoutInfo(),
       payments: payments.map((p) => toPayment(p, me)),
     });
   } catch (err) {
@@ -261,14 +262,14 @@ router.get('/earnings', verifyToken, async (req, res) => {
 });
 
 // ────────────────────────────────────────────────────────────────────────────
-// GET /api/payments/payout-account   → the worker's account, or null
+// GET /api/payments/payout-account   → { account (or null), payouts: { mode, testMode, testBank } }
 // PUT /api/payments/payout-account   Body: { holderName, accountNumber,
 //                                            confirmAccountNumber, ifsc }
 // ────────────────────────────────────────────────────────────────────────────
 router.get('/payout-account', verifyToken, async (req, res) => {
   try {
     const account = await PayoutAccount.findOne({ worker: req.user._id });
-    return res.status(200).json({ account: toPayoutAccount(account) });
+    return res.status(200).json({ account: toPayoutAccount(account), payouts: payoutInfo() });
   } catch (err) {
     console.error('Payout account load error:', err.message);
     return sendError(res, 500, 'payout_account_load_failed', 'Could not load your bank details.');
