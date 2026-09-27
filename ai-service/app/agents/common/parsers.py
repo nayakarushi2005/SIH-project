@@ -46,30 +46,45 @@ def bracket_for(yearly: int) -> str:
 _AMOUNT = re.compile(r"(\d+(?:[.,]\d+)*)\s*([^\d\s,.?!।]+)?")
 _JOINER = re.compile(r"^[\s,]*(?:and|aur|और|व|আর|மற்றும்|మరియు)?[\s,]*$")
 _PERIODS = {"day": 300, "week": 52, "month": 12, "year": 1}  # × to get a yearly amount
-_UNIT_RANK = {
+# Used by parse_income: unchanged from before the shared common/ move.
+_UNIT_RANK = {**{u: 1 for u in lx.THOUSAND}, **{u: 2 for u in lx.LAKH}, **{u: 3 for u in lx.CRORE}}
+_UNIT_VALUE = {1: 1_000, 2: 100_000, 3: 10_000_000}
+
+# parse_amount only: also understands "hundred" and the "hazaar" spelling.
+# Kept separate from _UNIT_RANK/_UNIT_VALUE above so parse_income's behaviour
+# (bracket, amount, period) stays byte-identical to before this module moved.
+_AMOUNT_UNIT_RANK = {
     **{u: 1 for u in lx.HUNDRED},
-    **{u: 2 for u in lx.THOUSAND},
+    **{u: 2 for u in (*lx.THOUSAND, "hazaar")},
     **{u: 3 for u in lx.LAKH},
     **{u: 4 for u in lx.CRORE},
 }
-_UNIT_VALUE = {1: 100, 2: 1_000, 3: 100_000, 4: 10_000_000}
+_AMOUNT_UNIT_VALUE = {1: 100, 2: 1_000, 3: 100_000, 4: 10_000_000}
 
 
-def _spell_before(t: str, follow: set[str]) -> str:
+def _spell_before(t: str, follow: set[str], numbers: dict | None = None) -> str:
     """Replace a spelled number with digits when the very next word is in `follow`."""
+    numbers = lx.NUMBER_WORDS if numbers is None else numbers
     words = t.split()
     for i, w in enumerate(words[:-1]):
-        if w in lx.NUMBER_WORDS and words[i + 1] in follow:
-            words[i] = str(lx.NUMBER_WORDS[w])
+        if w in numbers and words[i + 1] in follow:
+            words[i] = str(numbers[w])
     return " ".join(words)
 
 
 def _spell_numbers(t: str) -> str:
-    """'पंद्रह हज़ार' → '15 हज़ार' (only right before hundred/thousand/lakh/crore words)."""
+    """'पंद्रह हज़ार' → '15 हज़ार' (only right before thousand/lakh/crore words)."""
     return _spell_before(t, set(_UNIT_RANK))
 
 
-def _amounts(t: str, assume_money: bool = False) -> list[dict]:
+def _amounts(
+    t: str,
+    assume_money: bool = False,
+    unit_rank: dict | None = None,
+    unit_value: dict | None = None,
+) -> list[dict]:
+    unit_rank = _UNIT_RANK if unit_rank is None else unit_rank
+    unit_value = _UNIT_VALUE if unit_value is None else unit_value
     money = assume_money or _has(lx.MONEY, t) or "₹" in t
     found = []
     for m in _AMOUNT.finditer(t):
@@ -78,7 +93,7 @@ def _amounts(t: str, assume_money: bool = False) -> list[dict]:
             value = float(raw.replace(",", ""))
         except ValueError:
             continue
-        rank = _UNIT_RANK.get(unit, 0)
+        rank = unit_rank.get(unit, 0)
         end = m.end() if rank else m.end(1)
         if not rank:
             digits = raw.replace(",", "").split(".")[0]
@@ -90,7 +105,7 @@ def _amounts(t: str, assume_money: bool = False) -> list[dict]:
                 continue  # a PIN code
         found.append(
             {
-                "value": value * _UNIT_VALUE.get(rank, 1),
+                "value": value * unit_value.get(rank, 1),
                 "rank": rank,
                 "start": m.start(),
                 "end": end,
@@ -140,14 +155,22 @@ def parse_income(text: str) -> IncomeResult:
 
 def parse_amount(text: str) -> int | None:
     """A bare rupee amount, wherever said ("500 nahi 700" → 700). No minimum floor."""
-    t = _spell_numbers(normalise(text))
-    amounts = _amounts(t, assume_money=True)
+    t = _spell_before(normalise(text), set(_AMOUNT_UNIT_RANK))
+    amounts = _amounts(
+        t, assume_money=True, unit_rank=_AMOUNT_UNIT_RANK, unit_value=_AMOUNT_UNIT_VALUE
+    )
     if not amounts:
         return None
     return int(amounts[-1]["value"])
 
 
-_DURATION_UNITS = set(lx.HOUR) | set(lx.MINUTE) | set(lx.DAY) | set(lx.WEEK)
+# parse_duration only: plural/romanised forms plus "dedh"/"dhai" as 1.5/2.5,
+# kept out of the shared lexicon sets so parse_income (which also reads
+# lx.DAY/lx.WEEK/lx.NUMBER_WORDS) is unaffected.
+_DURATION_DAY = {*lx.DAY, "days"}
+_DURATION_WEEK = {*lx.WEEK, "weeks"}
+_DURATION_NUMBER_WORDS = {**lx.NUMBER_WORDS, "dedh": 1.5, "dhai": 2.5}
+_DURATION_UNITS = set(lx.HOUR) | set(lx.MINUTE) | _DURATION_DAY | _DURATION_WEEK
 _NUMBER_BEFORE = re.compile(r"(\d+(?:\.\d+)?)\s*$")
 
 
@@ -175,16 +198,16 @@ def _adjacent(a: tuple[int, int], b: tuple[int, int], t: str) -> bool:
 def parse_duration(text: str, lang: str) -> int | None:
     """A spoken duration, in minutes. `lang` is accepted for a uniform call
     signature across agents; the lexicon already covers every language."""
-    t = _spell_before(normalise(text), _DURATION_UNITS)
+    t = _spell_before(normalise(text), _DURATION_UNITS, numbers=_DURATION_NUMBER_WORDS)
 
     if _has(lx.FULL_DAY, t):
         return 480
 
     half = _find_unit(t, lx.HALF)
-    day = _find_unit(t, lx.DAY)
+    day = _find_unit(t, _DURATION_DAY)
     hour = _find_unit(t, lx.HOUR)
     minute = _find_unit(t, lx.MINUTE)
-    week = _find_unit(t, lx.WEEK)
+    week = _find_unit(t, _DURATION_WEEK)
 
     if half and day and _adjacent(half, day, t):
         return 240
