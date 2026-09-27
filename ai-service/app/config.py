@@ -44,9 +44,13 @@ class Settings(BaseSettings):
         if not key.is_file():
             return None
         try:
-            return json.loads(key.read_text("utf-8")).get("project_id")
+            data = json.loads(key.read_text("utf-8"))
         except (OSError, ValueError):
             return None
+        # A key file that is valid JSON but not an object (or names a
+        # non-string project) must not crash startup: fall back to "no project".
+        pid = data.get("project_id") if isinstance(data, dict) else None
+        return pid if isinstance(pid, str) and pid.strip() else None
 
     @property
     def vertex_configured(self) -> bool:

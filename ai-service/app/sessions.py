@@ -59,6 +59,8 @@ async def load_session(graph, sid: str, user: dict, kind: str | None = None) -> 
     the onboarding graph silently loses its `kind`. Read the checkpoint
     itself instead, so the `kind` check actually sees it.
     """
+    # Raw checkpoint read on purpose (not graph.aget_state): see the docstring,
+    # and tests/test_job_graph.py::test_load_session_reads_kind_from_the_raw_checkpoint.
     checkpoint_tuple = await graph.checkpointer.aget_tuple(config_for(sid))
     values = checkpoint_tuple.checkpoint.get("channel_values") if checkpoint_tuple else None
     if not values or _now() - values.get("created_at", 0) > SESSION_TTL_S:

@@ -120,10 +120,10 @@ async def test_onboarding_session_on_job_route_is_404(client, node_ok):
     res = await client.post("/v1/onboarding/sessions", headers=H)
     sid = res.json()["sessionId"]
     turn = await client.post(f"/v1/job-posting/sessions/{sid}/turns", headers=H, json={"transcript": "x"})
-    assert turn.status_code == 404
+    assert turn.status_code == 404 and turn.json()["code"] == "not_found"
 
 
 async def test_job_session_on_onboarding_route_is_404(client, node_ok):
     sid = (await start(client))["sessionId"]
     turn = await client.post(f"/v1/onboarding/sessions/{sid}/turns", headers=H, json={"transcript": "x"})
-    assert turn.status_code == 404
+    assert turn.status_code == 404 and turn.json()["code"] == "not_found"
