@@ -14,9 +14,10 @@ const {
 
 const router = express.Router();
 
-// The app promises clients that every worker is identity-verified.
+// With REQUIRE_WORKER_AADHAAR=true, only identity-verified workers can go
+// online. Off by default for the prototype.
 function requireAadhaar(req, res, next) {
-  if (!req.user.isAadhaarVerified) {
+  if (process.env.REQUIRE_WORKER_AADHAAR === 'true' && !req.user.isAadhaarVerified) {
     return res.status(403).json({
       error: 'Verify your Aadhaar with DigiLocker before taking jobs.',
       code: 'AADHAAR_REQUIRED',
@@ -105,7 +106,7 @@ router.put('/me', verifyToken, async (req, res) => {
 // ────────────────────────────────────────────────────────────────────────────
 // POST /api/workers/me/online
 // Starts taking jobs from the given position.
-// Requires: Aadhaar-verified, registered worker
+// Requires: registered worker (and Aadhaar-verified if REQUIRE_WORKER_AADHAAR=true)
 // Body: { location: { lat, lng } }
 // ────────────────────────────────────────────────────────────────────────────
 router.post('/me/online', verifyToken, requireAadhaar, async (req, res) => {
