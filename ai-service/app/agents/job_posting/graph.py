@@ -16,6 +16,7 @@ The code, not the model, decides what is asked and in which order.
 """
 
 import logging
+import re
 import time
 from collections.abc import Awaitable, Callable
 
@@ -26,8 +27,8 @@ from app.agents.common.catalog import Catalog, match_categories
 from app.agents.common.flow import fail, from_llm, safe_redirect
 from app.agents.common.parsers import (
     _has,
+    _word,
     detect_change,
-    detect_done,
     detect_yes_no,
     normalise,
     parse_amount,
@@ -65,9 +66,23 @@ log = logging.getLogger(__name__)
 CatalogFor = Callable[[str], Awaitable[Catalog]]
 
 SUMMARY_DESC_MAX = 120
-# A bare "no"/"done" skips the address, but only as a short reply:
-# "shop no 5, MG road" or "बस स्टैंड के पास" are addresses.
-_SKIP_REPLY_MAX_WORDS = 3
+# A "no"/"done" skips the address only when it is the whole reply (give or
+# take a polite word): "House no 5", "No. 12" or "बस स्टैंड" are addresses.
+_SKIP_POLITE = ("ji", "जी", "please", "thanks", "thank", "you", "sir", "bhai", "भाई")
+_SENTENCE_PUNCT = re.compile(r"[,.?!।;:]")
+_DIGIT = re.compile(r"\d")
+
+
+def _bare_no_or_done(text: str, lang: str) -> bool:
+    """True if the reply is nothing but no/done words ("नहीं", "no thanks", "हो गया")."""
+    t = _SENTENCE_PUNCT.sub(" ", normalise(text)).strip()
+    if not t or _DIGIT.search(t):
+        return False
+    words = lx.NO.get(lang, []) + lx.NO["en"] + lx.DONE.get(lang, []) + lx.DONE["en"]
+    rest = t
+    for w in sorted({*words, *_SKIP_POLITE}, key=len, reverse=True):  # phrases first
+        rest = re.sub(_word(w), " ", rest)
+    return rest.strip() == ""
 
 # Extra words for each editable field, beyond its `field_*` label.
 _FIELD_EXTRAS = {
@@ -118,20 +133,27 @@ def _attempt_key(step: str | None) -> str | None:
 
 
 def _say_duration(lang: str, mins: int) -> str:
-    """A duration as a short spoken phrase: presets by name, else rounded."""
+    """A duration as a short spoken phrase: presets by name, whole days as
+    days, else hours and minutes (rounded to days only past a day and a half)."""
     presets = {
-        60: ("dur_hour", {}),
-        240: ("dur_half_day", {}),
-        480: ("dur_full_day", {}),
+        60: "dur_hour",
+        240: "dur_half_day",
+        480: "dur_full_day",
+        1440: "dur_day",
     }
     if mins in presets:
-        key, kw = presets[mins]
-        return msg(lang, key, **kw)
+        return msg(lang, presets[mins])
     if mins < 60:
         return msg(lang, "dur_minutes", n=mins)
+    if mins % 1440 == 0:
+        return msg(lang, "dur_days", n=mins // 1440)
     if mins < 36 * 60:
-        hours = int(mins / 60 + 0.5)
-        return msg(lang, "dur_hour") if hours == 1 else msg(lang, "dur_hours", n=hours)
+        hours, minutes = divmod(mins, 60)
+        if minutes == 0:
+            return msg(lang, "dur_hours", n=hours)
+        if hours == 1:
+            return msg(lang, "dur_hour_minutes", m=minutes)
+        return msg(lang, "dur_hours_minutes", h=hours, m=minutes)
     return msg(lang, "dur_days", n=int(mins / 1440 + 0.5))
 
 
@@ -342,14 +364,7 @@ def build_graph(extractor: Extractor, catalog_for: CatalogFor, checkpointer):
         return _duration(out.minutes, "llm")
 
     async def _speech_address(state, text) -> dict:
-        lang = state["lang"]
-        t = normalise(text)
-        short = len(t.split()) <= _SKIP_REPLY_MAX_WORDS
-        if (
-            _has(lx.SKIP, t)
-            or (short and detect_yes_no(text, lang) == "no")
-            or (short and detect_done(text, lang))
-        ):
+        if _has(lx.SKIP, normalise(text)) or _bare_no_or_done(text, state["lang"]):
             return _ok("rules", address=None)
         return _address(text, "rules")
 

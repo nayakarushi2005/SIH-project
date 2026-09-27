@@ -274,7 +274,8 @@ _DURATION_COUNT_DAY = {
     lx.nfc(w).lower()
     for w in ("day", "days", "din", "दिन", "दिवस", "দিন", "நாள்", "நாட்கள்", "రోజు", "రోజులు")
 }
-_TIME_UNITS = set(lx.HOUR) | set(lx.MINUTE) | _DURATION_COUNT_DAY
+_DURATION_MINUTE = {*lx.MINUTE, lx.nfc("मिनिटे"), "mins"}
+_TIME_UNITS = set(lx.HOUR) | _DURATION_MINUTE | _DURATION_COUNT_DAY
 # Sentence punctuation, but not inside a number ("1,500", "1.5").
 _PUNCT = re.compile(r"(?<!\d)[,.?!।]|[,.?!।](?!\d)")
 
@@ -329,7 +330,7 @@ def parse_amount(text: str) -> int | None:
     return int(amounts[-1]["value"])
 
 
-# parse_duration only: plural/romanised forms, day words that only count
+# parse_duration only: plural/romanised forms ("मिनिटे", "mins"), day words that only count
 # days ("दिवस", "நாள்"), extra "half" words and "dedh"/"dhai" as 1.5/2.5 —
 # kept out of the shared lexicon sets so parse_income (which also reads
 # lx.DAY/lx.WEEK/lx.NUMBER_WORDS) is unaffected.
@@ -337,7 +338,7 @@ _DURATION_DAY = {*lx.DAY, *_DURATION_COUNT_DAY}
 _DURATION_WEEK = {*lx.WEEK, "weeks"}
 _DURATION_HALF = {*lx.HALF, *(lx.nfc(w).lower() for w in ("আধা", "আধ", "అర"))}
 _DURATION_NUMBER_WORDS = {**lx.NUMBER_WORDS, **_EXTRA_NUMBER_WORDS, "dedh": 1.5, "dhai": 2.5}
-_DURATION_UNITS = set(lx.HOUR) | set(lx.MINUTE) | _DURATION_DAY | _DURATION_WEEK
+_DURATION_UNITS = set(lx.HOUR) | _DURATION_MINUTE | _DURATION_DAY | _DURATION_WEEK
 _NUMBER_BEFORE = re.compile(r"(\d+(?:\.\d+)?)\s*$")
 # "half an hour" / "half a day" → "half hour" / "half day".
 _HALF_ARTICLE = re.compile(r"(?<![\w])(half)\s+(?:of\s+)?an?\s+")
@@ -396,7 +397,7 @@ def parse_duration(text: str, lang: str) -> int | None:
         if n is not None:
             found.append((n[1], n[0] * 60))
             hour_ends[e] = n[0] * 60
-    for s, _ in _spans(t, lx.MINUTE):
+    for s, _ in _spans(t, _DURATION_MINUTE):
         n = _number_before(t, s)
         if n is None:
             continue
