@@ -187,10 +187,13 @@ export function checkHardcoded(files) {
         if (!isHardcoded(value)) continue;
         // Skip text that is (or sits right next to) a t(...) call.
         if (/\bt\(/.test(value)) continue;
-        // Skip spans that are plainly code, not JSX text: comparisons
-        // (`count > 3 && count < 10`), assignments, logical operators, or
-        // calls/parens leaking in from a `>`/`<` used as an operator.
-        if (/(&&|\|\||===?|!==?|[()=;])/.test(value)) continue;
+        // Skip spans that are plainly code, not JSX text, leaking in from a
+        // `>`/`<` used as a comparison operator rather than a tag delimiter:
+        // logical/equality/arrow operators, statement terminators, and
+        // call-like `ident(...)`. Bare prose punctuation — a lone `(`, `)`
+        // or `=` — is deliberately NOT excluded, so "Save (draft)" and
+        // "Total = 5 items" still get flagged.
+        if (/(&&|\|\||===?|!==?|=>|;|\w\()/.test(value)) continue;
         const before = line.slice(0, m.index);
         const after = line.slice(m.index + m[0].length);
         if (/\bt\(\s*$/.test(before) || /^\s*\)/.test(after)) continue;

@@ -62,6 +62,16 @@ test('reports a hardcoded Alert.alert second argument when the first is translat
   assert.match(checkHardcoded(files).join('\n'), /hardcoded Alert\.alert\("Something went wrong"\)/);
 });
 
+test('flags real JSX text containing bare parentheses', () => {
+  const files = [{ path: 'src/app/save.js', text: '<Text>Save (draft)</Text>' }];
+  assert.match(checkHardcoded(files).join('\n'), /hardcoded JSX text "Save \(draft\)"/);
+});
+
+test('flags real JSX text containing a bare equals sign', () => {
+  const files = [{ path: 'src/app/total.js', text: '<Text>Total = 5 items</Text>' }];
+  assert.match(checkHardcoded(files).join('\n'), /hardcoded JSX text "Total = 5 items"/);
+});
+
 test('does not flag a comparison expression as JSX text', () => {
   const files = [
     { path: 'src/app/qux.js', text: 'if (count > 3 && count < 10) { doThing(); }' },
