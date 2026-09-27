@@ -125,6 +125,25 @@ describe('online payment', () => {
     expect(razorpay.capturePayment).toHaveBeenCalledWith('pay_1', 50000);
   });
 
+  test('a capture that loses the race to auto-capture still counts as paid', async () => {
+    const { client, job } = await completedJob();
+    razorpay.createOrder.mockResolvedValue({ id: 'order_1' });
+    await request(app).post(`/api/payments/jobs/${job._id}/order`).set(authHeader(client));
+
+    const entity = { id: 'pay_1', order_id: 'order_1', amount: 50000, method: 'upi' };
+    razorpay.fetchPayment
+      .mockResolvedValueOnce({ ...entity, status: 'authorized' })
+      .mockResolvedValueOnce({ ...entity, status: 'captured' });
+    razorpay.capturePayment.mockRejectedValue({ error: { description: 'This payment has already been captured' } });
+
+    const res = await request(app)
+      .post(`/api/payments/jobs/${job._id}/verify`)
+      .set(authHeader(client))
+      .send({ orderId: 'order_1', paymentId: 'pay_1', signature: sign('order_1|pay_1', 'key-secret') });
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('PAID');
+  });
+
   test('a bad signature is rejected and nothing is paid', async () => {
     const { client, job } = await completedJob();
     razorpay.createOrder.mockResolvedValue({ id: 'order_1' });
