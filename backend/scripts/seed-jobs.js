@@ -23,7 +23,7 @@ const Job = require('../models/Job');
 const User = require('../models/User');
 const WorkerProfile = require('../models/WorkerProfile');
 const { jobPhotoFolder, signUpload } = require('../services/cloudinary');
-const { advanceNow, startDispatch } = require('../services/dispatch');
+const { advanceNow, newSearchDeadline, startDispatch } = require('../services/dispatch');
 
 const SEED_CLIENT = {
   googleId: 'seed-client',
@@ -221,6 +221,7 @@ async function main() {
       location: { type: 'Point', coordinates: offset(center, s.km, s.bearing) },
       address: s.address,
       clientAadhaarVerified: !s.unverifiedClient,
+      dispatch: { searchDeadline: newSearchDeadline() },
     });
     await startDispatch(job._id);
     const match = worker.skills.includes(s.category) ? '→ offered to this worker' : '(other trade)';

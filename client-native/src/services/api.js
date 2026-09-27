@@ -321,9 +321,28 @@ export async function completeJob(jobId) {
   return res.data;
 }
 
-/** Backs out of an assigned job before starting; it goes to another worker. */
-export async function withdrawJob(jobId) {
-  await api.post(`/jobs/${jobId}/withdraw`);
+/**
+ * Backs out of an assigned job within the cancellation window (job.cancelDeadline);
+ * it goes to another worker. `reason` is one of WITHDRAW_REASONS; `note` is
+ * required for 'other'.
+ */
+export async function withdrawJob(jobId, { reason, note }) {
+  await api.post(`/jobs/${jobId}/withdraw`, { reason, note });
+}
+
+/** The client cancels a job that hasn't started. Resolves the updated job. */
+export async function cancelJob(jobId) {
+  const res = await api.post(`/jobs/${jobId}/cancel`);
+  return res.data;
+}
+
+/**
+ * Searches again for a job nobody accepted (EXPIRED), optionally with edits
+ * such as { price, description }. Resolves the updated job.
+ */
+export async function retryJob(jobId, edits = {}) {
+  const res = await api.post(`/jobs/${jobId}/retry`, edits);
+  return res.data;
 }
 
 export default api;

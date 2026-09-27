@@ -432,7 +432,12 @@
     "forbidden": "এই কথোপকথন অন্য কারো।",
     "rate_limited": "অনেক বেশি অনুরোধ। অনুগ্রহ করে ধীরে করুন।",
     "backend_unavailable": "অ্যাপ সার্ভার এখন পৌঁছানো যাচ্ছে না। অনুগ্রহ করে আবার চেষ্টা করুন।",
-    "unauthorized": "অনুগ্রহ করে আবার সাইন ইন করুন।"
+    "unauthorized": "অনুগ্রহ করে আবার সাইন ইন করুন।",
+    "job_withdraw_reason_required": "বাতিলের কারণ বেছে নিন।",
+    "job_withdraw_note_required": "সংক্ষেপে বলুন কেন বাতিল করছেন।",
+    "job_withdraw_note_length": "{{max}} অক্ষরের মধ্যে লিখুন।",
+    "job_withdraw_window_over": "এই কাজ বাতিল করার সময় শেষ। অনুগ্রহ করে গিয়ে কাজটি করুন, বা গ্রাহকের সাথে কথা বলুন।",
+    "job_cannot_retry": "শুধু যে কাজ কেউ নেয়নি সেটাই আবার খোঁজা যায়।"
   },
   "durations": {
     "m30": "৩০ মিনিট",
@@ -476,7 +481,29 @@
     "startCodeHint": "কারিগর পৌঁছালে তাকে এটি জানান।",
     "startCodeA11y": "স্টার্ট কোড {{code}}",
     "rated": "আপনি এই কাজ রেট করেছেন",
-    "rateButton": "আপনার কারিগরকে রেট করুন"
+    "rateButton": "আপনার কারিগরকে রেট করুন",
+    "searchingFor": "কারিগর খোঁজা হচ্ছে · {{time}} বাকি",
+    "searchingEnding": "খোঁজ শেষ হচ্ছে…",
+    "workerRating": "★ {{rating}} ({{n}})",
+    "workerNew": "নতুন কারিগর",
+    "workerJobs": "সম্পন্ন কাজ: {{n}}",
+    "workerExperience": "অভিজ্ঞতা: {{n}} বছর",
+    "workerFallbackName": "আপনার কারিগর",
+    "workerVerified": "Aadhaar যাচাই করা",
+    "cancelJob": "কাজ বাতিল করুন",
+    "keepJob": "কাজ রাখুন",
+    "cancelConfirmTitle": "এই কাজ বাতিল করবেন?",
+    "cancelConfirmBody": "কোনো কারিগর কাজটি নিয়ে থাকলে, তিনি দেখবেন যে কাজটি বাতিল হয়েছে।",
+    "cancelFailedTitle": "বাতিল করা যায়নি",
+    "expiredBody": "20 মিনিটের মধ্যে কোনো কারিগর কাজটি নেননি। আবার খুঁজুন, বা বেশি সাড়া পেতে দাম বাড়ান।",
+    "searchAgain": "আবার খুঁজুন",
+    "raisePrice": "দাম বাড়ান / বদলান",
+    "retryFailedTitle": "আবার খোঁজা যায়নি",
+    "editTitle": "বদলে আবার খুঁজুন",
+    "editBody": "বেশি দাম বা পরিষ্কার বিবরণ দিলে কারিগররা রাজি হতে সুবিধা পান।",
+    "priceLabel": "দাম",
+    "descriptionLabel": "কাজের বিবরণ দিন",
+    "raiseBy": "দাম {{amount}} বাড়ান"
   },
   "categories": {
     "loadFailed": "কাজের বিভাগের তালিকা খালি।"
@@ -505,7 +532,21 @@
     "withdrawConfirmBody": "গ্রাহককে অন্য কর্মীর সাথে মেলানো হবে। প্রত্যাহার করলে আপনাকে দেওয়া কাজ প্রায়ই কমে যায়।",
     "keepJob": "কাজ রাখুন",
     "withdrawAction": "প্রত্যাহার করুন",
-    "withdrawFailedTitle": "প্রত্যাহার করা গেল না"
+    "withdrawFailedTitle": "প্রত্যাহার করা গেল না",
+    "withdrawButtonTimed": "আসতে পারবেন না? বাতিল করুন ({{time}} বাকি)",
+    "cancelWindowOver": "এই কাজ বাতিল করার সময় শেষ।",
+    "withdrawReasonLabel": "কেন বাতিল করছেন?",
+    "withdrawNoteLabel": "সংক্ষেপে কারণ বলুন",
+    "withdrawNoteOptional": "আর কিছু বলবেন? (ঐচ্ছিক)"
+  },
+  "withdrawReasons": {
+    "too_far": "অনেক দূরে",
+    "price_too_low": "দাম খুব কম",
+    "emergency": "ব্যক্তিগত জরুরি অবস্থা",
+    "vehicle_issue": "গাড়ির সমস্যা",
+    "client_unreachable": "গ্রাহকের সাথে যোগাযোগ হচ্ছে না",
+    "job_details_wrong": "কাজের তথ্য ভুল ছিল",
+    "other": "অন্য কারণ"
   },
   "offer": {
     "newRequest": "নতুন কাজের অনুরোধ",
