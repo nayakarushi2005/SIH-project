@@ -1,6 +1,5 @@
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import Button from './Button';
@@ -19,7 +18,6 @@ const TONES = {
 /** Summary row for one of the client's posted jobs. `onRate(job)` rates a completed one. */
 export default function JobCard({ job, onRate }) {
   const { t, i18n } = useTranslation();
-  const router = useRouter();
   const { bySlug } = useCategories(i18n.language);
   const service = bySlug(job.category);
   const status = jobStatus(job.status);
@@ -77,14 +75,6 @@ export default function JobCard({ job, onRate }) {
               style={styles.rate}
             />
           ) : null
-        ) : null}
-        {job.status === 'COMPLETED' && job.assignedWorker ? (
-          <Button
-            label={t('payment.openButton')}
-            variant="secondary"
-            onPress={() => router.push({ pathname: '/payment', params: { jobId: job.id } })}
-            style={styles.rate}
-          />
         ) : null}
       </View>
     </View>
