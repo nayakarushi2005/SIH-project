@@ -445,7 +445,6 @@
   },
   "workerJob": {
     "loadFailed": "Could not load your job.",
-    "inProgress": "In progress",
     "headToClient": "Head to client",
     "addressLabel": "Address",
     "addressFallback": "Pinned location — use directions",

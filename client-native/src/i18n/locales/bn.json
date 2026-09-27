@@ -445,7 +445,6 @@
   },
   "workerJob": {
     "loadFailed": "আপনার কাজ লোড করা গেল না।",
-    "inProgress": "কাজ চলছে",
     "headToClient": "গ্রাহকের কাছে যান",
     "addressLabel": "ঠিকানা",
     "addressFallback": "পিন করা অবস্থান — দিকনির্দেশ ব্যবহার করুন",

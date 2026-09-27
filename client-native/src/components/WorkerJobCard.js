@@ -16,7 +16,7 @@ import {
   startJob,
   withdrawJob,
 } from '../services/api';
-import { formatDuration, formatPrice } from '../utils/job';
+import { formatDuration, formatPrice, jobStatus } from '../utils/job';
 
 function openDirections({ lat, lng }) {
   Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`);
@@ -141,7 +141,7 @@ export default function WorkerJobCard({ jobId, onChanged }) {
         <Text style={styles.title}>{service?.name ?? job.category}</Text>
         <View style={[styles.badge, started && styles.badgeActive]}>
           <Text style={[styles.badgeText, started && styles.badgeTextActive]}>
-            {started ? t('workerJob.inProgress') : t('workerJob.headToClient')}
+            {started ? t(jobStatus(job.status).key) : t('workerJob.headToClient')}
           </Text>
         </View>
       </View>
