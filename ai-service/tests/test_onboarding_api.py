@@ -78,9 +78,9 @@ async def test_needs_exactly_one_of_transcript_or_selection(client, node_ok):
 
 async def test_expired_session_is_404(client, node_ok, monkeypatch):
     sid = (await start(client))["sessionId"]
-    import app.routes.onboarding as r
+    import app.sessions as sessions
 
-    monkeypatch.setattr(r, "_now", lambda: 10**12)
+    monkeypatch.setattr(sessions, "_now", lambda: 10**12)
     res = await client.get(f"/v1/onboarding/sessions/{sid}", headers=H)
     assert res.status_code == 404
 
