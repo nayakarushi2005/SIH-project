@@ -131,7 +131,12 @@ export default function HeatmapScreen() {
       <ScreenHeader title={title} fallbackHref={mode === 'demand' ? '/worker' : '/home'} />
 
       {/* ── Filters ──────────────────────────────────────────────── */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.chipRow}
+        contentContainerStyle={styles.chips}
+      >
         <Chip
           label={mode === 'demand' ? t('heatmap.allMySkills') : t('heatmap.allServices')}
           active={category === null}
@@ -254,7 +259,13 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     alignSelf: 'stretch',
   },
+  // A horizontal ScrollView grows to fill the column unless told not to.
+  chipRow: {
+    flexGrow: 0,
+    flexShrink: 0,
+  },
   chips: {
+    alignItems: 'center',
     gap: spacing.sm,
     paddingHorizontal: spacing.md,
     paddingBottom: spacing.sm,
