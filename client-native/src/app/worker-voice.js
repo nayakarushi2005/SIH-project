@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -14,6 +14,7 @@ import ScreenHeader from '../components/ScreenHeader';
 import { colors, radius, spacing, typography } from '../constants/theme';
 import { MAX_CATEGORIES } from '../constants/worker';
 import { useUser } from '../context/UserContext';
+import useAgentConversation from '../hooks/useAgentConversation';
 import useCategories from '../hooks/useCategories';
 import useVoice from '../hooks/useVoice';
 import { sendTurn, startOnboarding } from '../services/ai';
@@ -25,119 +26,6 @@ const FIELDS = [
   ['categories', 'voice.fieldWork'],
   ['federation', 'voice.fieldFederation'],
 ];
-
-/**
- * The conversation loop, outside React render: say the assistant's line,
- * listen, send the answer, repeat. `deps.current` holds the latest screen
- * callbacks (speech, state setters, navigation). Every send bumps `turn`,
- * so a listen or response that arrives after a newer action is ignored.
- */
-const MAX_TRANSCRIPT = 500;
-const RETRY_DELAYS_MS = [800, 1600];
-
-// Worth retrying: no connection, server hiccup, rate limit, or still busy.
-function retryable(err) {
-  const status = err?.response?.status;
-  if (!status) return true;
-  if (status === 409) return err.response.data?.code === 'busy';
-  return status === 429 || status >= 500;
-}
-
-const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-function createConversation(deps) {
-  let sessionId = null;
-  let turn = 0;
-  let alive = true;
-  let last = null;
-  const d = () => deps.current;
-
-  async function handle(next, { quiet = false } = {}) {
-    last = next;
-    d().onResponse(next);
-    const mine = turn;
-    if (!quiet || next.done || next.handoff) {
-      d().setPhase('speaking');
-      await d().speak(next.speak);
-    }
-    if (!alive || mine !== turn) return;
-    if (next.handoff) return d().toForm(next.filled);
-    if (next.done) return d().setPhase('summary');
-    return listenNow(next);
-  }
-
-  async function listenNow(current) {
-    const mine = turn;
-    d().setPhase('listening');
-    d().setHeard('');
-    let text;
-    try {
-      text = await d().listen({ contextualStrings: d().contextFor(current.ui) });
-    } catch (err) {
-      if (!alive || mine !== turn) return;
-      if (err?.code === 'denied' || err?.code === 'unavailable') {
-        await d().speak(d().t(err.code === 'denied' ? 'voice.micDenied' : 'voice.unavailable'));
-        if (alive) d().toForm(current.filled);
-      } else {
-        d().setPhase('idle');
-      }
-      return;
-    }
-    if (!alive || mine !== turn) return;
-    d().setHeard(text);
-    await send({ transcript: text.slice(0, MAX_TRANSCRIPT) });
-  }
-
-  async function send(payload, { quiet = false } = {}) {
-    d().stop();
-    const mine = ++turn;
-    d().setPhase('thinking');
-    for (let attempt = 0; ; attempt += 1) {
-      try {
-        const next = await sendTurn(sessionId, payload);
-        if (alive && mine === turn) await handle(next, { quiet });
-        return;
-      } catch (err) {
-        if (!alive || mine !== turn) return;
-        if (attempt < RETRY_DELAYS_MS.length && retryable(err)) {
-          await wait(RETRY_DELAYS_MS[attempt]);
-          if (!alive || mine !== turn) return;
-          continue;
-        }
-        d().onServerError(err, last?.filled ?? null);
-        return;
-      }
-    }
-  }
-
-  return {
-    start() {
-      startOnboarding().then(
-        (first) => {
-          sessionId = first.sessionId;
-          if (alive) handle(first);
-        },
-        (err) => alive && d().onServerError(err, null)
-      );
-    },
-    tap(selection) {
-      send({ selection });
-    },
-    /** Chip toggles: keep the server's list in step without speaking. */
-    sync(selection) {
-      send({ selection }, { quiet: true });
-    },
-    mic() {
-      if (!last || last.done) return;
-      d().stop();
-      turn += 1;
-      listenNow(last);
-    },
-    dispose() {
-      alive = false;
-      d().stop();
-    },
-  };
-}
 
 /**
  * Voice onboarding: the assistant (Python AI service) says a line, the phone
@@ -152,9 +40,6 @@ export default function WorkerVoice() {
   const { groups, bySlug } = useCategories(i18n.language);
   const { speak, listen, stop, listening, partial } = useVoice(i18n.language);
 
-  const [res, setRes] = useState(null); // last response from the assistant
-  const [phase, setPhase] = useState('loading'); // loading|speaking|listening|thinking|idle|summary
-  const [heard, setHeard] = useState('');
   const [picked, setPicked] = useState([]); // category chips toggled locally
   const [fedOptions, setFedOptions] = useState([]); // remembered for the summary
   const [saving, setSaving] = useState(false);
@@ -170,47 +55,44 @@ export default function WorkerVoice() {
     [router, stop]
   );
 
-  const deps = useRef({});
-  useEffect(() => {
-    deps.current = {
-      speak,
-      listen,
-      stop,
-      t,
-      toForm,
-      setPhase,
-      setHeard,
-      contextFor: (ui) => {
-        if (ui?.type === 'categories') return groups.flatMap((g) => g.categories.map((c) => c.name));
-        if (ui?.type === 'federations') return ui.options.map((o) => o.name);
-        return undefined;
-      },
-      onResponse: (next) => {
-        setRes(next);
-        if (next.ui?.type === 'categories') setPicked(next.ui.selected);
-        if (next.ui?.type === 'federations') setFedOptions(next.ui.options);
-      },
-      onServerError: (err, filled) => {
-        Alert.alert(t('voice.serverDown'), getErrorMessage(err));
-        toForm(filled);
-      },
-    };
-  }, [speak, listen, stop, t, toForm, groups]);
+  const contextFor = useCallback(
+    (ui) => {
+      if (ui?.type === 'categories') return groups.flatMap((g) => g.categories.map((c) => c.name));
+      if (ui?.type === 'federations') return ui.options.map((o) => o.name);
+      return undefined;
+    },
+    [groups]
+  );
 
-  // One conversation per visit to this screen.
-  const convo = useRef(null);
-  useEffect(() => {
-    const conversation = createConversation(deps);
-    convo.current = conversation;
-    conversation.start();
-    return () => conversation.dispose();
+  const onResponse = useCallback((next) => {
+    if (next.ui?.type === 'categories') setPicked(next.ui.selected);
+    if (next.ui?.type === 'federations') setFedOptions(next.ui.options);
   }, []);
 
-  const tap = (selection) => convo.current?.tap(selection);
+  const onServerError = useCallback(
+    (err, filled) => {
+      Alert.alert(t('voice.serverDown'), getErrorMessage(err));
+      toForm(filled);
+    },
+    [t, toForm]
+  );
+
+  const { res, phase, heard, tap, sync, mic } = useAgentConversation({
+    start: startOnboarding,
+    sendTurn,
+    speak,
+    listen,
+    stop,
+    t,
+    contextFor,
+    onResponse,
+    onServerError,
+    toForm,
+  });
 
   const micPress = () => {
     if (phase === 'thinking') return;
-    convo.current?.mic();
+    mic();
   };
 
   const confirm = async () => {
@@ -299,7 +181,7 @@ export default function WorkerVoice() {
                   selected={picked}
                   onChange={(next) => {
                     setPicked(next);
-                    convo.current?.sync({ categories: next, confirm: false });
+                    sync({ categories: next, confirm: false });
                   }}
                   max={ui.max ?? MAX_CATEGORIES}
                 />
