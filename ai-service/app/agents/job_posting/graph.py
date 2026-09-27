@@ -100,9 +100,14 @@ def _field_words(lang: str, field: str) -> list[str]:
     return [w for w in words if w]
 
 
+# "Work" words ("काम", "work", "வேலை") show up in most sentences about the job
+# ("काम का दाम बदलो"), so the work type only counts when nothing else is named.
+_FIELD_ORDER = tuple(f for f in FIELDS if f != "category") + ("category",)
+
+
 def _detect_field(text: str, lang: str) -> str | None:
     t = normalise(text)
-    for field in FIELDS:
+    for field in _FIELD_ORDER:
         if _has(_field_words(lang, field), t):
             return field
     return None

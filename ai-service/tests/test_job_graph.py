@@ -318,3 +318,22 @@ def test_text_helpers():
     assert sanitize_draft("fix\x00 the  fan please", "en") == "fix the fan please"
     assert sanitize_draft("short", "en") is None
     assert sanitize_draft("The fan is broken.", "hi") is None
+
+
+@pytest.mark.parametrize(
+    "lang,reply,step",
+    [
+        ("hi", "नहीं, काम का दाम बदलो", "price"),
+        ("en", "no, change the work time", "duration"),
+        ("hi", "नहीं, काम का विवरण बदलो", "description"),
+        ("hi", "काम का समय बदलना है", "duration"),
+        ("ta", "வேலை நேரம் மாற்று", "duration"),
+        ("hi", "नहीं, काम का प्रकार बदलो", "category"),
+        ("en", "no, change the work", "category"),
+    ],
+)
+async def test_the_work_word_does_not_hide_the_field_being_changed(lang, reply, step):
+    c = Convo(lang=lang)
+    await c.to_confirm()
+    s = await c.say(reply)
+    assert s["step"] == step and s["return_to_confirm"] is True
