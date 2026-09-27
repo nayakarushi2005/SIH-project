@@ -1,14 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { APIProvider, Map } from '@vis.gl/react-google-maps';
-import { HeatmapLayer } from '@deck.gl/aggregation-layers';
-import { ScatterplotLayer } from '@deck.gl/layers';
 import { AlertTriangle, BriefcaseBusiness, Flame, Map as MapIcon, RefreshCw, Users, ZoomIn } from 'lucide-react';
 
-import DeckGlOverlay from '../../components/DeckGlOverlay';
+import CanvasHeatmap from '../../components/CanvasHeatmap';
 import useFetchWithAuth from '../../hooks/useFetchWithAuth';
 
 const MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-const MAP_ID = import.meta.env.VITE_GOOGLE_MAP_ID || 'DEMO_MAP_ID'; // deck.gl needs a vector map
+const MAP_ID = import.meta.env.VITE_GOOGLE_MAP_ID || 'DEMO_MAP_ID'; // vector map: smooth zoom, dark theme
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
 
 const CENTER = (() => {
@@ -22,25 +20,25 @@ const LAYERS = {
     label: 'Demand',
     help: 'Jobs posted',
     weight: (c) => c.jobs,
-    colors: [[255, 255, 178], [254, 217, 118], [254, 178, 76], [253, 141, 60], [240, 59, 32], [189, 0, 38]],
+    colors: ['#7BD3A8', '#F2C94C', '#F2994A', '#D93025'],
   },
   unfilled: {
     label: 'Unfilled',
     help: 'Jobs no worker took',
     weight: (c) => c.unfilled,
-    colors: [[254, 229, 217], [252, 187, 161], [252, 146, 114], [251, 106, 74], [222, 45, 38], [165, 15, 21]],
+    colors: ['#FCBBA1', '#FB6A4A', '#DE2D26', '#A50F15'],
   },
   workers: {
     label: 'Workers',
     help: 'Registered workers',
     weight: (c) => c.workers,
-    colors: [[237, 248, 233], [199, 233, 192], [161, 217, 155], [116, 196, 118], [49, 163, 84], [0, 109, 44]],
+    colors: ['#C7E9C0', '#74C476', '#31A354', '#006D2C'],
   },
   shortage: {
     label: 'Shortage',
     help: 'Jobs per registered worker',
     weight: (c) => c.shortage,
-    colors: [[242, 240, 247], [218, 218, 235], [188, 189, 220], [158, 154, 200], [117, 107, 177], [84, 39, 143]],
+    colors: ['#DADAEB', '#9E9AC8', '#756BB1', '#54278F'],
   },
 };
 const WINDOWS = [
@@ -133,31 +131,7 @@ export default function DemandMap() {
   }, []);
 
   const spec = LAYERS[layer];
-  const layers = useMemo(() => {
-    const cells = (data?.cells ?? []).filter((c) => spec.weight(c) > 0);
-    return [
-      new HeatmapLayer({
-        id: `heat-${layer}`,
-        data: cells,
-        getPosition: (c) => [c.lng, c.lat],
-        getWeight: spec.weight,
-        radiusPixels: 45,
-        intensity: 1.2,
-        threshold: 0.05,
-        colorRange: spec.colors,
-      }),
-      // Invisible dots over each cell so hovering shows its numbers.
-      new ScatterplotLayer({
-        id: 'cells',
-        data: data?.cells ?? [],
-        getPosition: (c) => [c.lng, c.lat],
-        getRadius: 250,
-        getFillColor: [0, 0, 0, 0],
-        pickable: true,
-        onHover: ({ object }) => setHovered(object ?? null),
-      }),
-    ];
-  }, [data, layer, spec]);
+  const cells = useMemo(() => data?.cells ?? [], [data]);
 
   const categoryOptions = useMemo(
     () => [...catalogue.values()].sort((a, b) => a.name.localeCompare(b.name)),
@@ -277,7 +251,7 @@ export default function DemandMap() {
                   onIdle={onIdle}
                   colorScheme="DARK"
                 >
-                  <DeckGlOverlay layers={layers} />
+                  <CanvasHeatmap cells={cells} weight={spec.weight} colors={spec.colors} onHover={setHovered} />
                 </Map>
               </APIProvider>
               {tooLarge ? (
