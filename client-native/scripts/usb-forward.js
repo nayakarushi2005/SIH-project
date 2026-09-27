@@ -2,18 +2,18 @@
  * Keeps the USB port forwards to a connected Android phone alive during
  * development:
  *   8081 → Metro (the JS bundle)
- *   5000 → the backend API
+ *   3000 → the backend API
  *
  * `adb reverse` rules vanish whenever the USB connection resets (replugging,
  * switching USB mode, adb restarting, reinstalling the app), after which the
- * app can't reach the backend at 127.0.0.1:5000. This re-adds any missing
+ * app can't reach the backend at 127.0.0.1:3000. This re-adds any missing
  * rule every few seconds.
  *
  *   npm run usb:watch     (leave it running in its own terminal)
  */
 const { execFile } = require('child_process');
 
-const PORTS = [8081, 5000];
+const PORTS = [8081, 3000];
 const INTERVAL_MS = 3000;
 
 function adb(args) {
