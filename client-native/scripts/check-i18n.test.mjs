@@ -55,6 +55,30 @@ test('reports a hardcoded Alert.alert argument', () => {
   assert.match(checkHardcoded(files).join('\n'), /hardcoded Alert\.alert\("Error"\)/);
 });
 
+test('reports a hardcoded Alert.alert second argument when the first is translated', () => {
+  const files = [
+    { path: 'src/app/bar.js', text: "Alert.alert(t('common.error'), 'Something went wrong')" },
+  ];
+  assert.match(checkHardcoded(files).join('\n'), /hardcoded Alert\.alert\("Something went wrong"\)/);
+});
+
+test('does not flag a comparison expression as JSX text', () => {
+  const files = [
+    { path: 'src/app/qux.js', text: 'if (count > 3 && count < 10) { doThing(); }' },
+  ];
+  assert.deepEqual(checkHardcoded(files), []);
+});
+
+test('still flags real JSX text alongside a comparison on another line', () => {
+  const files = [
+    {
+      path: 'src/app/qux.js',
+      text: ['if (count > 3 && count < 10) { doThing(); }', '<Text>Hello there</Text>'].join('\n'),
+    },
+  ];
+  assert.match(checkHardcoded(files).join('\n'), /hardcoded JSX text "Hello there"/);
+});
+
 test('skips a line marked with // i18n-ignore or the line before it', () => {
   const files = [
     {

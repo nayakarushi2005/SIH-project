@@ -108,6 +108,69 @@ function isHardcoded(value) {
   return LATIN_RUN.test(v);
 }
 
+// Extracts the raw argument text of a `marker(...)` call starting at
+// `marker` (which must end in `(`) on this line, honoring nested
+// parens/brackets/braces and quoted strings, up to the matching close paren.
+// Returns null if the call isn't closed on this line.
+function extractCall(line, marker) {
+  const idx = line.indexOf(marker);
+  if (idx === -1) return null;
+  const start = idx + marker.length;
+  let depth = 1;
+  let inQuote = null;
+  let i = start;
+  for (; i < line.length; i++) {
+    const c = line[i];
+    if (inQuote) {
+      if (c === inQuote && line[i - 1] !== '\\') inQuote = null;
+      continue;
+    }
+    if (c === '"' || c === "'" || c === '`') {
+      inQuote = c;
+    } else if (c === '(') {
+      depth++;
+    } else if (c === ')') {
+      depth--;
+      if (depth === 0) break;
+    }
+  }
+  return depth === 0 ? line.slice(start, i) : null;
+}
+
+// Splits a call's argument text on top-level commas only (not inside
+// nested parens/brackets/braces or quoted strings).
+function splitTopLevel(str) {
+  const parts = [];
+  let depth = 0;
+  let inQuote = null;
+  let cur = '';
+  for (let i = 0; i < str.length; i++) {
+    const c = str[i];
+    if (inQuote) {
+      cur += c;
+      if (c === inQuote && str[i - 1] !== '\\') inQuote = null;
+      continue;
+    }
+    if (c === '"' || c === "'" || c === '`') {
+      inQuote = c;
+      cur += c;
+    } else if (c === '(' || c === '[' || c === '{') {
+      depth++;
+      cur += c;
+    } else if (c === ')' || c === ']' || c === '}') {
+      depth--;
+      cur += c;
+    } else if (c === ',' && depth === 0) {
+      parts.push(cur);
+      cur = '';
+    } else {
+      cur += c;
+    }
+  }
+  if (cur.trim()) parts.push(cur);
+  return parts;
+}
+
 export function checkHardcoded(files) {
   const problems = [];
   const inScope = ({ path }) =>
@@ -124,6 +187,10 @@ export function checkHardcoded(files) {
         if (!isHardcoded(value)) continue;
         // Skip text that is (or sits right next to) a t(...) call.
         if (/\bt\(/.test(value)) continue;
+        // Skip spans that are plainly code, not JSX text: comparisons
+        // (`count > 3 && count < 10`), assignments, logical operators, or
+        // calls/parens leaking in from a `>`/`<` used as an operator.
+        if (/(&&|\|\||===?|!==?|[()=;])/.test(value)) continue;
         const before = line.slice(0, m.index);
         const after = line.slice(m.index + m[0].length);
         if (/\bt\(\s*$/.test(before) || /^\s*\)/.test(after)) continue;
@@ -139,12 +206,15 @@ export function checkHardcoded(files) {
         problems.push(`${path}:${i + 1}: hardcoded prop ${m[1]}="${value.trim()}"`);
       }
 
-      // Alert.alert('...', '...') literal arguments.
-      const alertMatch = line.match(/Alert\.alert\(\s*(["'])((?:(?!\1).)*)\1\s*(?:,\s*(["'])((?:(?!\3).)*)\3)?/);
-      if (alertMatch) {
-        for (const value of [alertMatch[2], alertMatch[4]]) {
-          if (value !== undefined && isHardcoded(value)) {
-            problems.push(`${path}:${i + 1}: hardcoded Alert.alert("${value.trim()}")`);
+      // Alert.alert(arg1, arg2, ...): the first OR second argument may be a
+      // quoted string literal, independent of what the other argument is
+      // (e.g. Alert.alert(t('common.error'), 'Something went wrong')).
+      const call = extractCall(line, 'Alert.alert(');
+      if (call !== null) {
+        for (const arg of splitTopLevel(call).slice(0, 2)) {
+          const literal = arg.trim().match(/^(["'])((?:(?!\1).)*)\1$/);
+          if (literal && isHardcoded(literal[2])) {
+            problems.push(`${path}:${i + 1}: hardcoded Alert.alert("${literal[2].trim()}")`);
           }
         }
       }
