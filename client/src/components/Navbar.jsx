@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, ShieldAlert, Users } from 'lucide-react';
+import { LogOut, Map as MapIcon, ShieldAlert, ShieldCheck, Users } from 'lucide-react';
 
 export default function Navbar() {
   const { isAuthenticated, user, userType, logout } = useAuth();
@@ -32,6 +32,24 @@ export default function Navbar() {
           {/* Right side - Conditional Auth UI */}
           {isAuthenticated && user && (
             <div className="flex items-center gap-6">
+              {userType === 'GovOfficial' && (
+                <>
+                  <Link
+                    to="/gov/verify"
+                    className="flex items-center gap-2 text-sm font-semibold text-slate-300 hover:text-white transition-colors"
+                  >
+                    <ShieldCheck className="w-4 h-4" />
+                    <span className="hidden sm:inline">Verify Federations</span>
+                  </Link>
+                  <Link
+                    to="/gov/demand-map"
+                    className="flex items-center gap-2 text-sm font-semibold text-slate-300 hover:text-white transition-colors"
+                  >
+                    <MapIcon className="w-4 h-4" />
+                    <span className="hidden sm:inline">Skill Demand Map</span>
+                  </Link>
+                </>
+              )}
               {userType === 'Federation' && (
                 <Link
                   to="/federation/workers"

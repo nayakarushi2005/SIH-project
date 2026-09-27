@@ -7,6 +7,10 @@ import FederationRegister from './pages/federation/FederationRegister';
 import FederationStatus from './pages/federation/FederationStatus';
 import GovernmentVerification from './pages/federation/GovernmentVerification';
 import WorkerRequests from './pages/federation/WorkerRequests';
+import { lazy, Suspense } from 'react';
+
+// Google Maps + deck.gl are heavy — only officials opening the map load them.
+const DemandMap = lazy(() => import('./pages/gov/DemandMap'));
 
 function Dashboard() {
   return (
@@ -46,6 +50,14 @@ function App() {
               <Route path="/federation/status" element={<FederationStatus />} />
               <Route path="/federation/workers" element={<WorkerRequests />} />
               <Route path="/gov/verify" element={<GovernmentVerification />} />
+              <Route
+                path="/gov/demand-map"
+                element={
+                  <Suspense fallback={<div className="min-h-screen bg-slate-950" />}>
+                    <DemandMap />
+                  </Suspense>
+                }
+              />
               <Route path="/dashboard" element={<Dashboard />} />
             </Route>
           </Routes>
