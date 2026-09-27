@@ -8,6 +8,7 @@ graph treats as "didn't understand" rather than an error.
 
 import asyncio
 import logging
+import re
 from typing import Literal, Protocol, TypeVar
 
 from langchain_core.language_models import BaseChatModel
@@ -54,6 +55,14 @@ SYSTEM_PROMPT = (
 )
 
 
+# A transcript must not be able to close (or reopen) its own fence.
+_FENCE_TAG = re.compile(r"<\s*/?\s*transcript\s*>", re.IGNORECASE)
+
+
+def _fence(transcript: str) -> str:
+    return f"<transcript>{_FENCE_TAG.sub(' ', transcript)}</transcript>"
+
+
 class Extractor(Protocol):
     async def extract(
         self,
@@ -81,7 +90,7 @@ class GeminiExtractor:
         user = f"Question asked: {question}\n"
         if context:
             user += f"{context}\n"
-        user += f"<transcript>{transcript}</transcript>"
+        user += _fence(transcript)
         try:
             runnable = self._model.with_structured_output(schema)
             return await asyncio.wait_for(
