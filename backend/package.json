@@ -8,6 +8,8 @@
     "dev": "nodemon server.js",
     "dispatcher": "node dispatcher.js",
     "dev:dispatcher": "nodemon dispatcher.js",
+    "test": "jest --runInBand",
+    "seed:categories": "node scripts/seedCategories.js",
     "seed:jobs": "node scripts/seed-jobs.js",
     "llm:check": "node scripts/llm-check.js",
     "graph:reprocess": "node scripts/graph-reprocess.js"
@@ -15,6 +17,7 @@
   "dependencies": {
     "@google/genai": "^2.24.0",
     "axios": "^1.7.2",
+    "cookie-parser": "^1.4.7",
     "bullmq": "^6.3.9",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -22,9 +25,17 @@
     "google-auth-library": "^9.11.0",
     "ioredis": "^6.0.0",
     "jsonwebtoken": "^9.0.2",
+    "mongodb": "^7.6.0",
     "mongoose": "^8.4.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.4"
+    "jest": "^30.5.2",
+    "mongodb-memory-server": "^11.3.0",
+    "nodemon": "^3.1.4",
+    "supertest": "^7.3.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testTimeout": 30000
   }
 }

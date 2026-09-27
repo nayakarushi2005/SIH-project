@@ -1,9 +1,10 @@
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 import Button from './Button';
 import { colors, radius, spacing, typography } from '../constants/theme';
-import { getService } from '../constants/services';
+import useCategories from '../hooks/useCategories';
 import { formatDuration, formatPrice, jobStatus, thumbnailUrl } from '../utils/job';
 
 const TONES = {
@@ -15,7 +16,9 @@ const TONES = {
 
 /** Summary row for one of the client's posted jobs. `onRate(job)` rates a completed one. */
 export default function JobCard({ job, onRate }) {
-  const service = getService(job.category);
+  const { i18n } = useTranslation();
+  const { bySlug } = useCategories(i18n.language);
+  const service = bySlug(job.category);
   const status = jobStatus(job.status);
   const tone = TONES[status.tone];
   const photo = job.photos?.[0];
@@ -33,7 +36,7 @@ export default function JobCard({ job, onRate }) {
       <View style={styles.body}>
         <View style={styles.topRow}>
           <Text style={styles.service} numberOfLines={1}>
-            {service?.label ?? job.category}
+            {service?.name ?? job.category}
           </Text>
           <View style={[styles.badge, { backgroundColor: tone.bg }]}>
             <Text style={[styles.badgeText, { color: tone.fg }]}>{status.label}</Text>

@@ -3,6 +3,7 @@ import { ActivityIndicator, Alert, RefreshControl, ScrollView, StyleSheet, Text,
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useFocusEffect, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 
 import Button from '../components/Button';
@@ -11,23 +12,22 @@ import ScreenHeader from '../components/ScreenHeader';
 import WorkerInsightsCard from '../components/WorkerInsightsCard';
 import WorkerJobCard from '../components/WorkerJobCard';
 import { colors, radius, spacing, typography } from '../constants/theme';
-import { getService } from '../constants/services';
+import useCategories from '../hooks/useCategories';
 import { useWorkerMode } from '../context/WorkerMode';
 import { getErrorMessage, isAadhaarRequired } from '../services/api';
-import { getUser } from '../services/session';
 
 /** Worker dashboard: go online, see the active job, manage the work profile. */
 export default function WorkerHome() {
+  const { i18n } = useTranslation();
+  const { bySlug } = useCategories(i18n.language);
   const router = useRouter();
   const { profile, online, refresh, goOnline, goOffline } = useWorkerMode();
-  const [verified, setVerified] = useState(null);
   const [toggling, setToggling] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
       refresh();
-      getUser().then((user) => setVerified(!!user?.isAadhaarVerified));
     }, [refresh])
   );
 
@@ -58,7 +58,7 @@ export default function WorkerHome() {
 
   const header = <ScreenHeader title="Worker mode" fallbackHref="/profile" />;
 
-  if (profile === undefined || verified === null) {
+  if (profile === undefined) {
     return (
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         {header}
@@ -74,36 +74,24 @@ export default function WorkerHome() {
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <StatusBar style="dark" />
         {header}
-        {verified ? (
-          <EmptyState
-            icon="briefcase-outline"
-            title="Earn with jobs near you"
-            body="Choose the services you offer, go online, and accept the job requests you want."
-          >
-            <Button
-              label="Become a worker"
-              onPress={() => router.push('/worker-profile')}
-              style={styles.stretch}
-            />
-          </EmptyState>
-        ) : (
-          <EmptyState
-            icon="shield-checkmark-outline"
-            title="Verify your Aadhaar first"
-            body="Clients are promised verified workers, so you need to verify with DigiLocker before taking jobs."
-          >
-            <Button
-              label="Verify with DigiLocker"
-              onPress={() => router.push('/aadhaar-verify')}
-              style={styles.stretch}
-            />
-          </EmptyState>
-        )}
+        {/* Registering is the onboarding flow (form or voice); going online
+            later asks for Aadhaar verification if it's still missing. */}
+        <EmptyState
+          icon="briefcase-outline"
+          title="Earn with jobs near you"
+          body="Register the work you do, go online, and accept the job requests you want."
+        >
+          <Button
+            label="Become a worker"
+            onPress={() => router.push('/worker-onboarding')}
+            style={styles.stretch}
+          />
+        </EmptyState>
       </SafeAreaView>
     );
   }
 
-  const skills = profile.skills.map((id) => getService(id)?.label ?? id).join(', ');
+  const skills = profile.skills.map((id) => bySlug(id)?.name ?? id).join(', ');
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
