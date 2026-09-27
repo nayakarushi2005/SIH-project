@@ -1,6 +1,6 @@
 import pytest
 
-from app.agents.common.parsers import parse_amount, parse_duration
+from app.agents.common.parsers import IncomeResult, parse_amount, parse_duration, parse_income
 
 
 @pytest.mark.parametrize(
@@ -41,3 +41,20 @@ def test_parse_amount(text, expected):
 )
 def test_parse_duration(text, lang, expected):
     assert parse_duration(text, lang) == expected
+
+
+# ── Regression: the amount/duration-only vocabulary (HUNDRED, "hazaar",
+# "dedh"/"dhai") must not leak into parse_income, which reads the same
+# shared lexicon sets. Expected values are the base-commit (d7bf354)
+# behaviour: none of these phrases were understood by parse_income before.
+@pytest.mark.parametrize(
+    "text",
+    [
+        "पाँच सौ रुपये",
+        "पाँच सौ रुपये रोज",
+        "2 hazaar",
+        "dedh lakh",
+    ],
+)
+def test_parse_income_unaffected_by_amount_duration_vocabulary(text):
+    assert parse_income(text) == IncomeResult(None)

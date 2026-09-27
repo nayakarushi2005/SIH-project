@@ -100,7 +100,6 @@ THOUSAND = _norm(
         "k",
         "hazar",
         "hajar",
-        "hazaar",
         "हज़ार",
         "हजार",
         "হাজার",
@@ -157,7 +156,6 @@ YEAR = _norm(
 DAY = _norm(
     [
         "day",
-        "days",
         "daily",
         "roz",
         "rozana",
@@ -183,7 +181,6 @@ DAY = _norm(
 WEEK = _norm(
     [
         "week",
-        "weeks",
         "weekly",
         "hafta",
         "hafte",
@@ -353,8 +350,6 @@ NUMBER_WORDS = {
     "नब्बे": 90,
     "डेढ़": 1.5,
     "ढाई": 2.5,
-    "dedh": 1.5,
-    "dhai": 2.5,
     "दोन": 2,
     "पाच": 5,
     "दहा": 10,
