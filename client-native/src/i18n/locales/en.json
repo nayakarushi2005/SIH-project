@@ -216,6 +216,7 @@
     "save": "Save location",
     "denied": "Location permission is off. You can type your city and PIN code instead.",
     "servicesOff": "Turn on location (GPS) on your phone, or type your city and PIN code.",
+    "servicesOffPlain": "Turn on location services on your phone.",
     "unavailable": "We couldn't find your location. Please type your city and PIN code.",
     "saveFailed": "Could not save your location.",
     "permissionDenied": "Allow location access so we can send you jobs nearby."

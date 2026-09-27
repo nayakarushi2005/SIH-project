@@ -58,7 +58,7 @@ export async function getCurrentCoords() {
     throw new Error(i18n.t('location.permissionDenied'));
   }
   if (!(await Location.hasServicesEnabledAsync())) {
-    throw new Error(i18n.t('location.servicesOff'));
+    throw new Error(i18n.t('location.servicesOffPlain'));
   }
   const { coords } = await Location.getCurrentPositionAsync({
     accuracy: Location.Accuracy.Balanced,
