@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useReducer, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { FALLBACK_GROUPS } from '../constants/services';
 import { getCategories, getErrorMessage } from '../services/api';
@@ -11,6 +12,7 @@ const cache = new Map();
  * nothing renders empty offline, then swaps in the server list.
  */
 export default function useCategories(lang = 'en') {
+  const { t } = useTranslation();
   const [errors, setErrors] = useState({});
   // Re-render once a fetch lands in the module cache.
   const [, bump] = useReducer((n) => n + 1, 0);
@@ -21,14 +23,14 @@ export default function useCategories(lang = 'en') {
       // An empty catalogue (e.g. an unseeded database) is not an answer:
       // keep the fallback and ask again on the next screen instead of
       // caching nothing for the rest of the session.
-      if (!data?.groups?.length) throw new Error('The job category list is empty.');
+      if (!data?.groups?.length) throw new Error(t('categories.loadFailed'));
       cache.set(lang, data.groups);
       setErrors((e) => ({ ...e, [lang]: null }));
       bump();
     } catch (err) {
       setErrors((e) => ({ ...e, [lang]: getErrorMessage(err) }));
     }
-  }, [lang]);
+  }, [lang, t]);
 
   useEffect(() => {
     if (!cache.has(lang)) load();

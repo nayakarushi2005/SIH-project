@@ -24,9 +24,9 @@ export default function Bookings() {
       setJobs(await listJobs());
       setError(null);
     } catch (err) {
-      setError(getErrorMessage(err, 'Could not load your jobs.'));
+      setError(getErrorMessage(err, t('bookings.loadFailed')));
     }
-  }, []);
+  }, [t]);
 
   // Reload whenever the tab comes into view, e.g. right after posting a job.
   useFocusEffect(

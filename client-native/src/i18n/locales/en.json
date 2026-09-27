@@ -97,7 +97,8 @@
     "emptyBody": "Jobs you post and the workers you book will appear here.",
     "createJob": "Create a new job",
     "loadError": "Couldn’t load bookings",
-    "newJob": "New job"
+    "newJob": "New job",
+    "loadFailed": "Could not load your jobs."
   },
   "messages": {
     "title": "Messages",
@@ -111,8 +112,41 @@
   },
   "createJob": {
     "title": "New job",
-    "comingTitle": "Job posting is coming next",
-    "comingBody": "You'll describe the work here and we'll match you with verified workers nearby."
+    "aadhaarNotice": "Workers respond faster to verified clients.",
+    "aadhaarVerifyLink": "Verify with DigiLocker",
+    "sectionWork": "The work",
+    "sectionBudget": "Budget & time",
+    "sectionWhere": "Where",
+    "serviceLabel": "Service",
+    "photosLabel": "Photos of the work",
+    "photosHint": "Add up to {{max}}. Clear photos get better quotes.",
+    "descriptionLabel": "What needs to be done?",
+    "descriptionPlaceholder": "e.g. Kitchen sink is leaking from the pipe underneath",
+    "priceLabel": "Your price",
+    "pricePlaceholder": "500",
+    "priceHint": "What you’ll pay for the whole job.",
+    "durationLabel": "How long will it take?",
+    "addressLabel": "House no. / landmark (optional)",
+    "addressPlaceholder": "e.g. Flat 302, near City Hospital",
+    "addressHint": "Helps the worker find you.",
+    "locationLabel": "Job location",
+    "locationFinding": "Finding your location…",
+    "locationCurrent": "Current location",
+    "locationGps": "Pinned from your phone’s GPS",
+    "locationDenied": "Location permission is off. Nearby workers can’t see your job without it.",
+    "locationOff": "Location services are turned off on your phone.",
+    "locationError": "We couldn’t get your location.",
+    "settings": "Settings",
+    "refresh": "Refresh",
+    "tryAgain": "Try again",
+    "locationHint": "We use this to find workers near the job.",
+    "locationRequired": "We need your location to find workers nearby.",
+    "photosUploading": "Wait for your photos to finish uploading.",
+    "photosFailed": "A photo failed to upload. Tap it to retry, or remove it.",
+    "postedTitle": "Job posted",
+    "postedBody": "We’re finding workers near you. You’ll see updates in Bookings.",
+    "failedTitle": "Could not post job",
+    "post": "Post job"
   },
   "profile": {
     "title": "Profile",
@@ -183,7 +217,8 @@
     "denied": "Location permission is off. You can type your city and PIN code instead.",
     "servicesOff": "Turn on location (GPS) on your phone, or type your city and PIN code.",
     "unavailable": "We couldn't find your location. Please type your city and PIN code.",
-    "saveFailed": "Could not save your location."
+    "saveFailed": "Could not save your location.",
+    "permissionDenied": "Allow location access so we can send you jobs nearby."
   },
   "onboarding": {
     "title": "Register as a worker",
@@ -352,6 +387,30 @@
     "COMPLETED": "Completed",
     "CANCELLED": "Cancelled",
     "EXPIRED": "No worker found"
+  },
+  "photoPicker": {
+    "cameraTitle": "Camera access needed",
+    "cameraBody": "Allow camera access in Settings to photograph the work.",
+    "addTitle": "Add a photo",
+    "addBody": "Show workers what needs to be done.",
+    "takePhoto": "Take photo",
+    "chooseGallery": "Choose from gallery",
+    "addPhoto": "Add photo",
+    "photo": "Photo {{n}}",
+    "photoUploading": "Photo {{n}}, uploading",
+    "photoFailed": "Photo {{n}} failed to upload. Retry",
+    "retry": "Retry",
+    "removePhoto": "Remove photo {{n}}"
+  },
+  "jobCard": {
+    "startCode": "Start code",
+    "startCodeHint": "Share it with the worker when they arrive.",
+    "startCodeA11y": "Start code {{code}}",
+    "rated": "You rated this job",
+    "rateButton": "Rate your worker"
+  },
+  "categories": {
+    "loadFailed": "The job category list is empty."
   },
   "traits": {
     "punctual": {
