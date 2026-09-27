@@ -34,7 +34,7 @@ function Fact({ icon, label, value }) {
  * open. Shows the soonest-expiring offer; the rest wait their turn.
  */
 export default function OfferModal() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { bySlug } = useCategories(i18n.language);
   const router = useRouter();
   const { offers, accept, reject, dropOffer } = useWorkerMode();
@@ -61,11 +61,11 @@ export default function OfferModal() {
       await accept(offer.jobId);
       router.push('/worker');
     } catch (err) {
-      Alert.alert('Job not available', getErrorMessage(err, 'Another worker may have taken it.'));
+      Alert.alert(t('offer.notAvailableTitle'), getErrorMessage(err, t('offer.notAvailableFallback')));
     } finally {
       setBusy(null);
     }
-  }, [accept, offer, router]);
+  }, [accept, offer, router, t]);
 
   const handleReject = useCallback(async () => {
     setBusy('reject');
@@ -90,14 +90,19 @@ export default function OfferModal() {
               </View>
               <View>
                 <Text style={styles.kicker}>
-                  New job request{offers.length > 1 ? `  ·  1 of ${offers.length}` : ''}
+                  {offers.length > 1
+                    ? t('offer.newRequestCount', { count: offers.length })
+                    : t('offer.newRequest')}
                 </Text>
                 <Text style={styles.title} accessibilityRole="header">
                   {service?.name ?? offer.category}
                 </Text>
               </View>
             </View>
-            <View style={[styles.timer, urgent && styles.timerUrgent]} accessibilityLabel={`Expires in ${formatCountdown(timeLeft)}`}>
+            <View
+              style={[styles.timer, urgent && styles.timerUrgent]}
+              accessibilityLabel={t('offer.expiresIn', { time: formatCountdown(timeLeft) })}
+            >
               <Ionicons name="time-outline" size={14} color={urgent ? colors.danger : colors.warning} />
               <Text style={[styles.timerText, urgent && styles.timerTextUrgent]}>
                 {formatCountdown(timeLeft)}
@@ -114,7 +119,7 @@ export default function OfferModal() {
                     key={url}
                     source={{ uri: thumbnailUrl(url, 400) }}
                     style={styles.photo}
-                    accessibilityLabel={`Photo ${i + 1} of the work`}
+                    accessibilityLabel={t('offer.photoA11y', { n: i + 1 })}
                   />
                 ))}
               </ScrollView>
@@ -122,9 +127,13 @@ export default function OfferModal() {
 
             {/* ── Amount / time / distance ───────────────────────── */}
             <View style={styles.facts}>
-              <Fact icon="cash-outline" label="Pay" value={formatPrice(offer.price)} />
-              <Fact icon="hourglass-outline" label="Time" value={formatDuration(offer.expectedDurationMins)} />
-              <Fact icon="navigate-outline" label="Away" value={formatDistance(offer.distanceMeters) ?? '—'} />
+              <Fact icon="cash-outline" label={t('offer.pay')} value={formatPrice(offer.price)} />
+              <Fact
+                icon="hourglass-outline"
+                label={t('offer.time')}
+                value={formatDuration(offer.expectedDurationMins)}
+              />
+              <Fact icon="navigate-outline" label={t('offer.away')} value={formatDistance(offer.distanceMeters) ?? '—'} />
             </View>
 
             <Text style={styles.description}>{offer.description}</Text>
@@ -136,16 +145,16 @@ export default function OfferModal() {
                 color={offer.clientAadhaarVerified ? colors.primary : colors.textMuted}
               />
               <Text style={styles.clientText}>
-                {offer.clientAadhaarVerified ? 'Aadhaar-verified client' : 'Client not verified yet'}
+                {offer.clientAadhaarVerified ? t('offer.clientVerified') : t('offer.clientNotVerified')}
               </Text>
             </View>
-            <Text style={styles.note}>You’ll see the exact address after you accept.</Text>
+            <Text style={styles.note}>{t('offer.addressNote')}</Text>
           </ScrollView>
 
           {/* ── Actions ──────────────────────────────────────────── */}
           <View style={styles.actions}>
             <Button
-              label="Reject"
+              label={t('offer.reject')}
               variant="secondary"
               onPress={handleReject}
               loading={busy === 'reject'}
@@ -153,7 +162,7 @@ export default function OfferModal() {
               style={styles.action}
             />
             <Button
-              label="Accept"
+              label={t('offer.accept')}
               onPress={handleAccept}
               loading={busy === 'accept'}
               disabled={!!busy}

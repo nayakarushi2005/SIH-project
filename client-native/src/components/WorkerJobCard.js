@@ -27,7 +27,7 @@ function openDirections({ lat, lng }) {
  * mark it done. `onChanged` runs after anything that ends or changes the job.
  */
 export default function WorkerJobCard({ jobId, onChanged }) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { bySlug } = useCategories(i18n.language);
   const [job, setJob] = useState(null);
   const [error, setError] = useState(null);
@@ -43,9 +43,9 @@ export default function WorkerJobCard({ jobId, onChanged }) {
       // Cancelled by the client (or finished elsewhere) — let the parent refresh.
       if (!['ASSIGNED', 'IN_PROGRESS'].includes(next.status)) onChanged();
     } catch (err) {
-      setError(getErrorMessage(err, 'Could not load your job.'));
+      setError(getErrorMessage(err, t('workerJob.loadFailed')));
     }
-  }, [jobId, onChanged]);
+  }, [jobId, onChanged, t]);
 
   // Reload whenever the screen comes back into view, e.g. to notice the
   // client cancelled while the worker was elsewhere.
@@ -64,41 +64,41 @@ export default function WorkerJobCard({ jobId, onChanged }) {
     } catch (err) {
       const message = getFieldErrors(err).code ?? getErrorMessage(err);
       if (err?.response?.status === 400) setCodeError(message);
-      else Alert.alert('Could not start', message);
+      else Alert.alert(t('workerJob.startFailedTitle'), message);
     } finally {
       setBusy(null);
     }
-  }, [code, jobId]);
+  }, [code, jobId, t]);
 
   const handleComplete = useCallback(() => {
-    Alert.alert('Mark as completed?', 'Only do this once the work is finished.', [
-      { text: 'Not yet', style: 'cancel' },
+    Alert.alert(t('workerJob.completeConfirmTitle'), t('workerJob.completeConfirmBody'), [
+      { text: t('workerJob.notYet'), style: 'cancel' },
       {
-        text: 'Completed',
+        text: t('workerJob.completeAction'),
         onPress: async () => {
           setBusy('complete');
           try {
             await completeJob(jobId);
-            Alert.alert('Job completed', 'Great work! You’ll get new job requests again.');
+            Alert.alert(t('workerJob.completedTitle'), t('workerJob.completedBody'));
             onChanged();
           } catch (err) {
-            Alert.alert('Could not complete', getErrorMessage(err));
+            Alert.alert(t('workerJob.completeFailedTitle'), getErrorMessage(err));
           } finally {
             setBusy(null);
           }
         },
       },
     ]);
-  }, [jobId, onChanged]);
+  }, [jobId, onChanged, t]);
 
   const handleWithdraw = useCallback(() => {
     Alert.alert(
-      'Withdraw from this job?',
-      'The client will be matched with another worker. Withdrawing often lowers the jobs you’re offered.',
+      t('workerJob.withdrawConfirmTitle'),
+      t('workerJob.withdrawConfirmBody'),
       [
-        { text: 'Keep job', style: 'cancel' },
+        { text: t('workerJob.keepJob'), style: 'cancel' },
         {
-          text: 'Withdraw',
+          text: t('workerJob.withdrawAction'),
           style: 'destructive',
           onPress: async () => {
             setBusy('withdraw');
@@ -106,7 +106,7 @@ export default function WorkerJobCard({ jobId, onChanged }) {
               await withdrawJob(jobId);
               onChanged();
             } catch (err) {
-              Alert.alert('Could not withdraw', getErrorMessage(err));
+              Alert.alert(t('workerJob.withdrawFailedTitle'), getErrorMessage(err));
             } finally {
               setBusy(null);
             }
@@ -114,7 +114,7 @@ export default function WorkerJobCard({ jobId, onChanged }) {
         },
       ]
     );
-  }, [jobId, onChanged]);
+  }, [jobId, onChanged, t]);
 
   if (!job) {
     return (
@@ -122,7 +122,7 @@ export default function WorkerJobCard({ jobId, onChanged }) {
         {error ? (
           <>
             <Text style={styles.muted}>{error}</Text>
-            <Button label="Try again" variant="secondary" onPress={load} />
+            <Button label={t('common.tryAgain')} variant="secondary" onPress={load} />
           </>
         ) : (
           <ActivityIndicator color={colors.primary} />
@@ -141,7 +141,7 @@ export default function WorkerJobCard({ jobId, onChanged }) {
         <Text style={styles.title}>{service?.name ?? job.category}</Text>
         <View style={[styles.badge, started && styles.badgeActive]}>
           <Text style={[styles.badgeText, started && styles.badgeTextActive]}>
-            {started ? 'In progress' : 'Head to client'}
+            {started ? t('workerJob.inProgress') : t('workerJob.headToClient')}
           </Text>
         </View>
       </View>
@@ -152,10 +152,10 @@ export default function WorkerJobCard({ jobId, onChanged }) {
       </Text>
 
       <View style={styles.address}>
-        <Text style={styles.addressLabel}>Address</Text>
-        <Text style={styles.addressText}>{job.address || 'Pinned location — use directions'}</Text>
+        <Text style={styles.addressLabel}>{t('workerJob.addressLabel')}</Text>
+        <Text style={styles.addressText}>{job.address || t('workerJob.addressFallback')}</Text>
         <Button
-          label="Get directions"
+          label={t('workerJob.directions')}
           variant="secondary"
           onPress={() => openDirections(job.location)}
           style={styles.directions}
@@ -163,30 +163,30 @@ export default function WorkerJobCard({ jobId, onChanged }) {
       </View>
 
       {started ? (
-        <Button label="Mark as completed" onPress={handleComplete} loading={busy === 'complete'} />
+        <Button label={t('workerJob.markCompleted')} onPress={handleComplete} loading={busy === 'complete'} />
       ) : (
         <>
           <TextField
-            label="Start code from the client"
-            placeholder="4-digit code"
+            label={t('workerJob.startCodeLabel')}
+            placeholder={t('workerJob.startCodePlaceholder')}
             value={code}
             onChangeText={(v) => {
               setCode(v.replace(/\D/g, '').slice(0, 4));
               setCodeError(null);
             }}
             error={codeError}
-            hint="Ask the client for their code when you arrive."
+            hint={t('workerJob.startCodeHint')}
             keyboardType="number-pad"
             maxLength={4}
           />
           <Button
-            label="Start job"
+            label={t('workerJob.startJob')}
             onPress={handleStart}
             loading={busy === 'start'}
             disabled={code.length !== 4 || !!busy}
           />
           <Button
-            label="Can’t make it? Withdraw"
+            label={t('workerJob.withdrawButton')}
             variant="text"
             onPress={handleWithdraw}
             disabled={!!busy}
