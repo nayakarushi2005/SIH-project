@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, ShieldAlert, Users } from 'lucide-react';
+import { LogOut, Siren, ShieldAlert, Users } from 'lucide-react';
 
 export default function Navbar() {
   const { isAuthenticated, user, userType, logout } = useAuth();
@@ -39,6 +39,15 @@ export default function Navbar() {
                 >
                   <Users className="w-4 h-4" />
                   <span className="hidden sm:inline">Worker Requests</span>
+                </Link>
+              )}
+              {userType === 'GovOfficial' && (
+                <Link
+                  to="/gov/safety"
+                  className="flex items-center gap-2 text-sm font-semibold text-slate-300 hover:text-white transition-colors"
+                >
+                  <Siren className="w-4 h-4 text-rose-400" />
+                  <span className="hidden sm:inline">Safety Alerts</span>
                 </Link>
               )}
               <div className="hidden sm:flex flex-col items-end">

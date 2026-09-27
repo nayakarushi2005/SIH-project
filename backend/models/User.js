@@ -104,6 +104,15 @@ const userSchema = new mongoose.Schema(
       onboardedVia: { type: String, enum: ['form', 'voice', null], default: null },
     },
 
+    // ── Safety shield (services/safetyTrust.js) ─────────────────────────
+    // Trust decides how much this user's SOS lowers a block's safety score.
+    // Only the server changes it, from SOS outcomes and safe walks.
+    safety: {
+      trustScore: { type: Number, default: 5 },
+      safeWalkStreak: { type: Number, default: 0 },
+      falseSosCount: { type: Number, default: 0 },
+    },
+
     // ── Verification status ─────────────────────────────────────────────
     // Where name/dob/gender/address came from. 'manual' details are
     // self-declared and get overwritten once Aadhaar verification succeeds.

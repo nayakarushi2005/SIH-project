@@ -22,6 +22,7 @@ const llm = require('./llm');
 const { PRIORS } = require('./matching');
 const { getQueue, withTimeout } = require('./queue');
 const { extractRelations } = require('./relations');
+const { defaultEmbedder, rebuildWorkerVectors } = require('./relevance');
 
 const QUEUE_NAME = 'graph';
 
@@ -246,13 +247,19 @@ async function extractOnce(feedback, extract) {
  * Background task: apply one piece of feedback to the graph.
  * options.extract — relation extractor; defaults to the LLM when it's
  * configured (injectable for tests, null to skip).
+ * options.embed — embedder for the worker's job vectors (services/relevance.js);
+ * same defaults.
  */
-async function processFeedback(feedbackId, { extract = llm.isConfigured() ? extractRelations : null } = {}) {
+async function processFeedback(
+  feedbackId,
+  { extract = llm.isConfigured() ? extractRelations : null, embed = defaultEmbedder() } = {}
+) {
   const feedback = await Feedback.findById(feedbackId).lean();
   if (!feedback) return 'missing';
 
   await extractOnce(feedback, extract);
   await rebuildWorker(feedback.worker);
+  await rebuildWorkerVectors(feedback.worker, { embed });
   await rebuildClient(feedback.client);
   await rebuildPair(feedback.client, feedback.worker);
   await Feedback.updateOne({ _id: feedback._id }, { processedAt: new Date() });
