@@ -445,7 +445,6 @@
   },
   "workerJob": {
     "loadFailed": "మీ పనిని లోడ్ చేయలేకపోయాం.",
-    "inProgress": "పని జరుగుతోంది",
     "headToClient": "క్లయింట్ వద్దకు వెళ్లండి",
     "addressLabel": "చిరునామా",
     "addressFallback": "పిన్ చేసిన స్థానం — దిశలను ఉపయోగించండి",
