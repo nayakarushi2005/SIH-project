@@ -26,6 +26,7 @@
     "cta": "Get Started"
   },
   "auth": {
+    "brandName": "SIH Connect",
     "tagline": "Verified professionals, trusted services",
     "login": "Login",
     "signup": "Sign Up",

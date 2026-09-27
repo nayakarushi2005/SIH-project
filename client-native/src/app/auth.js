@@ -136,7 +136,7 @@ export default function Auth() {
         <View style={styles.logoCircle}>
           <Text style={styles.logoText}>✦</Text>
         </View>
-        <Text style={styles.brandName}>SIH Connect</Text>
+        <Text style={styles.brandName}>{t('auth.brandName')}</Text>
         <Text style={styles.tagline}>{t('auth.tagline')}</Text>
       </View>
 

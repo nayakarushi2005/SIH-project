@@ -76,6 +76,83 @@ function walk(dir) {
   });
 }
 
+// Guards against hardcoded, untranslated user-facing strings creeping back
+// into src/app/** and src/components/**: JSX text nodes, common string
+// props, and Alert.alert() literals.
+const ALLOWLIST = new Set([
+  'OK',
+  '₹',
+  '…',
+  '—',
+  'button',
+  'header',
+  'number-pad',
+  'email-address',
+  'secondary',
+  'primary',
+  'ghost',
+  'done',
+  'next',
+  'search',
+]);
+
+const LATIN_RUN = /[A-Za-z]{3,}/;
+
+function isIgnored(lines, i) {
+  return lines[i].includes('// i18n-ignore') || (i > 0 && lines[i - 1].includes('// i18n-ignore'));
+}
+
+function isHardcoded(value) {
+  const v = value.trim();
+  if (!v || ALLOWLIST.has(v)) return false;
+  return LATIN_RUN.test(v);
+}
+
+export function checkHardcoded(files) {
+  const problems = [];
+  const inScope = ({ path }) =>
+    /(^|\/)src\/(app|components)\//.test(path.replace(/\\/g, '/'));
+
+  for (const { path, text } of files.filter(inScope)) {
+    const lines = text.split('\n');
+    lines.forEach((line, i) => {
+      if (isIgnored(lines, i)) return;
+
+      // JSX text nodes: text sitting directly between `>` and `<` on one line.
+      for (const m of line.matchAll(/>([^<>{}]+)</g)) {
+        const value = m[1];
+        if (!isHardcoded(value)) continue;
+        // Skip text that is (or sits right next to) a t(...) call.
+        if (/\bt\(/.test(value)) continue;
+        const before = line.slice(0, m.index);
+        const after = line.slice(m.index + m[0].length);
+        if (/\bt\(\s*$/.test(before) || /^\s*\)/.test(after)) continue;
+        problems.push(`${path}:${i + 1}: hardcoded JSX text "${value.trim()}"`);
+      }
+
+      // String props: label|placeholder|title|hint|body|accessibilityLabel|accessibilityHint="..."
+      for (const m of line.matchAll(
+        /\b(label|placeholder|title|hint|body|accessibilityLabel|accessibilityHint)\s*=\s*(["'])((?:(?!\2).)*)\2/g
+      )) {
+        const value = m[3];
+        if (!isHardcoded(value)) continue;
+        problems.push(`${path}:${i + 1}: hardcoded prop ${m[1]}="${value.trim()}"`);
+      }
+
+      // Alert.alert('...', '...') literal arguments.
+      const alertMatch = line.match(/Alert\.alert\(\s*(["'])((?:(?!\1).)*)\1\s*(?:,\s*(["'])((?:(?!\3).)*)\3)?/);
+      if (alertMatch) {
+        for (const value of [alertMatch[2], alertMatch[4]]) {
+          if (value !== undefined && isHardcoded(value)) {
+            problems.push(`${path}:${i + 1}: hardcoded Alert.alert("${value.trim()}")`);
+          }
+        }
+      }
+    });
+  }
+  return problems;
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const root = join(dirname(fileURLToPath(import.meta.url)), '..');
   const localeDir = join(root, 'src/i18n/locales');
@@ -83,7 +160,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     readdirSync(localeDir).map((f) => [f.replace('.json', ''), JSON.parse(readFileSync(join(localeDir, f), 'utf8'))])
   );
   const sources = walk(join(root, 'src')).map((path) => ({ path, text: readFileSync(path, 'utf8') }));
-  const problems = checkLocales(locales, sources);
+  const problems = [...checkLocales(locales, sources), ...checkHardcoded(sources)];
   if (problems.length) {
     console.error(problems.join('\n'));
     console.error(`\n${problems.length} problem(s).`);
