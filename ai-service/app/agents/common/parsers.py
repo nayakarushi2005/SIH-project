@@ -82,7 +82,17 @@ def _amounts(
     assume_money: bool = False,
     unit_rank: dict | None = None,
     unit_value: dict | None = None,
+    skip_units: set[str] | None = None,
+    merge_trailing: bool = False,
 ) -> list[dict]:
+    """Numbers (with their thousand/lakh/... unit) said in `t`.
+
+    `skip_units` and `merge_trailing` are parse_amount-only: parse_income
+    calls with neither, so its behaviour is unchanged. A number whose next
+    word is in `skip_units` ("2 घंटे") is not an amount; with
+    `merge_trailing`, a plain number right after a unit joins it
+    ("2 hazaar 500" → 2500, "2 सौ 50" → 250).
+    """
     unit_rank = _UNIT_RANK if unit_rank is None else unit_rank
     unit_value = _UNIT_VALUE if unit_value is None else unit_value
     money = assume_money or _has(lx.MONEY, t) or "₹" in t
@@ -93,6 +103,8 @@ def _amounts(
             value = float(raw.replace(",", ""))
         except ValueError:
             continue
+        if skip_units and unit in skip_units:
+            continue  # "500 for 2 hours": the 2 is a time, not money
         rank = unit_rank.get(unit, 0)
         end = m.end() if rank else m.end(1)
         if not rank:
@@ -118,6 +130,17 @@ def _amounts(
         if prev and prev["rank"] > a["rank"] > 0 and _JOINER.match(t[prev["end"] : a["start"]]):
             prev["value"] += a["value"]
             prev["rank"] = a["rank"]
+            prev["end"] = a["end"]
+        elif (
+            merge_trailing
+            and prev
+            and prev["rank"] > 0
+            and a["rank"] == 0
+            and a["value"] < unit_value[prev["rank"]]
+            and _JOINER.match(t[prev["end"] : a["start"]])
+        ):
+            prev["value"] += a["value"]
+            prev["rank"] = 0  # nothing smaller can follow a plain number
             prev["end"] = a["end"]
         else:
             merged.append(dict(a))
@@ -153,37 +176,185 @@ def parse_income(text: str) -> IncomeResult:
     return IncomeResult(bracket_for(amount * _PERIODS[period]), amount, period)
 
 
+# ── parse_amount / parse_duration only ──────────────────────────────────────
+# Everything below is local to these two parsers: parse_income (onboarding)
+# never reads these tables, so its behaviour stays exactly as it was.
+
+# Number words the shared lexicon lacks: "one" forms used before a unit
+# ("an hour", "ஒரு நாள்", "ఒక గంట"), romanised Hindi, and 6-9 in a few scripts.
+_EXTRA_NUMBER_WORDS = {
+    lx.nfc(k).lower(): v
+    for k, v in {
+        "a": 1,
+        "an": 1,
+        "ek": 1,
+        "do": 2,
+        "teen": 3,
+        "char": 4,
+        "chaar": 4,
+        "paanch": 5,
+        "panch": 5,
+        "chhe": 6,
+        "saat": 7,
+        "aath": 8,
+        "nau": 9,
+        "das": 10,
+        "bees": 20,
+        "pachas": 50,
+        "सहा": 6,
+        "नऊ": 9,
+        "ছয়": 6,
+        "সাত": 7,
+        "আট": 8,
+        "ஒரு": 1,
+        "ஆறு": 6,
+        "ஏழு": 7,
+        "எட்டு": 8,
+        "ஒன்பது": 9,
+        "ఒక": 1,
+        "ఆరు": 6,
+        "ఏడు": 7,
+        "ఎనిమిది": 8,
+        "తొమ్మిది": 9,
+    }.items()
+}
+# "hundred" is a unit here ("five hundred"), never a number word on its own.
+_AMOUNT_NUMBER_WORDS = {
+    k: v for k, v in {**lx.NUMBER_WORDS, **_EXTRA_NUMBER_WORDS}.items() if k != "hundred"
+}
+# Extra "hundred" spellings, plus one-word hundreds ("पाचशे", "পাঁচশো",
+# "ஐநூறு") rewritten to "<n> hundred" before parsing.
+_AMOUNT_HUNDRED_EXTRA = {lx.nfc(w).lower() for w in ("sau", "hundreds", "వందల", "వందలు")}
+_HUNDRED_COMPOUNDS = {
+    lx.nfc(k).lower(): v
+    for k, v in {
+        "एकशे": 1,
+        "दोनशे": 2,
+        "तीनशे": 3,
+        "चारशे": 4,
+        "पाचशे": 5,
+        "सहाशे": 6,
+        "सातशे": 7,
+        "आठशे": 8,
+        "नऊशे": 9,
+        "शंभर": 1,
+        "একশো": 1,
+        "একশ": 1,
+        "দুশো": 2,
+        "দুইশো": 2,
+        "তিনশো": 3,
+        "চারশো": 4,
+        "পাঁচশো": 5,
+        "পাঁচশ": 5,
+        "ছয়শো": 6,
+        "ছশো": 6,
+        "সাতশো": 7,
+        "আটশো": 8,
+        "নয়শো": 9,
+        "இருநூறு": 2,
+        "முந்நூறு": 3,
+        "முன்னூறு": 3,
+        "நானூறு": 4,
+        "நாநூறு": 4,
+        "ஐநூறு": 5,
+        "ஐந்நூறு": 5,
+        "அறுநூறு": 6,
+        "எழுநூறு": 7,
+        "எண்ணூறு": 8,
+        "தொள்ளாயிரம்": 9,
+        "నూరు": 1,
+    }.items()
+}
+_AMOUNT_UNITS = {**_AMOUNT_UNIT_RANK, **{u: 1 for u in _AMOUNT_HUNDRED_EXTRA}}
+# Unit words that mean "one of them" when said alone ("सौ रुपये", "వంద").
+# Not "k", which is too easily a stray letter.
+_BARE_UNITS = {u for u, r in _AMOUNT_UNITS.items() if r in (1, 2) and u != "k"}
+# Time units: a number right before one is a duration, not a price.
+_DURATION_COUNT_DAY = {
+    lx.nfc(w).lower()
+    for w in ("day", "days", "din", "दिन", "दिवस", "দিন", "நாள்", "நாட்கள்", "రోజు", "రోజులు")
+}
+_TIME_UNITS = set(lx.HOUR) | set(lx.MINUTE) | _DURATION_COUNT_DAY
+# Sentence punctuation, but not inside a number ("1,500", "1.5").
+_PUNCT = re.compile(r"(?<!\d)[,.?!।]|[,.?!।](?!\d)")
+
+
+_NUMERIC = re.compile(r"^\d+(?:[.,]\d+)*$")
+
+
+def _depunct(t: str) -> str:
+    return " ".join(_PUNCT.sub(" ", t).split())
+
+
+def _spell_after(t: str, after: set[str], numbers: dict) -> str:
+    """Replace a spelled tens number with digits when the word before is in
+    `after` ("2 सौ पचास" → "2 सौ 50"). Tens only: "पाँच सौ दो" is "give 500"."""
+    words = t.split()
+    for i in range(1, len(words)):
+        if words[i - 1] in after and numbers.get(words[i], 0) >= 10:
+            words[i] = str(numbers[words[i]])
+    return " ".join(words)
+
+
+def _amount_words(t: str) -> str:
+    words = []
+    for w in t.split():
+        if w in _HUNDRED_COMPOUNDS:
+            words += [str(_HUNDRED_COMPOUNDS[w]), "hundred"]
+        else:
+            words.append(w)
+    follow = set(_AMOUNT_UNITS) | set(lx.MONEY)
+    t = _spell_before(" ".join(words), follow, numbers=_AMOUNT_NUMBER_WORDS)
+    t = _spell_after(t, set(_AMOUNT_UNITS), _AMOUNT_NUMBER_WORDS)
+    words = t.split()
+    for i, w in enumerate(words):
+        if w in _BARE_UNITS and not (i and _NUMERIC.match(words[i - 1])):
+            words[i] = f"1 {w}"
+    return " ".join(words)
+
+
 def parse_amount(text: str) -> int | None:
     """A bare rupee amount, wherever said ("500 nahi 700" → 700). No minimum floor."""
-    t = _spell_before(normalise(text), set(_AMOUNT_UNIT_RANK))
+    t = _amount_words(_depunct(normalise(text)))
     amounts = _amounts(
-        t, assume_money=True, unit_rank=_AMOUNT_UNIT_RANK, unit_value=_AMOUNT_UNIT_VALUE
+        t,
+        assume_money=True,
+        unit_rank=_AMOUNT_UNITS,
+        unit_value=_AMOUNT_UNIT_VALUE,
+        skip_units=_TIME_UNITS,
+        merge_trailing=True,
     )
     if not amounts:
         return None
     return int(amounts[-1]["value"])
 
 
-# parse_duration only: plural/romanised forms plus "dedh"/"dhai" as 1.5/2.5,
+# parse_duration only: plural/romanised forms, day words that only count
+# days ("दिवस", "நாள்"), extra "half" words and "dedh"/"dhai" as 1.5/2.5 —
 # kept out of the shared lexicon sets so parse_income (which also reads
 # lx.DAY/lx.WEEK/lx.NUMBER_WORDS) is unaffected.
-_DURATION_DAY = {*lx.DAY, "days"}
+_DURATION_DAY = {*lx.DAY, *_DURATION_COUNT_DAY}
 _DURATION_WEEK = {*lx.WEEK, "weeks"}
-_DURATION_NUMBER_WORDS = {**lx.NUMBER_WORDS, "dedh": 1.5, "dhai": 2.5}
+_DURATION_HALF = {*lx.HALF, *(lx.nfc(w).lower() for w in ("আধা", "আধ", "అర"))}
+_DURATION_NUMBER_WORDS = {**lx.NUMBER_WORDS, **_EXTRA_NUMBER_WORDS, "dedh": 1.5, "dhai": 2.5}
 _DURATION_UNITS = set(lx.HOUR) | set(lx.MINUTE) | _DURATION_DAY | _DURATION_WEEK
 _NUMBER_BEFORE = re.compile(r"(\d+(?:\.\d+)?)\s*$")
+# "half an hour" / "half a day" → "half hour" / "half day".
+_HALF_ARTICLE = re.compile(r"(?<![\w])(half)\s+(?:of\s+)?an?\s+")
+# "one and a half hours" / "2 and half" → the number plus 0.5.
+_AND_A_HALF = re.compile(r"(\S+)\s+(?:and|aur|और)\s+(?:a\s+)?half(?![\w])")
+_HOUR_MINUTE_JOINER = re.compile(r"^[\s,]*(?:and|aur|और)?\s*$")
 
 
-def _find_unit(t: str, words) -> tuple[int, int] | None:
-    """The earliest match of any of `words` in `t`, or None."""
-    hits = [m.span() for w in words for m in re.finditer(_word(w), t)]
-    return min(hits, default=None)
+def _spans(t: str, words) -> list[tuple[int, int]]:
+    return sorted({m.span() for w in words for m in re.finditer(_word(w), t)})
 
 
-def _number_before(t: str, pos: int) -> float | None:
-    """The number ending right before `pos` (only whitespace in between), if any."""
+def _number_before(t: str, pos: int) -> tuple[float, int] | None:
+    """The number ending right before `pos` (only whitespace in between) and
+    where it starts, if any."""
     m = _NUMBER_BEFORE.search(t[:pos])
-    return float(m.group(1)) if m else None
+    return (float(m.group(1)), m.start(1)) if m else None
 
 
 def _adjacent(a: tuple[int, int], b: tuple[int, int], t: str) -> bool:
@@ -195,48 +366,60 @@ def _adjacent(a: tuple[int, int], b: tuple[int, int], t: str) -> bool:
     return False
 
 
+def _and_a_half(m: re.Match) -> str:
+    word = m.group(1)
+    value = _DURATION_NUMBER_WORDS.get(word)
+    if value is None and _NUMERIC.match(word) and "," not in word:
+        value = float(word)
+    return f"{value + 0.5:g}" if value is not None else m.group(0)
+
+
 def parse_duration(text: str, lang: str) -> int | None:
-    """A spoken duration, in minutes. `lang` is accepted for a uniform call
+    """A spoken duration, in minutes. When several are said, the last one wins
+    ("3 ghante nahi 2 ghante" → 120). `lang` is accepted for a uniform call
     signature across agents; the lexicon already covers every language."""
-    t = _spell_before(normalise(text), _DURATION_UNITS, numbers=_DURATION_NUMBER_WORDS)
+    t = _depunct(normalise(text))
+    t = _HALF_ARTICLE.sub(r"\1 ", t)
+    t = _AND_A_HALF.sub(_and_a_half, t)
+    t = _spell_before(t, _DURATION_UNITS, numbers=_DURATION_NUMBER_WORDS)
 
-    if _has(lx.FULL_DAY, t):
-        return 480
+    # (position, minutes) for every duration said; the latest one wins.
+    found: list[tuple[int, float]] = [(s, 480) for s, _ in _spans(t, lx.FULL_DAY)]
+    days, hours = _spans(t, _DURATION_DAY), _spans(t, lx.HOUR)
+    for half in _spans(t, _DURATION_HALF):
+        found += [(half[0], 240) for d in days if _adjacent(half, d, t)]
+        found += [(half[0], 30) for h in hours if _adjacent(half, h, t)]
 
-    half = _find_unit(t, lx.HALF)
-    day = _find_unit(t, _DURATION_DAY)
-    hour = _find_unit(t, lx.HOUR)
-    minute = _find_unit(t, lx.MINUTE)
-    week = _find_unit(t, _DURATION_WEEK)
-
-    if half and day and _adjacent(half, day, t):
-        return 240
-    if half and hour and _adjacent(half, hour, t):
-        return 30
-
-    if hour and minute:
-        n_h, n_m = _number_before(t, hour[0]), _number_before(t, minute[0])
-        if n_h is not None and n_m is not None:
-            return round(n_h * 60 + n_m)
-    if hour:
-        n = _number_before(t, hour[0])
+    hour_ends: dict[int, float] = {}  # "2 hours" ends at → its minutes
+    for s, e in hours:
+        n = _number_before(t, s)
         if n is not None:
-            return round(n * 60)
-    if minute:
-        n = _number_before(t, minute[0])
+            found.append((n[1], n[0] * 60))
+            hour_ends[e] = n[0] * 60
+    for s, _ in _spans(t, lx.MINUTE):
+        n = _number_before(t, s)
+        if n is None:
+            continue
+        # "1 hour 30 minutes" is one duration, not two.
+        prev_end = max((end for end in hour_ends if end <= n[1]), default=None)
+        if prev_end is not None and _HOUR_MINUTE_JOINER.match(t[prev_end : n[1]]):
+            found.append((n[1], hour_ends[prev_end] + n[0]))
+        else:
+            found.append((n[1], n[0]))
+    for s, _ in _spans(t, _DURATION_WEEK):
+        n = _number_before(t, s)
         if n is not None:
-            return round(n)
-    if week:
-        n = _number_before(t, week[0])
-        if n is not None:
-            return round(n * 10_080)
-    if day:
-        n = _number_before(t, day[0])
-        if n == 1:
-            return 480
-        if n is not None and n >= 2:
-            return round(n * 1_440)
-    return None
+            found.append((n[1], n[0] * 10_080))
+    for s, _ in days:
+        n = _number_before(t, s)
+        if n is not None and n[0] == 1:
+            found.append((n[1], 480))  # "one day" of work is a working day
+        elif n is not None and n[0] >= 2:
+            found.append((n[1], n[0] * 1_440))
+
+    if not found:
+        return None
+    return round(max(found, key=lambda f: f[0])[1])
 
 
 # "सही है ना?" = "right, isn't it?" — a yes, not a no.
