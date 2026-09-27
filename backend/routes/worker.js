@@ -6,7 +6,7 @@ const {
   requestMembership,
   sendMembershipError,
 } = require('../services/membership');
-const { splitFieldErrors } = require('../services/errors');
+const { sendError, splitFieldErrors } = require('../services/errors');
 const { validateRegistration } = require('../services/worker');
 const { syncFromRegistration } = require('../services/workerProfile');
 
@@ -48,7 +48,7 @@ router.post('/register', async (req, res) => {
     return res.status(200).json(await buildProfile(user));
   } catch (err) {
     console.error('Worker register error:', err.message);
-    return res.status(500).json({ error: 'Could not register you as a worker.' });
+    return sendError(res, 500, 'worker_register_failed', 'Could not register you as a worker.');
   }
 });
 
@@ -67,7 +67,7 @@ router.post('/deregister', async (req, res) => {
     return res.status(200).json(await buildProfile(req.user));
   } catch (err) {
     console.error('Worker deregister error:', err.message);
-    return res.status(500).json({ error: 'Could not update your worker status.' });
+    return sendError(res, 500, 'worker_update_failed', 'Could not update your worker status.');
   }
 });
 
@@ -79,7 +79,7 @@ router.post('/dismiss-prompt', async (req, res) => {
     return res.status(200).json(await buildProfile(req.user));
   } catch (err) {
     console.error('Dismiss worker prompt error:', err.message);
-    return res.status(500).json({ error: 'Could not save your choice.' });
+    return sendError(res, 500, 'worker_update_failed', 'Could not save your choice.');
   }
 });
 

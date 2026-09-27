@@ -304,12 +304,18 @@ router.post('/:id/start', verifyToken, async (req, res) => {
 
     const left = MAX_START_CODE_ATTEMPTS - counted.startCodeAttempts;
     const message = left > 0 ? `Wrong code. ${left} ${left === 1 ? 'try' : 'tries'} left.` : 'Wrong code.';
-    return res.status(400).json({
+    const errCode = left > 0 ? 'job_start_code_wrong' : 'job_start_code_wrong_last';
+    const body = {
       error: message,
-      code: 'job_start_code_wrong',
-      params: { left },
+      code: errCode,
       fields: { code: message },
-    });
+      fieldCodes: { code: errCode },
+    };
+    if (left > 0) {
+      body.params = { left };
+      body.fieldParams = { code: { left } };
+    }
+    return res.status(400).json(body);
   } catch (err) {
     console.error('Job start error:', err.message);
     return sendError(res, 500, 'job_update_failed', 'Could not start the job.');

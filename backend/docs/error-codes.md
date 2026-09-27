@@ -22,6 +22,7 @@ job_not_found — Job not found
 job_unavailable — This job is no longer available.
 job_cannot_start — This job can’t be started.
 job_start_code_wrong — Wrong code. {left} tries left. (params: left)
+job_start_code_wrong_last — Wrong code.
 job_start_code_too_many — Too many wrong codes. Withdraw from this job so another worker can be found.
 job_cannot_complete — Only a job in progress can be completed.
 job_cannot_withdraw — You can only withdraw from a job you haven’t started.
@@ -33,12 +34,26 @@ feedback_already — You’ve already rated this job.
 feedback_not_completed — You can rate the worker once the job is completed.
 worker_busy — Finish your current job before accepting another.
 worker_not_registered — Not registered as a worker
+worker_inactive — Your worker account isn’t active.
+worker_offline — You are offline.
+worker_load_failed — Could not load your worker information. (shared: profile/offers/insights load failures)
+worker_update_failed — Could not update your worker information. (shared: profile save/online/heartbeat/offline/deregister/dismiss-prompt failures)
+worker_register_failed — Could not register you as a worker.
+worker_skills_required — Choose at least one service you offer.
+worker_skills_max — Choose at most {max} services. (params: max)
+worker_skills_invalid — Choose services from the list.
+worker_bio_length — Keep your introduction under 300 characters.
+worker_experience_invalid — Enter your experience in whole years.
+worker_radius_invalid — Choose a distance between 1 and 25 km.
+profile_save_failed — Could not save your profile.
 offer_closed — This offer is no longer open.
 worker_name_required — Enter your full name.
 worker_income_required — Choose your yearly income.
 worker_categories_required — Choose at least one kind of work.
 worker_categories_max — Choose up to {max} kinds of work. (params: max)
 worker_categories_unavailable — Some of the chosen work types are not available.
+AADHAAR_REQUIRED — Verify your Aadhaar with DigiLocker before taking jobs. (uppercase legacy code, unchanged)
+NOT_REGISTERED — Register as a worker first. (uppercase legacy code, unchanged)
 profile_name_invalid — Enter your full name (letters only).
 profile_dob_invalid — Enter a valid date as DD/MM/YYYY.
 profile_gender_invalid — Choose a gender.

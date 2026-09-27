@@ -10,6 +10,7 @@
  */
 
 const WorkerProfile = require('../models/WorkerProfile');
+const { fieldError } = require('./errors');
 const { activeCategorySlugs } = require('./job');
 const { MAX_CATEGORIES } = require('./worker');
 
@@ -53,28 +54,40 @@ function isPresent(profile, now = Date.now()) {
 // throws a message for the user. Optional fields clear when sent empty.
 const validators = {
   skills(v) {
-    if (!Array.isArray(v) || v.length === 0) throw 'Choose at least one service you offer.';
+    if (!Array.isArray(v) || v.length === 0) {
+      throw fieldError('worker_skills_required', 'Choose at least one service you offer.');
+    }
     const skills = [...new Set(v)];
-    if (skills.length > MAX_SKILLS) throw `Choose at most ${MAX_SKILLS} services.`;
-    if (!skills.every((s) => typeof s === 'string')) throw 'Choose services from the list.';
+    if (skills.length > MAX_SKILLS) {
+      throw fieldError('worker_skills_max', `Choose at most ${MAX_SKILLS} services.`, {
+        max: MAX_SKILLS,
+      });
+    }
+    if (!skills.every((s) => typeof s === 'string')) {
+      throw fieldError('worker_skills_invalid', 'Choose services from the list.');
+    }
     return skills; // validateWorkerProfile checks they're active categories
   },
   bio(v) {
     if (isEmpty(v)) return null;
     const text = String(v).trim().replace(/\s+/g, ' ');
-    if (text.length > 300) throw 'Keep your introduction under 300 characters.';
+    if (text.length > 300) throw fieldError('worker_bio_length', 'Keep your introduction under 300 characters.');
     return text;
   },
   experienceYears(v) {
     if (isEmpty(v)) return null;
     const n = Number(v);
-    if (!Number.isInteger(n) || n < 0 || n > 60) throw 'Enter your experience in whole years.';
+    if (!Number.isInteger(n) || n < 0 || n > 60) {
+      throw fieldError('worker_experience_invalid', 'Enter your experience in whole years.');
+    }
     return n;
   },
   serviceRadiusKm(v) {
     if (isEmpty(v)) return DEFAULT_RADIUS_KM;
     const n = Number(v);
-    if (!Number.isInteger(n) || n < 1 || n > 25) throw 'Choose a distance between 1 and 25 km.';
+    if (!Number.isInteger(n) || n < 1 || n > 25) {
+      throw fieldError('worker_radius_invalid', 'Choose a distance between 1 and 25 km.');
+    }
     return n;
   },
 };
@@ -90,14 +103,16 @@ async function validateWorkerProfile(body) {
   for (const [field, validate] of Object.entries(validators)) {
     try {
       fields[field] = validate(body?.[field]);
-    } catch (message) {
-      errors[field] = message;
+    } catch (err) {
+      errors[field] = err;
     }
   }
 
   if (!errors.skills) {
     const active = await activeCategorySlugs(fields.skills);
-    if (!fields.skills.every((s) => active.has(s))) errors.skills = 'Choose services from the list.';
+    if (!fields.skills.every((s) => active.has(s))) {
+      errors.skills = fieldError('worker_skills_invalid', 'Choose services from the list.');
+    }
   }
 
   return { fields, errors };
