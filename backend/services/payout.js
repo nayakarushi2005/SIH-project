@@ -150,4 +150,18 @@ function toPayoutAccount(account) {
   };
 }
 
-module.exports = { savePayoutAccount, toPayoutAccount, validatePayoutAccount };
+// Details that pass validation in test mode (HDFC0000001 is a real branch,
+// so the IFSC lookup succeeds). The worker's name is filled in by the app.
+const TEST_BANK = { accountNumber: '1234567890', ifsc: 'HDFC0000001' };
+
+/**
+ * How payouts work on this server, for the bank-details screen:
+ * { mode: 'simulated' | 'route', testMode, testBank }. testBank is offered
+ * only in test mode, so nobody fills in fake details against live keys.
+ */
+function payoutInfo() {
+  const testMode = razorpay.isTestMode();
+  return { mode: payoutMode(), testMode, testBank: testMode ? TEST_BANK : null };
+}
+
+module.exports = { payoutInfo, savePayoutAccount, toPayoutAccount, validatePayoutAccount };
