@@ -24,17 +24,26 @@ import { MAX_PHOTOS, durationOptions } from '../utils/job';
 export default function CreateJob() {
   const router = useRouter();
   const { t, i18n } = useTranslation();
-  const { service: serviceId } = useLocalSearchParams();
+  const { service: serviceId, prefill: prefillParam } = useLocalSearchParams();
   const { groups } = useCategories(i18n.language);
   const location = useCurrentLocation();
   const { photos, addPhotos: addPhotosRaw, removePhoto, retryPhoto } = useJobPhotos();
 
+  // Answers handed over by the voice assistant, if it switched to the form.
+  const [prefill] = useState(() => {
+    try {
+      return prefillParam ? JSON.parse(prefillParam) : {};
+    } catch {
+      return {};
+    }
+  });
+
   const [form, setForm] = useState({
-    category: typeof serviceId === 'string' ? serviceId : '', // checked by the server
-    description: '',
-    price: '',
-    expectedDurationMins: null,
-    address: '',
+    category: prefill.category || (typeof serviceId === 'string' ? serviceId : ''), // checked by the server
+    description: prefill.description || '',
+    price: prefill.price != null ? String(prefill.price) : '',
+    expectedDurationMins: prefill.expectedDurationMins ?? null,
+    address: prefill.address || '',
   });
   const [errors, setErrors] = useState({});
   const [posting, setPosting] = useState(false);
@@ -92,6 +101,8 @@ export default function CreateJob() {
         expectedDurationMins: form.expectedDurationMins,
         location: location.coords,
         address: form.address,
+        language: i18n.language,
+        postedVia: 'form',
       });
       Alert.alert(t('createJob.postedTitle'), t('createJob.postedBody'));
       router.navigate('/bookings');
@@ -105,7 +116,7 @@ export default function CreateJob() {
     } finally {
       setPosting(false);
     }
-  }, [form, location, photos, router, t]);
+  }, [form, i18n.language, location, photos, router, t]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -127,6 +138,20 @@ export default function CreateJob() {
               </Text>
             </Pressable>
           ) : null}
+
+          <Pressable
+            onPress={() =>
+              router.push({
+                pathname: '/create-job-voice',
+                params: form.category ? { service: form.category } : {},
+              })
+            }
+            style={({ pressed }) => [styles.voiceCta, pressed && styles.pressed]}
+            accessibilityRole="button"
+          >
+            <Ionicons name="mic" size={18} color={colors.primary} />
+            <Text style={styles.voiceCtaText}>{t('voiceJob.postByVoice')}</Text>
+          </Pressable>
 
           {/* ── The work ───────────────────────────────────────────── */}
           <Text style={styles.sectionTitle}>{t('createJob.sectionWork')}</Text>
@@ -248,6 +273,25 @@ const styles = StyleSheet.create({
   noticeLink: {
     fontWeight: '700',
     color: colors.warning,
+  },
+  voiceCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    minHeight: 48,
+    marginBottom: spacing.md,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+  },
+  voiceCtaText: {
+    ...typography.button,
+    fontWeight: '600',
+    color: colors.primary,
+  },
+  pressed: {
+    opacity: 0.85,
   },
   footer: {
     paddingHorizontal: spacing.lg - spacing.xs,

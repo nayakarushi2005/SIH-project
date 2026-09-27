@@ -118,6 +118,17 @@ export default function Home() {
           <Ionicons name="chevron-forward" size={20} color={colors.textOnPrimary} />
         </Pressable>
 
+        {/* ── Post by voice ──────────────────────────────────────────── */}
+        <Pressable
+          onPress={() => router.push('/create-job-voice')}
+          style={({ pressed }) => [styles.voiceCta, pressed && styles.pressed]}
+          accessibilityRole="button"
+          accessibilityLabel={t('home.postByVoice')}
+        >
+          <Ionicons name="mic" size={20} color={colors.primary} />
+          <Text style={styles.voiceCtaText}>{t('home.postByVoice')}</Text>
+        </Pressable>
+
         {/* ── Most booked ────────────────────────────────────────────── */}
         <SectionTitle>{t('home.mostBooked')}</SectionTitle>
         <View style={styles.grid}>
@@ -248,6 +259,23 @@ const styles = StyleSheet.create({
     color: colors.textOnPrimary,
     opacity: 0.85,
     marginTop: 2,
+  },
+
+  voiceCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    minHeight: 48,
+    marginTop: spacing.sm + 4,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+  },
+  voiceCtaText: {
+    ...typography.button,
+    fontWeight: '600',
+    color: colors.primary,
   },
 
   sectionTitle: {
