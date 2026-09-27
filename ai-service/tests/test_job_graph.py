@@ -337,3 +337,29 @@ async def test_the_work_word_does_not_hide_the_field_being_changed(lang, reply, 
     await c.to_confirm()
     s = await c.say(reply)
     assert s["step"] == step and s["return_to_confirm"] is True
+
+
+async def test_load_session_reads_kind_from_the_raw_checkpoint(monkeypatch):
+    """`load_session` reads the checkpoint itself, not `graph.aget_state()`,
+    which filters channels down to the calling graph's state fields. A
+    job-posting session read through the onboarding graph (same checkpointer)
+    must still see its `kind` and 404 there, and pass on its own flow."""
+    from app import sessions
+    from app.agents.onboarding.graph import build_graph as build_onboarding
+    from app.errors import ServiceError
+
+    monkeypatch.setattr(sessions, "_now", lambda: 0)
+    saver = InMemorySaver()
+    job_graph = build_graph(FakeExtractor(), catalog_for, saver)
+    onboarding_graph = build_onboarding(FakeExtractor(), catalog_for, saver)
+    user = {"id": "u1", "preferredLanguage": "hi"}
+    await job_graph.ainvoke(
+        {**initial_state(user, now=0), "turn": {"kind": "start"}}, sessions.config_for("s1")
+    )
+
+    values = await sessions.load_session(job_graph, "s1", user, kind=KIND)
+    assert values["kind"] == KIND
+
+    with pytest.raises(ServiceError) as err:
+        await sessions.load_session(onboarding_graph, "s1", user)
+    assert err.value.code == "not_found"

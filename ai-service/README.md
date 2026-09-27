@@ -63,7 +63,8 @@ uses it once `done` is true.
 The job-posting flow: the app opens a session (passing a `category` slug
 when the user tapped a specific service first, or none to ask by voice),
 then exchanges turns until `done`. `filled` at that point has `category`,
-`description`, `price`, `expectedDurationMins`, `address` and `language`.
+`description`, `price`, `expectedDurationMins`, `address` and `language`;
+`address` is `null` when the user skipped it.
 The app still has to collect a photo itself — the voice flow never asks for
 one — before calling the backend's `POST /api/jobs` with those fields plus
 `language` and `postedVia: "voice"` (a normal, form-filled post sends
