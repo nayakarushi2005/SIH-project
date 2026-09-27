@@ -1,15 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  KeyboardAvoidingView,
-  Linking,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { Alert, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -18,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 
 import Button from '../components/Button';
 import CategoryPicker from '../components/CategoryPicker';
+import LocationCard from '../components/LocationCard';
 import OptionGroup from '../components/OptionGroup';
 import PhotoPicker from '../components/PhotoPicker';
 import ScreenHeader from '../components/ScreenHeader';
@@ -25,69 +16,10 @@ import TextField from '../components/TextField';
 import { colors, radius, spacing, typography } from '../constants/theme';
 import useCategories from '../hooks/useCategories';
 import useCurrentLocation from '../hooks/useCurrentLocation';
-import { createJob, getErrorMessage, getFieldErrors, uploadJobPhoto } from '../services/api';
+import useJobPhotos from '../hooks/useJobPhotos';
+import { createJob, getErrorMessage, getFieldErrors } from '../services/api';
 import { getUser } from '../services/session';
 import { MAX_PHOTOS, durationOptions } from '../utils/job';
-
-function LocationCard({ t, location, error }) {
-  const { status, label, canAskAgain, refresh } = location;
-  const openSettings = status === 'denied' && canAskAgain === false;
-  const LOCATION_MESSAGES = {
-    denied: t('createJob.locationDenied'),
-    off: t('createJob.locationOff'),
-    error: t('createJob.locationError'),
-  };
-
-  return (
-    <View style={styles.fieldWrapper}>
-      <Text style={styles.fieldLabel}>{t('createJob.locationLabel')}</Text>
-      <View style={[styles.locationCard, error && styles.locationCardError]}>
-        <Ionicons
-          name={status === 'ready' ? 'location-sharp' : 'location-outline'}
-          size={20}
-          color={status === 'ready' ? colors.primary : colors.textMuted}
-        />
-        <View style={styles.locationBody}>
-          {status === 'loading' ? (
-            <View style={styles.locationLoading}>
-              <ActivityIndicator size="small" color={colors.primary} />
-              <Text style={styles.locationMuted}>{t('createJob.locationFinding')}</Text>
-            </View>
-          ) : status === 'ready' ? (
-            <>
-              <Text style={styles.locationTitle}>{t('createJob.locationCurrent')}</Text>
-              <Text style={styles.locationMuted} numberOfLines={2}>
-                {label || t('createJob.locationGps')}
-              </Text>
-            </>
-          ) : (
-            <Text style={styles.locationMuted}>{LOCATION_MESSAGES[status]}</Text>
-          )}
-        </View>
-        {status !== 'loading' ? (
-          <Pressable
-            onPress={openSettings ? () => Linking.openSettings() : refresh}
-            hitSlop={spacing.sm}
-            accessibilityRole="button"
-          >
-            <Text style={styles.locationAction}>
-              {openSettings
-                ? t('createJob.settings')
-                : status === 'ready'
-                ? t('createJob.refresh')
-                : t('createJob.tryAgain')}
-            </Text>
-          </Pressable>
-        ) : null}
-      </View>
-      {error ? (
-        <Text style={styles.fieldError}>{error}</Text>
-      ) : (
-        <Text style={styles.fieldHint}>{t('createJob.locationHint')}</Text>
-      )}
-    </View>
-  );
-}
 
 export default function CreateJob() {
   const router = useRouter();
@@ -95,6 +27,7 @@ export default function CreateJob() {
   const { service: serviceId } = useLocalSearchParams();
   const { groups } = useCategories(i18n.language);
   const location = useCurrentLocation();
+  const { photos, addPhotos: addPhotosRaw, removePhoto, retryPhoto } = useJobPhotos();
 
   const [form, setForm] = useState({
     category: typeof serviceId === 'string' ? serviceId : '', // checked by the server
@@ -103,11 +36,9 @@ export default function CreateJob() {
     expectedDurationMins: null,
     address: '',
   });
-  const [photos, setPhotos] = useState([]);
   const [errors, setErrors] = useState({});
   const [posting, setPosting] = useState(false);
   const [aadhaarVerified, setAadhaarVerified] = useState(true);
-  const nextPhotoKey = useRef(0);
 
   useEffect(() => {
     getUser().then((user) => setAadhaarVerified(!!user?.isAadhaarVerified));
@@ -125,50 +56,12 @@ export default function CreateJob() {
     [clearError]
   );
 
-  // ── Photos: each one uploads as soon as it's picked ─────────────────────
-  const updatePhoto = useCallback((key, changes) => {
-    setPhotos((list) => list.map((p) => (p.key === key ? { ...p, ...changes } : p)));
-  }, []);
-
-  const upload = useCallback(
-    async (photo) => {
-      updatePhoto(photo.key, { status: 'uploading' });
-      try {
-        const url = await uploadJobPhoto(photo);
-        updatePhoto(photo.key, { status: 'done', url });
-      } catch (err) {
-        console.warn('Job photo upload failed:', getErrorMessage(err));
-        updatePhoto(photo.key, { status: 'error' });
-      }
-    },
-    [updatePhoto]
-  );
-
   const addPhotos = useCallback(
     (assets) => {
-      const added = assets.map((asset) => ({
-        key: String(nextPhotoKey.current++),
-        uri: asset.uri,
-        status: 'uploading',
-        url: null,
-      }));
-      setPhotos((list) => [...list, ...added]);
       clearError('photos');
-      added.forEach(upload);
+      addPhotosRaw(assets);
     },
-    [clearError, upload]
-  );
-
-  const removePhoto = useCallback((key) => {
-    setPhotos((list) => list.filter((p) => p.key !== key));
-  }, []);
-
-  const retryPhoto = useCallback(
-    (key) => {
-      const photo = photos.find((p) => p.key === key);
-      if (photo) upload(photo);
-    },
-    [photos, upload]
+    [addPhotosRaw, clearError]
   );
 
   // ── Submit ──────────────────────────────────────────────────────────────
@@ -355,60 +248,6 @@ const styles = StyleSheet.create({
   noticeLink: {
     fontWeight: '700',
     color: colors.warning,
-  },
-  fieldWrapper: {
-    marginBottom: spacing.md,
-  },
-  fieldLabel: {
-    ...typography.label,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: spacing.xs + 2,
-  },
-  fieldHint: {
-    ...typography.label,
-    color: colors.textMuted,
-    marginTop: spacing.xs,
-  },
-  fieldError: {
-    ...typography.label,
-    color: colors.danger,
-    marginTop: spacing.xs,
-  },
-  locationCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm + 4,
-    minHeight: 56,
-    padding: spacing.sm + 4,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-  },
-  locationCardError: {
-    borderColor: colors.danger,
-  },
-  locationBody: {
-    flex: 1,
-  },
-  locationLoading: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  locationTitle: {
-    ...typography.body,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  locationMuted: {
-    ...typography.label,
-    color: colors.textMuted,
-  },
-  locationAction: {
-    ...typography.body,
-    fontWeight: '600',
-    color: colors.primary,
   },
   footer: {
     paddingHorizontal: spacing.lg - spacing.xs,
