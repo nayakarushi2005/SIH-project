@@ -10,7 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@deck.gl/aggregation-layers": "^9.4.0",
+    "@deck.gl/core": "^9.4.0",
+    "@deck.gl/google-maps": "^9.4.0",
+    "@deck.gl/layers": "^9.4.0",
     "@react-oauth/google": "^0.13.5",
+    "@vis.gl/react-google-maps": "^1.10.1",
     "axios": "^1.20.0",
     "lucide-react": "^1.48.0",
     "react": "^19.2.8",
