@@ -271,7 +271,7 @@ export default function DemandMap() {
                 <Map
                   mapId={MAP_ID}
                   defaultCenter={CENTER}
-                  defaultZoom={11}
+                  defaultZoom={12}
                   gestureHandling="greedy"
                   disableDefaultUI={false}
                   onIdle={onIdle}
