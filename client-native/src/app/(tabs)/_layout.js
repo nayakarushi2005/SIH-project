@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 
 import LocationSheet from '../../components/LocationSheet';
+import SosFab from '../../components/SosFab';
 import WorkerPrompt from '../../components/WorkerPrompt';
 import { colors } from '../../constants/theme';
 import { sessionFlags, useUser } from '../../context/UserContext';
@@ -122,6 +123,8 @@ export default function TabsLayout() {
         />
         <Tabs.Screen name="profile" options={{ title: t('tabs.profile'), tabBarIcon: tabIcon('person') }} />
       </Tabs>
+
+      <SosFab />
 
       <LocationSheet autoDetect visible={locationOpen} onClose={closeLocation} />
 

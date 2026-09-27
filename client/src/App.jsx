@@ -7,6 +7,7 @@ import FederationRegister from './pages/federation/FederationRegister';
 import FederationStatus from './pages/federation/FederationStatus';
 import GovernmentVerification from './pages/federation/GovernmentVerification';
 import WorkerRequests from './pages/federation/WorkerRequests';
+import SafetyAlerts from './pages/gov/SafetyAlerts';
 
 function Dashboard() {
   return (
@@ -46,6 +47,7 @@ function App() {
               <Route path="/federation/status" element={<FederationStatus />} />
               <Route path="/federation/workers" element={<WorkerRequests />} />
               <Route path="/gov/verify" element={<GovernmentVerification />} />
+              <Route path="/gov/safety" element={<SafetyAlerts />} />
               <Route path="/dashboard" element={<Dashboard />} />
             </Route>
           </Routes>

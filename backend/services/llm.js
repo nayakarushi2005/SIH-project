@@ -9,6 +9,7 @@
  *   VERTEX_LOCATION=global                      # or a region, e.g. asia-south1
  *   VERTEX_KEY_FILE=./keys/vertex-service-account.json
  *   LLM_MODEL=gemini-3.8-flash                  # optional
+ *   EMBEDDING_MODEL=gemini-embedding-001        # optional, for embed()
  *
  * These are deliberately not Google's standard GOOGLE_CLOUD_PROJECT /
  * GOOGLE_APPLICATION_CREDENTIALS: those are often set machine-wide for other
@@ -21,10 +22,14 @@
 
 const path = require('path');
 const { GoogleGenAI } = require('@google/genai');
+const { normalize } = require('./vectors');
 
 const DEFAULT_MODEL = 'gemini-3.8-flash';
+const DEFAULT_EMBEDDING_MODEL = 'gemini-embedding-001'; // multilingual — Hindi descriptions too
 const DEFAULT_LOCATION = 'global';
 const TIMEOUT_MS = 30 * 1000;
+const EMBEDDING_DIMS = 768;
+const EMBED_BATCH = 50; // texts per request, well under Vertex's per-request limits
 
 let client = null;
 
@@ -35,6 +40,10 @@ function isConfigured() {
 
 function modelName() {
   return process.env.LLM_MODEL || DEFAULT_MODEL;
+}
+
+function embeddingModelName() {
+  return process.env.EMBEDDING_MODEL || DEFAULT_EMBEDDING_MODEL;
 }
 
 function location() {
@@ -90,7 +99,32 @@ async function generateJson({ system, prompt, schema, temperature = 0 }) {
   return JSON.parse(text);
 }
 
+/**
+ * Embeds each of `texts` for similarity comparisons and returns one
+ * unit-length vector (number[]) per text, in order.
+ */
+async function embed(texts) {
+  const vectors = [];
+  for (let i = 0; i < texts.length; i += EMBED_BATCH) {
+    const batch = texts.slice(i, i + EMBED_BATCH);
+    const response = await getClient().models.embedContent({
+      model: embeddingModelName(),
+      contents: batch,
+      config: { taskType: 'SEMANTIC_SIMILARITY', outputDimensionality: EMBEDDING_DIMS },
+    });
+    const values = response.embeddings?.map((e) => e.values) ?? [];
+    if (values.length !== batch.length || values.some((v) => !v?.length)) {
+      throw new Error(`Embedding returned ${values.length} vectors for ${batch.length} texts`);
+    }
+    // Shortened (768-dim) Gemini embeddings aren't unit length until normalised.
+    vectors.push(...values.map(normalize));
+  }
+  return vectors;
+}
+
 module.exports = {
+  embed,
+  embeddingModelName,
   generateJson,
   isConfigured,
   keyFile,

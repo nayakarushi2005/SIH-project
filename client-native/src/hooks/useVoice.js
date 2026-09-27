@@ -3,7 +3,7 @@ import * as Speech from 'expo-speech';
 import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';
 
 // App language → speech locale (Indian English/Hindi/… voices and recognisers).
-const LOCALES = { en: 'en-IN', hi: 'hi-IN', mr: 'mr-IN', bn: 'bn-IN', ta: 'ta-IN', te: 'te-IN' };
+export const LOCALES = { en: 'en-IN', hi: 'hi-IN', mr: 'mr-IN', bn: 'bn-IN', ta: 'ta-IN', te: 'te-IN' };
 
 // Recogniser errors that mean "voice won't work on this phone".
 const UNAVAILABLE = ['service-not-allowed', 'language-not-supported', 'audio-capture'];

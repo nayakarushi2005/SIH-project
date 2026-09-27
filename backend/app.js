@@ -12,6 +12,8 @@ const federationsRoutes = require('./routes/federations'); // App: federations n
 const jobRoutes = require('./routes/jobs'); // Post jobs, accept/start/complete, feedback
 const uploadRoutes = require('./routes/uploads'); // Signed Cloudinary uploads for job photos
 const workerModeRoutes = require('./routes/workers'); // Worker mode: online, offers, insights
+const safetyRoutes = require('./routes/safety'); // App: safety shield, SOS, voice notes
+const safetyAdminRoutes = require('./routes/safetyAdmin'); // Portal: SOS alerts for officials
 
 const app = express();
 
@@ -33,6 +35,8 @@ app.use('/api/federations', federationsRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/workers', workerModeRoutes);
+app.use('/api/safety', safetyRoutes);
+app.use('/api/gov/safety', safetyAdminRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

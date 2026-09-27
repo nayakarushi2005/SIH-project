@@ -3,25 +3,28 @@
  *   1. findCandidates — who *can* take this job: online, free, right skill,
  *      close enough. One geo query, cheap enough to run on every dispatch.
  *   2. rankCandidates — who *should* get it first, from precomputed worker
- *      stats and client↔worker history. Nothing expensive runs here; the
- *      knowledge graph is built elsewhere and only its results are read.
+ *      stats, client↔worker history and how close the job is to work they've
+ *      done well. Nothing expensive runs here; the knowledge graph and worker
+ *      vectors are built elsewhere and only their results are read.
  */
 
 const Affinity = require('../models/Affinity');
 const GraphEdge = require('../models/GraphEdge');
 const WorkerProfile = require('../models/WorkerProfile');
 const WorkerStats = require('../models/WorkerStats');
+const { relevanceScore, workerVectors } = require('./relevance');
 const { PRESENCE_TTL_MS } = require('./workerProfile');
 
 // ── Tuning ──────────────────────────────────────────────────────────────────
 // Signal weights (each signal is 0..1; affinity and traits can go to -1). Sum to 1.
 const WEIGHTS = {
-  distance: 0.25,
-  rating: 0.2,
-  experience: 0.15,
-  affinity: 0.15,
-  reliability: 0.15,
-  traits: 0.1, // knowledge graph: the worker's traits vs. what this client values
+  distance: 0.22,
+  rating: 0.18,
+  experience: 0.1,
+  affinity: 0.13,
+  reliability: 0.13,
+  traits: 0.09, // knowledge graph: the worker's traits vs. what this client values
+  relevance: 0.15, // embeddings: this job vs. the work they've done well (services/relevance.js)
 };
 
 // Nudges on top of the weighted sum, to spread work fairly.
@@ -121,12 +124,14 @@ function traitFit(workerTraits, clientValues) {
  * Scores and sorts candidates for `job`, best first. Drops workers the
  * client has blocked. Each result gets `score` and a `breakdown` of the
  * signals behind it.
+ * options.jobVector — the job's embedding (relevance.ensureJobVector); without
+ * it every worker's relevance is neutral.
  */
-async function rankCandidates(job, candidates, now = Date.now()) {
+async function rankCandidates(job, candidates, now = Date.now(), { jobVector = null } = {}) {
   if (candidates.length === 0) return [];
 
   const ids = candidates.map((c) => c.user);
-  const [stats, affinities, traitEdges, valueEdges] = await Promise.all([
+  const [stats, affinities, traitEdges, valueEdges, vectors] = await Promise.all([
     WorkerStats.find({ worker: { $in: ids } }).lean(),
     Affinity.find({ client: job.client, worker: { $in: ids } }).lean(),
     GraphEdge.find({
@@ -136,6 +141,7 @@ async function rankCandidates(job, candidates, now = Date.now()) {
       toType: 'trait',
     }).lean(),
     GraphEdge.find({ fromType: 'client', fromId: String(job.client), rel: 'VALUES' }).lean(),
+    jobVector ? workerVectors(ids, job.category) : new Map(),
   ]);
   const statsByWorker = new Map(stats.map((s) => [String(s.worker), s]));
   const affinityByWorker = new Map(affinities.map((a) => [String(a.worker), a]));
@@ -171,6 +177,7 @@ async function rankCandidates(job, candidates, now = Date.now()) {
             (PRIORS.acceptanceWeight + offersReceived)
         ),
         traits: traitFit(traitsByWorker.get(String(c.user)) ?? {}, clientValues),
+        relevance: relevanceScore(jobVector, vectors.get(String(c.user))),
       };
 
       const adjustments = {};

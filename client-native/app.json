@@ -43,17 +43,34 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "SIH Connect uses your location to show jobs and workers near you."
+          "locationWhenInUsePermission": "SIH Connect uses your location to show jobs and workers near you, and for the Sisterhood Shield.",
+          "locationAlwaysAndWhenInUsePermission": "While the Sisterhood Shield is on, SIH Connect uses your location in the background so your SOS still works with the screen off.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true,
+          "isIosBackgroundLocationEnabled": true
+        }
+      ],
+      "expo-task-manager",
+      [
+        "expo-notifications",
+        {
+          "color": "#B42318"
         }
       ],
       [
         "expo-speech-recognition",
         {
-          "microphonePermission": "SIH Connect uses the microphone so you can answer questions by speaking.",
-          "speechRecognitionPermission": "SIH Connect converts your speech to text to fill in your registration.",
+          "microphonePermission": "SIH Connect uses the microphone so you can answer questions by speaking, and to record voice notes from the Sisterhood Shield.",
+          "speechRecognitionPermission": "SIH Connect converts your speech to text to fill in your registration, and listens for “help” while the Sisterhood Shield is open.",
           "androidSpeechServicePackages": [
             "com.google.android.googlequicksearchbox"
           ]
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "SIH Connect uses the microphone so you can answer questions by speaking, and to record voice notes from the Sisterhood Shield."
         }
       ]
     ],
