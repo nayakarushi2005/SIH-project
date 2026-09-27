@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { ActivityIndicator, Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import { useTranslation } from 'react-i18next';
 
 import { colors, radius, spacing, typography } from '../constants/theme';
 
@@ -15,6 +16,7 @@ const QUALITY = 0.6; // phone photos are several MB; this keeps uploads quick
  * onRetry(key), the ✕ calls onRemove(key).
  */
 export default function PhotoPicker({ label, photos, max, onAdd, onRemove, onRetry, error, hint }) {
+  const { t } = useTranslation();
   const remaining = max - photos.length;
 
   const pick = useCallback(
@@ -23,7 +25,7 @@ export default function PhotoPicker({ label, photos, max, onAdd, onRemove, onRet
       if (source === 'camera') {
         const permission = await ImagePicker.requestCameraPermissionsAsync();
         if (!permission.granted) {
-          Alert.alert('Camera access needed', 'Allow camera access in Settings to photograph the work.');
+          Alert.alert(t('photoPicker.cameraTitle'), t('photoPicker.cameraBody'));
           return;
         }
         result = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: QUALITY });
@@ -39,16 +41,16 @@ export default function PhotoPicker({ label, photos, max, onAdd, onRemove, onRet
         onAdd(result.assets.slice(0, remaining));
       }
     },
-    [onAdd, remaining]
+    [onAdd, remaining, t]
   );
 
   const chooseSource = useCallback(() => {
-    Alert.alert('Add a photo', 'Show workers what needs to be done.', [
-      { text: 'Take photo', onPress: () => pick('camera') },
-      { text: 'Choose from gallery', onPress: () => pick('library') },
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('photoPicker.addTitle'), t('photoPicker.addBody'), [
+      { text: t('photoPicker.takePhoto'), onPress: () => pick('camera') },
+      { text: t('photoPicker.chooseGallery'), onPress: () => pick('library') },
+      { text: t('common.cancel'), style: 'cancel' },
     ]);
-  }, [pick]);
+  }, [pick, t]);
 
   return (
     <View style={styles.wrapper}>
@@ -62,8 +64,10 @@ export default function PhotoPicker({ label, photos, max, onAdd, onRemove, onRet
               accessibilityRole={photo.status === 'error' ? 'button' : 'image'}
               accessibilityLabel={
                 photo.status === 'error'
-                  ? `Photo ${i + 1} failed to upload. Retry`
-                  : `Photo ${i + 1}${photo.status === 'uploading' ? ', uploading' : ''}`
+                  ? t('photoPicker.photoFailed', { n: i + 1 })
+                  : photo.status === 'uploading'
+                  ? t('photoPicker.photoUploading', { n: i + 1 })
+                  : t('photoPicker.photo', { n: i + 1 })
               }
             >
               <Image source={{ uri: photo.uri }} style={styles.image} />
@@ -75,7 +79,7 @@ export default function PhotoPicker({ label, photos, max, onAdd, onRemove, onRet
               {photo.status === 'error' ? (
                 <View style={[styles.overlay, styles.overlayError]}>
                   <Ionicons name="refresh" size={22} color={colors.textOnPrimary} />
-                  <Text style={styles.overlayText}>Retry</Text>
+                  <Text style={styles.overlayText}>{t('photoPicker.retry')}</Text>
                 </View>
               ) : null}
             </Pressable>
@@ -84,7 +88,7 @@ export default function PhotoPicker({ label, photos, max, onAdd, onRemove, onRet
               hitSlop={spacing.sm}
               style={styles.remove}
               accessibilityRole="button"
-              accessibilityLabel={`Remove photo ${i + 1}`}
+              accessibilityLabel={t('photoPicker.removePhoto', { n: i + 1 })}
             >
               <Ionicons name="close" size={14} color={colors.textOnPrimary} />
             </Pressable>
@@ -96,11 +100,11 @@ export default function PhotoPicker({ label, photos, max, onAdd, onRemove, onRet
             onPress={chooseSource}
             style={({ pressed }) => [styles.tile, styles.add, error && styles.addError, pressed && styles.pressed]}
             accessibilityRole="button"
-            accessibilityLabel="Add a photo"
+            accessibilityLabel={t('photoPicker.addTitle')}
           >
             <Ionicons name="camera-outline" size={24} color={colors.primary} />
             <Text style={styles.addText}>
-              {photos.length === 0 ? 'Add photo' : `${photos.length}/${max}`}
+              {photos.length === 0 ? t('photoPicker.addPhoto') : `${photos.length}/${max}`}
             </Text>
           </Pressable>
         ) : null}

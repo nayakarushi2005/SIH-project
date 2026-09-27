@@ -1,5 +1,7 @@
 import * as Location from 'expo-location';
 
+import i18n from '../i18n';
+
 export class LocationError extends Error {
   constructor(code) {
     super(code);
@@ -53,10 +55,10 @@ export async function detectLocation() {
 export async function getCurrentCoords() {
   const permission = await Location.requestForegroundPermissionsAsync();
   if (!permission.granted) {
-    throw new Error('Allow location access so we can send you jobs nearby.');
+    throw new Error(i18n.t('location.permissionDenied'));
   }
   if (!(await Location.hasServicesEnabledAsync())) {
-    throw new Error('Turn on location services on your phone.');
+    throw new Error(i18n.t('location.servicesOff'));
   }
   const { coords } = await Location.getCurrentPositionAsync({
     accuracy: Location.Accuracy.Balanced,

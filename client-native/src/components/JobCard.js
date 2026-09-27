@@ -52,20 +52,28 @@ export default function JobCard({ job, onRate }) {
           {new Date(job.createdAt).toLocaleDateString(localeTag(), { day: 'numeric', month: 'short' })}
         </Text>
         {job.startCode ? (
-          <View style={styles.code} accessibilityLabel={`Start code ${job.startCode.split('').join(' ')}`}>
-            <Text style={styles.codeLabel}>Start code</Text>
+          <View
+            style={styles.code}
+            accessibilityLabel={t('jobCard.startCodeA11y', { code: job.startCode.split('').join(' ') })}
+          >
+            <Text style={styles.codeLabel}>{t('jobCard.startCode')}</Text>
             <Text style={styles.codeValue}>{job.startCode}</Text>
-            <Text style={styles.codeHint}>Share it with the worker when they arrive.</Text>
+            <Text style={styles.codeHint}>{t('jobCard.startCodeHint')}</Text>
           </View>
         ) : null}
         {job.status === 'COMPLETED' ? (
           job.feedbackGiven ? (
             <View style={styles.rated}>
               <Ionicons name="checkmark-circle" size={14} color={colors.primary} />
-              <Text style={styles.ratedText}>You rated this job</Text>
+              <Text style={styles.ratedText}>{t('jobCard.rated')}</Text>
             </View>
           ) : onRate ? (
-            <Button label="Rate your worker" variant="secondary" onPress={() => onRate(job)} style={styles.rate} />
+            <Button
+              label={t('jobCard.rateButton')}
+              variant="secondary"
+              onPress={() => onRate(job)}
+              style={styles.rate}
+            />
           ) : null
         ) : null}
       </View>

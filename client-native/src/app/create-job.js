@@ -29,19 +29,18 @@ import { createJob, getErrorMessage, getFieldErrors, uploadJobPhoto } from '../s
 import { getUser } from '../services/session';
 import { MAX_PHOTOS, durationOptions } from '../utils/job';
 
-const LOCATION_MESSAGES = {
-  denied: 'Location permission is off. Nearby workers can’t see your job without it.',
-  off: 'Location services are turned off on your phone.',
-  error: 'We couldn’t get your location.',
-};
-
-function LocationCard({ location, error }) {
+function LocationCard({ t, location, error }) {
   const { status, label, canAskAgain, refresh } = location;
   const openSettings = status === 'denied' && canAskAgain === false;
+  const LOCATION_MESSAGES = {
+    denied: t('createJob.locationDenied'),
+    off: t('createJob.locationOff'),
+    error: t('createJob.locationError'),
+  };
 
   return (
     <View style={styles.fieldWrapper}>
-      <Text style={styles.fieldLabel}>Job location</Text>
+      <Text style={styles.fieldLabel}>{t('createJob.locationLabel')}</Text>
       <View style={[styles.locationCard, error && styles.locationCardError]}>
         <Ionicons
           name={status === 'ready' ? 'location-sharp' : 'location-outline'}
@@ -52,13 +51,13 @@ function LocationCard({ location, error }) {
           {status === 'loading' ? (
             <View style={styles.locationLoading}>
               <ActivityIndicator size="small" color={colors.primary} />
-              <Text style={styles.locationMuted}>Finding your location…</Text>
+              <Text style={styles.locationMuted}>{t('createJob.locationFinding')}</Text>
             </View>
           ) : status === 'ready' ? (
             <>
-              <Text style={styles.locationTitle}>Current location</Text>
+              <Text style={styles.locationTitle}>{t('createJob.locationCurrent')}</Text>
               <Text style={styles.locationMuted} numberOfLines={2}>
-                {label || 'Pinned from your phone’s GPS'}
+                {label || t('createJob.locationGps')}
               </Text>
             </>
           ) : (
@@ -72,7 +71,11 @@ function LocationCard({ location, error }) {
             accessibilityRole="button"
           >
             <Text style={styles.locationAction}>
-              {openSettings ? 'Settings' : status === 'ready' ? 'Refresh' : 'Try again'}
+              {openSettings
+                ? t('createJob.settings')
+                : status === 'ready'
+                ? t('createJob.refresh')
+                : t('createJob.tryAgain')}
             </Text>
           </Pressable>
         ) : null}
@@ -80,7 +83,7 @@ function LocationCard({ location, error }) {
       {error ? (
         <Text style={styles.fieldError}>{error}</Text>
       ) : (
-        <Text style={styles.fieldHint}>We use this to find workers near the job.</Text>
+        <Text style={styles.fieldHint}>{t('createJob.locationHint')}</Text>
       )}
     </View>
   );
@@ -174,12 +177,12 @@ export default function CreateJob() {
     // as field errors from the API.
     const local = {};
     if (photos.some((p) => p.status === 'uploading')) {
-      local.photos = 'Wait for your photos to finish uploading.';
+      local.photos = t('createJob.photosUploading');
     } else if (photos.some((p) => p.status === 'error')) {
-      local.photos = 'A photo failed to upload. Tap it to retry, or remove it.';
+      local.photos = t('createJob.photosFailed');
     }
     if (location.status !== 'ready') {
-      local.location = 'We need your location to find workers nearby.';
+      local.location = t('createJob.locationRequired');
     }
     if (Object.keys(local).length > 0) {
       setErrors(local);
@@ -197,19 +200,19 @@ export default function CreateJob() {
         location: location.coords,
         address: form.address,
       });
-      Alert.alert('Job posted', 'We’re finding workers near you. You’ll see updates in Bookings.');
+      Alert.alert(t('createJob.postedTitle'), t('createJob.postedBody'));
       router.navigate('/bookings');
     } catch (err) {
       const fieldErrors = getFieldErrors(err);
       if (Object.keys(fieldErrors).length > 0) {
         setErrors(fieldErrors);
       } else {
-        Alert.alert('Could not post job', getErrorMessage(err));
+        Alert.alert(t('createJob.failedTitle'), getErrorMessage(err));
       }
     } finally {
       setPosting(false);
     }
-  }, [form, location, photos, router]);
+  }, [form, location, photos, router, t]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -226,19 +229,19 @@ export default function CreateJob() {
             >
               <Ionicons name="shield-checkmark-outline" size={20} color={colors.warning} />
               <Text style={styles.noticeText}>
-                Workers respond faster to verified clients.{' '}
-                <Text style={styles.noticeLink}>Verify with DigiLocker</Text>
+                {t('createJob.aadhaarNotice')}{' '}
+                <Text style={styles.noticeLink}>{t('createJob.aadhaarVerifyLink')}</Text>
               </Text>
             </Pressable>
           ) : null}
 
           {/* ── The work ───────────────────────────────────────────── */}
-          <Text style={styles.sectionTitle}>The work</Text>
+          <Text style={styles.sectionTitle}>{t('createJob.sectionWork')}</Text>
           {/* One service per job. CategoryPicker is multi-select, so allow a
               second pick and keep only the newest — tapping another chip
               switches the service instead of needing an un-tap first. */}
           <CategoryPicker
-            label="Service"
+            label={t('createJob.serviceLabel')}
             groups={groups}
             selected={form.category ? [form.category] : []}
             max={2}
@@ -246,18 +249,18 @@ export default function CreateJob() {
             error={errors.category}
           />
           <PhotoPicker
-            label="Photos of the work"
+            label={t('createJob.photosLabel')}
             photos={photos}
             max={MAX_PHOTOS}
             onAdd={addPhotos}
             onRemove={removePhoto}
             onRetry={retryPhoto}
             error={errors.photos}
-            hint={`Add up to ${MAX_PHOTOS}. Clear photos get better quotes.`}
+            hint={t('createJob.photosHint', { max: MAX_PHOTOS })}
           />
           <TextField
-            label="What needs to be done?"
-            placeholder="e.g. Kitchen sink is leaking from the pipe underneath"
+            label={t('createJob.descriptionLabel')}
+            placeholder={t('createJob.descriptionPlaceholder')}
             value={form.description}
             onChangeText={(v) => setField('description', v)}
             error={errors.description}
@@ -266,20 +269,20 @@ export default function CreateJob() {
           />
 
           {/* ── Budget & time ──────────────────────────────────────── */}
-          <Text style={[styles.sectionTitle, styles.sectionSpacing]}>Budget & time</Text>
+          <Text style={[styles.sectionTitle, styles.sectionSpacing]}>{t('createJob.sectionBudget')}</Text>
           <TextField
-            label="Your price"
+            label={t('createJob.priceLabel')}
             prefix="₹"
-            placeholder="500"
+            placeholder={t('createJob.pricePlaceholder')}
             value={form.price}
             onChangeText={(v) => setField('price', v.replace(/\D/g, '').slice(0, 6))}
             error={errors.price}
-            hint="What you’ll pay for the whole job."
+            hint={t('createJob.priceHint')}
             keyboardType="number-pad"
             maxLength={6}
           />
           <OptionGroup
-            label="How long will it take?"
+            label={t('createJob.durationLabel')}
             options={durationOptions(t)}
             value={form.expectedDurationMins}
             onChange={(v) => setField('expectedDurationMins', v)}
@@ -287,24 +290,25 @@ export default function CreateJob() {
           />
 
           {/* ── Where ──────────────────────────────────────────────── */}
-          <Text style={[styles.sectionTitle, styles.sectionSpacing]}>Where</Text>
+          <Text style={[styles.sectionTitle, styles.sectionSpacing]}>{t('createJob.sectionWhere')}</Text>
           <LocationCard
+            t={t}
             location={location}
             error={location.status === 'ready' ? undefined : errors.location}
           />
           <TextField
-            label="House no. / landmark (optional)"
-            placeholder="e.g. Flat 302, near City Hospital"
+            label={t('createJob.addressLabel')}
+            placeholder={t('createJob.addressPlaceholder')}
             value={form.address}
             onChangeText={(v) => setField('address', v)}
             error={errors.address}
-            hint="Helps the worker find you."
+            hint={t('createJob.addressHint')}
             autoComplete="street-address"
           />
         </ScrollView>
 
         <View style={styles.footer}>
-          <Button label="Post job" onPress={handlePost} loading={posting} />
+          <Button label={t('createJob.post')} onPress={handlePost} loading={posting} />
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
