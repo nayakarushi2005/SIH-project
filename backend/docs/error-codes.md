@@ -70,3 +70,7 @@ feedback_criticized_invalid — Choose what could be better from the list.
 feedback_traits_conflict — Something can’t be both good and bad — pick one.
 feedback_rehire_invalid — Answer yes or no.
 feedback_comment_length — Keep your comment under 500 characters.
+heatmap_workers_only — Register as a worker to see where the work is.
+heatmap_bounds_invalid — Map bounds are missing or invalid.
+heatmap_area_too_large — Zoom in to a city to see the map.
+heatmap_load_failed — Could not load the map.
