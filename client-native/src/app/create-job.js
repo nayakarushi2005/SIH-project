@@ -19,7 +19,7 @@ import useCurrentLocation from '../hooks/useCurrentLocation';
 import useJobPhotos from '../hooks/useJobPhotos';
 import { createJob, getErrorMessage, getFieldErrors } from '../services/api';
 import { getUser } from '../services/session';
-import { MAX_PHOTOS, durationOptions } from '../utils/job';
+import { DURATIONS, MAX_PHOTOS, durationOptions } from '../utils/job';
 
 export default function CreateJob() {
   const router = useRouter();
@@ -30,20 +30,32 @@ export default function CreateJob() {
   const { photos, addPhotos: addPhotosRaw, removePhoto, retryPhoto } = useJobPhotos();
 
   // Answers handed over by the voice assistant, if it switched to the form.
+  // Only a plain object is trusted — JSON.parse('null') or a stray array
+  // would otherwise crash the field reads below.
   const [prefill] = useState(() => {
     try {
-      return prefillParam ? JSON.parse(prefillParam) : {};
+      const parsed = prefillParam ? JSON.parse(prefillParam) : null;
+      return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
     } catch {
       return {};
     }
   });
 
   const [form, setForm] = useState({
-    category: prefill.category || (typeof serviceId === 'string' ? serviceId : ''), // checked by the server
-    description: prefill.description || '',
-    price: prefill.price != null ? String(prefill.price) : '',
-    expectedDurationMins: prefill.expectedDurationMins ?? null,
-    address: prefill.address || '',
+    category:
+      (typeof prefill.category === 'string' && prefill.category) ||
+      (typeof serviceId === 'string' ? serviceId : ''), // checked by the server
+    description: typeof prefill.description === 'string' ? prefill.description : '',
+    price: typeof prefill.price === 'number' ? String(prefill.price) : '',
+    // A spoken duration that doesn't match an OptionGroup preset (e.g. 90
+    // minutes) has no chip to show as selected, so drop it instead of
+    // leaving the picker looking empty — the user just re-picks one.
+    expectedDurationMins:
+      typeof prefill.expectedDurationMins === 'number' &&
+      DURATIONS.some((d) => d.value === prefill.expectedDurationMins)
+        ? prefill.expectedDurationMins
+        : null,
+    address: typeof prefill.address === 'string' ? prefill.address : '',
   });
   const [errors, setErrors] = useState({});
   const [posting, setPosting] = useState(false);
@@ -101,7 +113,10 @@ export default function CreateJob() {
         expectedDurationMins: form.expectedDurationMins,
         location: location.coords,
         address: form.address,
-        language: i18n.language,
+        // Keep the language the assistant actually spoke to the worker in,
+        // if this form came from a voice handoff; otherwise the current UI
+        // language.
+        language: (typeof prefill.language === 'string' && prefill.language) || i18n.language,
         postedVia: 'form',
       });
       Alert.alert(t('createJob.postedTitle'), t('createJob.postedBody'));
@@ -116,7 +131,7 @@ export default function CreateJob() {
     } finally {
       setPosting(false);
     }
-  }, [form, i18n.language, location, photos, router, t]);
+  }, [form, i18n.language, location, photos, prefill.language, router, t]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -141,7 +156,7 @@ export default function CreateJob() {
 
           <Pressable
             onPress={() =>
-              router.push({
+              router.replace({
                 pathname: '/create-job-voice',
                 params: form.category ? { service: form.category } : {},
               })

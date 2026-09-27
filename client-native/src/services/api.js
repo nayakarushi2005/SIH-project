@@ -54,6 +54,10 @@ export function getErrorMessage(err, fallback) {
   if (err?.message === 'Network Error') {
     return i18n.t('errors.network', { url: API_BASE_URL });
   }
+  // A response came back but with no usable code/error (e.g. a raw 502 from
+  // a proxy) — prefer the caller's translated fallback over axios's English
+  // "Request failed with status code …" message.
+  if (err?.response) return fallback || i18n.t('errors.generic');
   return err?.message || fallback || i18n.t('errors.generic');
 }
 

@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -44,13 +44,31 @@ export default function CreateJobVoice() {
   const { groups, bySlug } = useCategories(i18n.language);
   const { speak, listen, stop, listening, partial } = useVoice(i18n.language);
   const location = useCurrentLocation();
-  const { photos, addPhotos, removePhoto, retryPhoto, urls } = useJobPhotos();
+  const { photos, addPhotos, removePhoto, retryPhoto, uploading: photosUploading, allUploaded, urls } = useJobPhotos();
 
   const [pickedCategory, setPickedCategory] = useState('');
   const [textValue, setTextValue] = useState('');
   const [addressValue, setAddressValue] = useState('');
   const [errors, setErrors] = useState({});
   const [posting, setPosting] = useState(false);
+  const postingRef = useRef(false);
+
+  const clearError = useCallback((field) => {
+    setErrors((e) => (e[field] ? { ...e, [field]: undefined } : e));
+  }, []);
+
+  const addPhotosAndClearError = useCallback(
+    (assets) => {
+      clearError('photos');
+      addPhotos(assets);
+    },
+    [addPhotos, clearError]
+  );
+
+  const refreshLocationAndClearError = useCallback(() => {
+    clearError('location');
+    location.refresh();
+  }, [clearError, location]);
 
   const toForm = useCallback(
     (filled) => {
@@ -133,6 +151,8 @@ export default function CreateJobVoice() {
   };
 
   const handlePost = useCallback(async () => {
+    if (postingRef.current) return;
+    postingRef.current = true;
     setErrors({});
     setPosting(true);
     try {
@@ -163,6 +183,7 @@ export default function CreateJobVoice() {
         Alert.alert(t('createJob.failedTitle'), getErrorMessage(err));
       }
     } finally {
+      postingRef.current = false;
       setPosting(false);
     }
   }, [location.coords, res, router, t, toForm, urls]);
@@ -176,7 +197,7 @@ export default function CreateJobVoice() {
           ? t('voice.speaking')
           : t('voice.tapToSpeak');
 
-  const canPost = urls.length > 0 && location.status === 'ready';
+  const canPost = photos.length > 0 && allUploaded && location.status === 'ready';
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -304,17 +325,27 @@ export default function CreateJobVoice() {
                       label={t('voiceJob.photosTitle')}
                       photos={photos}
                       max={MAX_PHOTOS}
-                      onAdd={addPhotos}
+                      onAdd={addPhotosAndClearError}
                       onRemove={removePhoto}
                       onRetry={retryPhoto}
                       error={errors.photos}
                       hint={t('voiceJob.photosHint', { max: MAX_PHOTOS })}
                     />
-                    <LocationCard t={t} location={location} error={errors.location} />
+                    <LocationCard
+                      t={t}
+                      location={{ ...location, refresh: refreshLocationAndClearError }}
+                      error={errors.location}
+                    />
                     <Button label={t('voiceJob.post')} onPress={handlePost} loading={posting} disabled={!canPost} />
                     {!canPost ? (
                       <Text style={styles.postHint}>
-                        {urls.length === 0 ? t('voiceJob.needPhotos') : t('voiceJob.needLocation')}
+                        {photos.length === 0
+                          ? t('voiceJob.needPhotos')
+                          : photosUploading
+                            ? t('createJob.photosUploading')
+                            : !allUploaded
+                              ? t('createJob.photosFailed')
+                              : t('voiceJob.needLocation')}
                       </Text>
                     ) : null}
                   </>
@@ -322,7 +353,7 @@ export default function CreateJobVoice() {
                   <View style={styles.row}>
                     <Button label={t('voice.yes')} onPress={() => tap({ yes: true })} style={styles.flex} />
                     <Button
-                      label={t('voiceJob.sayAgain')}
+                      label={t('voice.no')}
                       variant="secondary"
                       onPress={() => tap({ yes: false })}
                       style={styles.flex}

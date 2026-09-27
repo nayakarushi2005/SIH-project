@@ -7,9 +7,14 @@ export { languageEpoch };
 
 const valid = (code) => (SUPPORTED.includes(code) ? code : 'en');
 
-/** BCP-47 tag for dates and numbers, e.g. 'hi-IN'. */
+/**
+ * BCP-47 tag for dates and numbers, e.g. 'hi-IN-u-nu-latn'. The `-u-nu-latn`
+ * extension forces Latin digits even in locales (like mr-IN) whose default
+ * numbering system is Devanagari, so numbers stay consistent with the
+ * Latin-digit strings used everywhere else in the app.
+ */
 export function localeTag() {
-  return `${i18n.language}-IN`;
+  return `${i18n.language}-IN-u-nu-latn`;
 }
 
 /** Switch the UI and remember the choice on this device. No network. */
