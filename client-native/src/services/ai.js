@@ -50,3 +50,26 @@ export async function getOnboarding(sessionId) {
   const res = await ai.get(`/v1/onboarding/sessions/${sessionId}`);
   return res.data;
 }
+
+/**
+ * Voice/chat job posting. Same response shape as onboarding, plus `filled`
+ * carrying the job draft as it's built up.
+ */
+export async function startJobPosting({ category } = {}) {
+  const res = await ai.post('/v1/job-posting/sessions', {
+    lang: i18n.language,
+    ...(category ? { category } : {}),
+  });
+  return res.data;
+}
+
+/** payload: { transcript } or { selection } */
+export async function sendJobTurn(sessionId, payload) {
+  const res = await ai.post(`/v1/job-posting/sessions/${sessionId}/turns`, payload);
+  return res.data;
+}
+
+export async function getJobPosting(sessionId) {
+  const res = await ai.get(`/v1/job-posting/sessions/${sessionId}`);
+  return res.data;
+}
