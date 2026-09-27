@@ -2,6 +2,7 @@ import axios from 'axios';
 import Constants from 'expo-constants';
 import { File } from 'expo-file-system';
 
+import i18n from '../i18n';
 import { getToken } from './session';
 
 const API_PORT = 3000;
@@ -42,13 +43,13 @@ api.interceptors.request.use(async (config) => {
  * Turns an axios/network error into a message fit for an Alert.
  * The backend responds with { error: '...' } on failure.
  */
-export function getErrorMessage(err, fallback = 'Something went wrong. Please try again.') {
+export function getErrorMessage(err, fallback) {
   if (err?.response?.data?.error) return err.response.data.error;
-  if (err?.code === 'ECONNABORTED') return 'The server took too long to respond.';
+  if (err?.code === 'ECONNABORTED') return i18n.t('errors.timeout');
   if (err?.message === 'Network Error') {
-    return `Can't reach the server at ${API_BASE_URL}. Is the backend running and on the same network?`;
+    return i18n.t('errors.network', { url: API_BASE_URL });
   }
-  return err?.message || fallback;
+  return err?.message || fallback || i18n.t('errors.generic');
 }
 
 export function isUnauthorized(err) {
@@ -102,7 +103,53 @@ export async function updateMe(fields) {
   return res.data;
 }
 
-/** Per-field validation messages from a failed updateMe or createJob, or {}. */
+// ── Categories ──────────────────────────────────────────────────────────────
+
+/** Job categories grouped for display — { lang, groups: [{ slug, name, icon, categories }] } */
+export async function getCategories(lang = 'en') {
+  const res = await api.get('/categories', { params: { lang } });
+  return res.data;
+}
+
+// ── Worker ──────────────────────────────────────────────────────────────────
+
+/** { name?, incomeBracket, categories, onboardedVia? } → updated profile. 400 has fields. */
+export async function registerWorker(body) {
+  const res = await api.post('/worker/register', body);
+  return res.data;
+}
+
+export async function deregisterWorker() {
+  const res = await api.post('/worker/deregister');
+  return res.data;
+}
+
+export async function dismissWorkerPrompt() {
+  const res = await api.post('/worker/dismiss-prompt');
+  return res.data;
+}
+
+// ── Federations ─────────────────────────────────────────────────────────────
+
+/** { match, federations: [{ id, name, city, pincode, memberCount, match, myStatus }] } */
+export async function getNearbyFederations() {
+  const res = await api.get('/federations/nearby');
+  return res.data;
+}
+
+/** Ask to join; returns the updated profile. */
+export async function requestFederation(federationId) {
+  const res = await api.post('/worker/federation', { federationId });
+  return res.data;
+}
+
+/** Cancel a pending request or leave; returns the updated profile. */
+export async function leaveFederation() {
+  const res = await api.delete('/worker/federation');
+  return res.data;
+}
+
+/** Per-field validation messages from a failed updateMe, registerWorker or createJob, or {}. */
 export function getFieldErrors(err) {
   return err?.response?.data?.fields || {};
 }

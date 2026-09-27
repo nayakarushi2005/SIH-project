@@ -14,20 +14,20 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 import Button from '../components/Button';
+import CategoryPicker from '../components/CategoryPicker';
 import OptionGroup from '../components/OptionGroup';
 import PhotoPicker from '../components/PhotoPicker';
 import ScreenHeader from '../components/ScreenHeader';
 import TextField from '../components/TextField';
 import { colors, radius, spacing, typography } from '../constants/theme';
-import { getService, SERVICES } from '../constants/services';
+import useCategories from '../hooks/useCategories';
 import useCurrentLocation from '../hooks/useCurrentLocation';
 import { createJob, getErrorMessage, getFieldErrors, uploadJobPhoto } from '../services/api';
 import { getUser } from '../services/session';
 import { DURATIONS, MAX_PHOTOS } from '../utils/job';
-
-const SERVICE_OPTIONS = SERVICES.map((s) => ({ value: s.id, label: s.label }));
 
 const LOCATION_MESSAGES = {
   denied: 'Location permission is off. Nearby workers can’t see your job without it.',
@@ -88,11 +88,13 @@ function LocationCard({ location, error }) {
 
 export default function CreateJob() {
   const router = useRouter();
+  const { t, i18n } = useTranslation();
   const { service: serviceId } = useLocalSearchParams();
+  const { groups } = useCategories(i18n.language);
   const location = useCurrentLocation();
 
   const [form, setForm] = useState({
-    category: getService(serviceId)?.id ?? '',
+    category: typeof serviceId === 'string' ? serviceId : '', // checked by the server
     description: '',
     price: '',
     expectedDurationMins: null,
@@ -212,7 +214,7 @@ export default function CreateJob() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <StatusBar style="dark" />
-      <ScreenHeader title="New job" />
+      <ScreenHeader title={t('createJob.title')} />
 
       <KeyboardAvoidingView style={styles.flex} behavior="padding">
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
@@ -232,11 +234,15 @@ export default function CreateJob() {
 
           {/* ── The work ───────────────────────────────────────────── */}
           <Text style={styles.sectionTitle}>The work</Text>
-          <OptionGroup
+          {/* One service per job. CategoryPicker is multi-select, so allow a
+              second pick and keep only the newest — tapping another chip
+              switches the service instead of needing an un-tap first. */}
+          <CategoryPicker
             label="Service"
-            options={SERVICE_OPTIONS}
-            value={form.category}
-            onChange={(v) => setField('category', v)}
+            groups={groups}
+            selected={form.category ? [form.category] : []}
+            max={2}
+            onChange={(slugs) => setField('category', slugs.find((s) => s !== form.category) ?? '')}
             error={errors.category}
           />
           <PhotoPicker

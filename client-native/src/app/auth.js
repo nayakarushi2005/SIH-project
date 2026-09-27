@@ -19,7 +19,12 @@ import {
   statusCodes,
 } from '@react-native-google-signin/google-signin';
 
+import { Trans, useTranslation } from 'react-i18next';
+
+import i18n from '../i18n';
 import { getErrorMessage, googleSignIn } from '../services/api';
+import { useUser } from '../context/UserContext';
+import { applyLanguage } from '../i18n/language';
 import { saveSession } from '../services/session';
 
 // Configure Google Sign-In — webClientId from .env
@@ -36,19 +41,21 @@ function googleErrorMessage(err) {
   if (isErrorWithCode(err)) {
     switch (err.code) {
       case statusCodes.IN_PROGRESS:
-        return 'A sign-in is already in progress.';
+        return i18n.t('auth.inProgress');
       case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
-        return 'Google Play Services is missing or out of date on this device.';
+        return i18n.t('auth.playServices');
       case 'DEVELOPER_ERROR':
       case '10':
         // Almost always a SHA-1 / package-name mismatch in Google Cloud Console.
-        return 'Google Sign-In is misconfigured for this build (check the Android OAuth client SHA-1).';
+        return i18n.t('auth.misconfigured');
     }
   }
   return getErrorMessage(err);
 }
 
 export default function Auth() {
+  const { t } = useTranslation();
+  const { clear, setUser } = useUser();
   const [activeTab, setActiveTab] = useState('login'); // 'login' | 'signup'
   const [loading, setLoading] = useState(false);
   // Store Animated.Value in state to avoid accessing refs during render
@@ -86,10 +93,16 @@ export default function Auth() {
       if (!isSuccessResponse(response)) return;
 
       const idToken = response.data.idToken;
-      if (!idToken) throw new Error('Google did not return an ID token.');
+      if (!idToken) throw new Error(i18n.t('auth.noIdToken'));
 
       const result = await googleSignIn(idToken);
       await saveSession(result.token, result.user);
+      // Never show a previous account's profile to this one.
+      clear();
+      setUser(result.user);
+      // A returning user on a new phone: switch to their language before
+      // the Aadhaar screen opens.
+      if (result.user?.preferredLanguage) await applyLanguage(result.user.preferredLanguage);
 
       if (result.needsAadhaarVerification) {
         // New user OR existing user without Aadhaar → go verify
@@ -103,12 +116,12 @@ export default function Auth() {
       }
     } catch (err) {
       if (!(isErrorWithCode(err) && err.code === statusCodes.SIGN_IN_CANCELLED)) {
-        Alert.alert('Authentication Failed', googleErrorMessage(err));
+        Alert.alert(t('auth.failedTitle'), googleErrorMessage(err));
       }
     } finally {
       setLoading(false);
     }
-  }, [router]);
+  }, [clear, router, setUser, t]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -124,7 +137,7 @@ export default function Auth() {
           <Text style={styles.logoText}>✦</Text>
         </View>
         <Text style={styles.brandName}>SIH Connect</Text>
-        <Text style={styles.tagline}>Verified professionals, trusted services</Text>
+        <Text style={styles.tagline}>{t('auth.tagline')}</Text>
       </View>
 
       {/* Card */}
@@ -139,7 +152,7 @@ export default function Auth() {
             accessibilityState={{ selected: activeTab === 'login' }}
           >
             <Text style={[styles.tabText, activeTab === 'login' && styles.tabTextActive]}>
-              Login
+              {t('auth.login')}
             </Text>
           </Pressable>
           <Pressable
@@ -149,16 +162,14 @@ export default function Auth() {
             accessibilityState={{ selected: activeTab === 'signup' }}
           >
             <Text style={[styles.tabText, activeTab === 'signup' && styles.tabTextActive]}>
-              Sign Up
+              {t('auth.signup')}
             </Text>
           </Pressable>
         </View>
 
         {/* Description */}
         <Text style={styles.description}>
-          {activeTab === 'login'
-            ? 'Welcome back! Sign in to continue.'
-            : "Create your account. We'll verify your identity with Aadhaar."}
+          {activeTab === 'login' ? t('auth.loginDescription') : t('auth.signupDescription')}
         </Text>
 
         {/* Google Sign-In Button */}
@@ -167,7 +178,7 @@ export default function Auth() {
           onPress={handleGoogleAuth}
           disabled={loading}
           accessibilityRole="button"
-          accessibilityLabel={`${activeTab === 'login' ? 'Login' : 'Sign up'} with Google`}
+          accessibilityLabel={activeTab === 'login' ? t('auth.loginA11y') : t('auth.signupA11y')}
         >
           {loading ? (
             <ActivityIndicator color="#1a1a2e" size="small" />
@@ -175,7 +186,7 @@ export default function Auth() {
             <>
               <Text style={styles.googleIcon}>G</Text>
               <Text style={styles.googleButtonText}>
-                {activeTab === 'login' ? 'Continue with Google' : 'Sign up with Google'}
+                {activeTab === 'login' ? t('auth.continueWithGoogle') : t('auth.signupWithGoogle')}
               </Text>
             </>
           )}
@@ -183,17 +194,19 @@ export default function Auth() {
 
         {/* Info note */}
         <Text style={styles.note}>
-          {activeTab === 'signup'
-            ? '🔐 New accounts verify their identity through DigiLocker'
-            : '🔒 Your credentials are secured and never stored'}
+          {activeTab === 'signup' ? t('auth.signupNote') : t('auth.loginNote')}
         </Text>
       </View>
 
       {/* Terms */}
       <Text style={styles.terms}>
-        By continuing, you agree to our{' '}
-        <Text style={styles.termsLink}>Terms of Service</Text> and{' '}
-        <Text style={styles.termsLink}>Privacy Policy</Text>
+        <Trans
+          i18nKey="auth.terms"
+          components={{
+            terms: <Text style={styles.termsLink} />,
+            privacy: <Text style={styles.termsLink} />,
+          }}
+        />
       </Text>
     </SafeAreaView>
   );

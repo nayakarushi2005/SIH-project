@@ -1,30 +1,11 @@
-const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
-require('dotenv').config();
+const app = require('./app');
 
-const authRoutes = require('./routes/auth');
-const jobRoutes = require('./routes/jobs');
-const uploadRoutes = require('./routes/uploads');
-const workerRoutes = require('./routes/workers');
-
-const app = express();
-
-app.use(cors());
-app.use(express.json());
-
-app.use('/api/auth', authRoutes);
-app.use('/api/jobs', jobRoutes);
-app.use('/api/uploads', uploadRoutes);
-app.use('/api/workers', workerRoutes);
-
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'SIH Backend is running fine' });
-});
-
+// ── MongoDB Connection ───────────────────────────────────────────────────────
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/sih-database';
 
 mongoose
-  .connect(process.env.MONGODB_URI)
+  .connect(MONGODB_URI)
   .then(() => {
     console.log('✅ Connected to MongoDB');
     const PORT = process.env.PORT || 3000;

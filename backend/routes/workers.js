@@ -4,7 +4,11 @@ const WorkerProfile = require('../models/WorkerProfile');
 const verifyToken = require('../middleware/verifyToken');
 const { workerInsights } = require('../services/graph');
 const { toGeoPoint, toOffer } = require('../services/job');
-const { toWorkerProfile, validateWorkerProfile } = require('../services/worker');
+const {
+  ensureWorkerProfile,
+  toWorkerProfile,
+  validateWorkerProfile,
+} = require('../services/workerProfile');
 
 const router = express.Router();
 
@@ -28,14 +32,19 @@ function readLocation(body, res) {
   }
 }
 
+const notRegistered = (res) =>
+  res.status(404).json({ error: 'Register as a worker first.', code: 'NOT_REGISTERED' });
+
 // ────────────────────────────────────────────────────────────────────────────
 // GET /api/workers/me
-// The current user's worker profile. 404 → not registered as a worker yet.
+// The current user's worker-mode profile. Workers who registered (routes/
+// worker.js) before worker mode existed get one created on first visit.
+// 404 (code NOT_REGISTERED) → not registered as a worker.
 // ────────────────────────────────────────────────────────────────────────────
 router.get('/me', verifyToken, async (req, res) => {
   try {
-    const profile = await WorkerProfile.findOne({ user: req.user._id });
-    if (!profile) return res.status(404).json({ error: 'Not registered as a worker' });
+    const profile = await ensureWorkerProfile(req.user);
+    if (!profile) return notRegistered(res);
     return res.status(200).json(toWorkerProfile(profile));
   } catch (err) {
     console.error('Worker profile fetch error:', err.message);
@@ -45,14 +54,15 @@ router.get('/me', verifyToken, async (req, res) => {
 
 // ────────────────────────────────────────────────────────────────────────────
 // PUT /api/workers/me
-// Registers the current user as a worker, or updates their worker profile.
-// Requires: Aadhaar-verified user
-// Body: { skills: [serviceId], bio?, experienceYears?, serviceRadiusKm? }
+// Updates a registered worker's work settings. Registering itself happens
+// through POST /api/worker/register (form or voice).
+// Body: { skills: [categorySlug], bio?, experienceYears?, serviceRadiusKm? }
 // 400 → { error, fields: { [field]: message } }
 // ────────────────────────────────────────────────────────────────────────────
-router.put('/me', verifyToken, requireAadhaar, async (req, res) => {
-  const { fields, errors } = validateWorkerProfile(req.body);
+router.put('/me', verifyToken, async (req, res) => {
+  if (!req.user.isWorker) return notRegistered(res);
 
+  const { fields, errors } = await validateWorkerProfile(req.body);
   if (Object.keys(errors).length > 0) {
     return res.status(400).json({ error: 'Please fix the highlighted fields.', fields: errors });
   }
@@ -63,6 +73,9 @@ router.put('/me', verifyToken, requireAadhaar, async (req, res) => {
       { $set: fields },
       { new: true, upsert: true, setDefaultsOnInsert: true, runValidators: true }
     );
+    // Keep the registration's categories and worker-mode skills one list.
+    req.user.worker.categories = fields.skills;
+    await req.user.save();
     return res.status(200).json(toWorkerProfile(profile));
   } catch (err) {
     console.error('Worker profile save error:', err.message);
@@ -73,7 +86,7 @@ router.put('/me', verifyToken, requireAadhaar, async (req, res) => {
 // ────────────────────────────────────────────────────────────────────────────
 // POST /api/workers/me/online
 // Starts taking jobs from the given position.
-// Requires: Aadhaar-verified user with a worker profile
+// Requires: Aadhaar-verified, registered worker
 // Body: { location: { lat, lng } }
 // ────────────────────────────────────────────────────────────────────────────
 router.post('/me/online', verifyToken, requireAadhaar, async (req, res) => {
@@ -81,10 +94,10 @@ router.post('/me/online', verifyToken, requireAadhaar, async (req, res) => {
   if (!location) return;
 
   try {
-    const profile = await WorkerProfile.findOne({ user: req.user._id });
-    if (!profile) return res.status(404).json({ error: 'Not registered as a worker' });
+    const profile = await ensureWorkerProfile(req.user);
+    if (!profile || !req.user.isWorker) return notRegistered(res);
     if (!profile.isActive) {
-      return res.status(403).json({ error: 'Your worker account is suspended.' });
+      return res.status(403).json({ error: 'Your worker account isn’t active.' });
     }
 
     profile.isOnline = true;

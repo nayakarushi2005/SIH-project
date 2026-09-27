@@ -1,12 +1,13 @@
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Alert, Linking, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import Button from './Button';
 import TextField from './TextField';
 import { colors, radius, spacing, typography } from '../constants/theme';
-import { getService } from '../constants/services';
+import useCategories from '../hooks/useCategories';
 import {
   completeJob,
   getErrorMessage,
@@ -26,6 +27,8 @@ function openDirections({ lat, lng }) {
  * mark it done. `onChanged` runs after anything that ends or changes the job.
  */
 export default function WorkerJobCard({ jobId, onChanged }) {
+  const { i18n } = useTranslation();
+  const { bySlug } = useCategories(i18n.language);
   const [job, setJob] = useState(null);
   const [error, setError] = useState(null);
   const [code, setCode] = useState('');
@@ -128,14 +131,14 @@ export default function WorkerJobCard({ jobId, onChanged }) {
     );
   }
 
-  const service = getService(job.category);
+  const service = bySlug(job.category);
   const started = job.status === 'IN_PROGRESS';
 
   return (
     <View style={styles.card}>
       <View style={styles.header}>
         <MaterialCommunityIcons name={service?.icon ?? 'tools'} size={22} color={colors.primary} />
-        <Text style={styles.title}>{service?.label ?? job.category}</Text>
+        <Text style={styles.title}>{service?.name ?? job.category}</Text>
         <View style={[styles.badge, started && styles.badgeActive]}>
           <Text style={[styles.badgeText, started && styles.badgeTextActive]}>
             {started ? 'In progress' : 'Head to client'}

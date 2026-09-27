@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Redirect, useRouter } from 'expo-router';
+import { Trans, useTranslation } from 'react-i18next';
 
 import { colors, radius, spacing, typography } from '../constants/theme';
 import { getToken } from '../services/session';
@@ -29,6 +30,7 @@ const BRAND_WORD = 'NAME';
 const MAX_FONT_SCALE = 1.4;
 
 export default function Landing() {
+  const { t } = useTranslation();
   const { width } = useWindowDimensions();
   // null while we check SecureStore, then the route to send the user to
   // (or false to show the landing screen).
@@ -106,25 +108,23 @@ export default function Landing() {
           accessibilityRole="header"
           maxFontSizeMultiplier={MAX_FONT_SCALE}
         >
-          <Text style={styles.headingBold}>Every Skill,</Text>
-          {'\n'}One <Text style={styles.headingBold}>App</Text>
+          <Trans i18nKey="landing.heading" components={{ b: <Text style={styles.headingBold} /> }} />
         </Text>
         <Text style={styles.subText} maxFontSizeMultiplier={MAX_FONT_SCALE}>
-          From quick fixes to big projects, find verified local professionals
-          ready to help.
+          {t('landing.subtitle')}
         </Text>
       </View>
 
       <Pressable
         onPress={handleGetStarted}
         accessibilityRole="button"
-        accessibilityLabel="Get started"
+        accessibilityLabel={t('landing.cta')}
         hitSlop={spacing.sm}
         style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed]}
       >
         <View style={styles.ctaButton}>
           <Text style={styles.ctaText} maxFontSizeMultiplier={MAX_FONT_SCALE}>
-            Get Started
+            {t('landing.cta')}
           </Text>
         </View>
         <View style={styles.arrow} />
