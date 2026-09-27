@@ -18,4 +18,5 @@ addopts = "-m 'not live'"
 [tool.ruff.lint.per-file-ignores]
 # Spoken sentences and test tables read better unwrapped.
 "app/agents/onboarding/messages.py" = ["E501"]
+"app/agents/job_posting/messages.py" = ["E501"]
 "tests/*" = ["E501"]
