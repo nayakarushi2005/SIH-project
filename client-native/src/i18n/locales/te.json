@@ -580,7 +580,12 @@
     "forbidden": "ఈ సంభాషణ మరొకరిది.",
     "rate_limited": "చాలా ఎక్కువ అభ్యర్థనలు. దయచేసి నెమ్మదించండి.",
     "backend_unavailable": "యాప్ సర్వర్ ప్రస్తుతం చేరుకోలేకపోతోంది. దయచేసి మళ్లీ ప్రయత్నించండి.",
-    "unauthorized": "దయచేసి మళ్లీ సైన్ ఇన్ చేయండి."
+    "unauthorized": "దయచేసి మళ్లీ సైన్ ఇన్ చేయండి.",
+    "job_withdraw_reason_required": "రద్దు చేయడానికి కారణం ఎంచుకోండి.",
+    "job_withdraw_note_required": "ఎందుకు రద్దు చేస్తున్నారో క్లుప్తంగా చెప్పండి.",
+    "job_withdraw_note_length": "{{max}} అక్షరాలలోపు రాయండి.",
+    "job_withdraw_window_over": "ఈ పనిని రద్దు చేసే సమయం ముగిసింది. దయచేసి వెళ్లి పని చేయండి, లేదా కస్టమర్‌తో మాట్లాడండి.",
+    "job_cannot_retry": "ఎవరూ అంగీకరించని పనిని మాత్రమే మళ్లీ వెతకవచ్చు."
   },
   "durations": {
     "m30": "30 నిమిషాలు",
@@ -624,7 +629,29 @@
     "startCodeHint": "కార్మికుడు వచ్చినప్పుడు దీన్ని చెప్పండి.",
     "startCodeA11y": "స్టార్ట్ కోడ్ {{code}}",
     "rated": "మీరు ఈ పనిని రేట్ చేశారు",
-    "rateButton": "మీ కార్మికుడిని రేట్ చేయండి"
+    "rateButton": "మీ కార్మికుడిని రేట్ చేయండి",
+    "searchingFor": "కార్మికుడి కోసం వెతుకుతున్నాం · {{time}} మిగిలి ఉంది",
+    "searchingEnding": "వెతుకులాట ముగుస్తోంది…",
+    "workerRating": "★ {{rating}} ({{n}})",
+    "workerNew": "కొత్త కార్మికుడు",
+    "workerJobs": "పూర్తి చేసిన పనులు: {{n}}",
+    "workerExperience": "అనుభవం: {{n}} సం.",
+    "workerFallbackName": "మీ కార్మికుడు",
+    "workerVerified": "Aadhaar ధృవీకరించబడింది",
+    "cancelJob": "పని రద్దు చేయండి",
+    "keepJob": "పని ఉంచండి",
+    "cancelConfirmTitle": "ఈ పనిని రద్దు చేయాలా?",
+    "cancelConfirmBody": "ఎవరైనా కార్మికుడు ఇప్పటికే అంగీకరించి ఉంటే, పని రద్దయిందని వారికి కనిపిస్తుంది.",
+    "cancelFailedTitle": "రద్దు చేయలేకపోయాం",
+    "expiredBody": "20 నిమిషాల్లో ఏ కార్మికుడూ అంగీకరించలేదు. మళ్లీ వెతకండి, లేదా ఎక్కువ ఆసక్తి కోసం ధర పెంచండి.",
+    "searchAgain": "మళ్లీ వెతకండి",
+    "raisePrice": "ధర పెంచండి / మార్చండి",
+    "retryFailedTitle": "మళ్లీ వెతకలేకపోయాం",
+    "editTitle": "మార్చి మళ్లీ వెతకండి",
+    "editBody": "ఎక్కువ ధర లేదా స్పష్టమైన వివరణ కార్మికులు ఒప్పుకోవడానికి సహాయపడుతుంది.",
+    "priceLabel": "ధర",
+    "descriptionLabel": "పనిని వివరించండి",
+    "raiseBy": "ధరను {{amount}} పెంచండి"
   },
   "categories": {
     "loadFailed": "పని వర్గాల జాబితా ఖాళీగా ఉంది."
@@ -653,7 +680,21 @@
     "withdrawConfirmBody": "క్లయింట్ మరొక కార్మికుడితో సరిపోల్చబడతారు. వైదొలగడం వల్ల మీకు వచ్చే పనులు తరచుగా తగ్గుతాయి.",
     "keepJob": "పనిని ఉంచండి",
     "withdrawAction": "వైదొలగండి",
-    "withdrawFailedTitle": "వైదొలగలేకపోయాం"
+    "withdrawFailedTitle": "వైదొలగలేకపోయాం",
+    "withdrawButtonTimed": "రాలేరా? రద్దు చేయండి ({{time}} మిగిలి ఉంది)",
+    "cancelWindowOver": "ఈ పనిని రద్దు చేసే సమయం ముగిసింది.",
+    "withdrawReasonLabel": "ఎందుకు రద్దు చేస్తున్నారు?",
+    "withdrawNoteLabel": "క్లుప్తంగా కారణం చెప్పండి",
+    "withdrawNoteOptional": "ఇంకా ఏమైనా? (ఐచ్ఛికం)"
+  },
+  "withdrawReasons": {
+    "too_far": "చాలా దూరం",
+    "price_too_low": "ధర చాలా తక్కువ",
+    "emergency": "వ్యక్తిగత అత్యవసరం",
+    "vehicle_issue": "వాహన సమస్య",
+    "client_unreachable": "కస్టమర్‌ను సంప్రదించలేకపోతున్నాను",
+    "job_details_wrong": "పని వివరాలు తప్పుగా ఉన్నాయి",
+    "other": "ఇతర కారణం"
   },
   "offer": {
     "newRequest": "కొత్త పని అభ్యర్థన",
