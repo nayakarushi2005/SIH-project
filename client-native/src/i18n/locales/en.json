@@ -72,7 +72,8 @@
     "bookA11y": "Book {{name}}",
     "trending": "Trending",
     "bookAgain": "Book again",
-    "bookAgainEmpty": "Services you book will show up here so you can rebook in one tap."
+    "bookAgainEmpty": "Services you book will show up here so you can rebook in one tap.",
+    "postByVoice": "Post a job by voice"
   },
   "banners": {
     "emergency": {
@@ -304,6 +305,27 @@
     "fieldFederation": "Federation",
     "none": "None",
     "micA11y": "Speak your answer"
+  },
+  "voiceJob": {
+    "title": "Post a job by voice",
+    "sayAgain": "Say it again",
+    "send": "Send",
+    "skip": "Skip",
+    "postByVoice": "Post by voice",
+    "photosTitle": "Photos of the work",
+    "photosHint": "Add up to {{max}}. Clear photos get better quotes.",
+    "post": "Post job",
+    "checkTitle": "Please check your details",
+    "fieldCategory": "Service",
+    "fieldDescription": "What needs to be done?",
+    "fieldPrice": "Price",
+    "fieldDuration": "Duration",
+    "fieldAddress": "Address",
+    "draftFromSpeech": "Drafted from what you said",
+    "useForm": "Use the form instead",
+    "serverDown": "The assistant is not available right now. You can use the form.",
+    "needPhotos": "Add at least one photo before posting.",
+    "needLocation": "We need your location to find workers nearby."
   },
   "workerMode": {
     "title": "Worker mode",
