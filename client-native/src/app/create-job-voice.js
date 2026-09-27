@@ -286,7 +286,7 @@ export default function CreateJobVoice() {
               ) : null}
             </View>
 
-            {ui?.type === 'summary' && filled ? (
+            {(ui?.type === 'summary' || phase === 'summary') && filled ? (
               <View style={styles.summary}>
                 <Text style={styles.summaryTitle}>{t('voiceJob.checkTitle')}</Text>
                 <Row label={t('voiceJob.fieldCategory')} value={bySlug(filled.category)?.name ?? filled.category} />
@@ -312,6 +312,11 @@ export default function CreateJobVoice() {
                     />
                     <LocationCard t={t} location={location} error={errors.location} />
                     <Button label={t('voiceJob.post')} onPress={handlePost} loading={posting} disabled={!canPost} />
+                    {!canPost ? (
+                      <Text style={styles.postHint}>
+                        {urls.length === 0 ? t('voiceJob.needPhotos') : t('voiceJob.needLocation')}
+                      </Text>
+                    ) : null}
                   </>
                 ) : (
                   <View style={styles.row}>
@@ -399,6 +404,7 @@ const styles = StyleSheet.create({
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md },
   summaryLabel: { ...typography.body, color: colors.textMuted },
   summaryValue: { ...typography.body, fontWeight: '600', color: colors.text, flexShrink: 1, textAlign: 'right' },
+  postHint: { ...typography.label, color: colors.textMuted, textAlign: 'center' },
   footer: {
     alignItems: 'center',
     gap: spacing.xs,
