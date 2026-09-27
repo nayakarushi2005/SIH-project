@@ -6,6 +6,7 @@
  * It also closes abandoned safety shields and expires quiet SOS alerts.
  * Start alongside the API:  npm run dispatcher
  */
+const http = require('http');
 const path = require('path');
 const mongoose = require('mongoose');
 const { Worker } = require('bullmq');
@@ -110,7 +111,21 @@ function startWorker(name, processor, concurrency) {
   return worker;
 }
 
+// Cloud Run (K_SERVICE is set there) only keeps a container that answers
+// HTTP on $PORT, so give it a health endpoint. Elsewhere nothing listens.
+function startHealthServer() {
+  if (!process.env.K_SERVICE) return null;
+  const port = Number(process.env.PORT) || 8080;
+  return http
+    .createServer((req, res) => {
+      res.writeHead(200, { 'Content-Type': 'text/plain' });
+      res.end('dispatcher ok');
+    })
+    .listen(port, () => console.log(`🩺 Health endpoint on port ${port}`));
+}
+
 async function main() {
+  const health = startHealthServer();
   await mongoose.connect(process.env.MONGODB_URI);
   console.log('✅ Dispatcher connected to MongoDB');
 
@@ -135,6 +150,7 @@ async function main() {
 
   const shutdown = async () => {
     clearInterval(timer);
+    health?.close();
     await Promise.all(workers.map((w) => w.close()));
     await mongoose.disconnect();
     process.exit(0);
