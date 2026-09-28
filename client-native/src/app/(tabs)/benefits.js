@@ -65,7 +65,7 @@ export default function BenefitsTab() {
           const { packages, applications } = res.data;
           const approved = applications.filter(a => a.status === 'approved');
           const enriched = approved.map(app => {
-            const pkg = packages.find(p => p.id === app.packageId);
+            const pkg = packages.find(p => p._id == app.packageId || p.id == app.packageId);
             return { ...app, packageName: pkg?.name || 'Insurance' };
           });
           setApprovedInsurances(enriched);

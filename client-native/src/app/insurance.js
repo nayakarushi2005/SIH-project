@@ -88,10 +88,11 @@ export default function Insurance() {
         </Text>
 
         {packages.map((pkg) => {
-          const app = applications.find(a => a.packageId === pkg.id);
+          const pkgId = pkg._id || pkg.id;
+          const app = applications.find(a => a.packageId == pkgId);
 
           return (
-            <View key={pkg.id} style={styles.card}>
+            <View key={pkgId} style={styles.card}>
               <View style={styles.cardHeader}>
                 <View style={styles.providerBadge}>
                   <Text style={styles.providerText}>{pkg.provider}</Text>
@@ -137,7 +138,7 @@ export default function Insurance() {
               {!app ? (
                 <Button 
                   label="Apply Now" 
-                  onPress={() => handleApply(pkg.id)}
+                  onPress={() => handleApply(pkgId)}
                   style={styles.applyBtn}
                 />
               ) : (
