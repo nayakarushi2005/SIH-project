@@ -12,6 +12,9 @@ const federationsRoutes = require('./routes/federations'); // App: federations n
 const jobRoutes = require('./routes/jobs'); // Post jobs, accept/start/complete, feedback
 const uploadRoutes = require('./routes/uploads'); // Signed Cloudinary uploads for job photos
 const workerModeRoutes = require('./routes/workers'); // Worker mode: online, offers, insights
+const paymentRoutes = require('./routes/payments'); // Pay for jobs, receipts, worker payouts
+const webhookRoutes = require('./routes/webhooks'); // Razorpay events (raw body)
+const heatmapRoutes = require('./routes/heatmap'); // Demand / availability / gov heatmaps
 
 const app = express();
 
@@ -20,6 +23,8 @@ app.use(cors({
   origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173',
   credentials: true,
 }));
+// Webhooks verify a signature over the raw body, so they go before JSON parsing.
+app.use('/api/webhooks', webhookRoutes);
 app.use(express.json());
 app.use(cookieParser()); // <-- Allows reading HTTP-only cookies
 
@@ -33,6 +38,8 @@ app.use('/api/federations', federationsRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/workers', workerModeRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/heatmap', heatmapRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

@@ -34,7 +34,11 @@ function toWorkerProfile(profile) {
     bio: profile.bio,
     experienceYears: profile.experienceYears,
     serviceRadiusKm: profile.serviceRadiusKm,
-    isOnline: isPresent(profile),
+    // The worker's own switch: stays on until they go offline, so the app
+    // resumes taking jobs (and heartbeats) wherever it's opened. Matching
+    // also needs a recent heartbeat — that's isPresent.
+    isOnline: !!profile.isOnline,
+    isPresent: isPresent(profile),
     location: coords ? { lat: coords[1], lng: coords[0] } : null,
     currentJob: profile.currentJob,
     createdAt: profile.createdAt,

@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { ClipboardCheck, FileText, Landmark, LayoutDashboard, LogOut, Users } from 'lucide-react';
+import { ClipboardCheck, FileText, Landmark, LayoutDashboard, LogOut, Map as MapIcon, Users } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const NAV = {
@@ -8,7 +8,10 @@ const NAV = {
     { to: '/federation/workers', label: 'Worker requests', icon: Users },
     { to: '/federation/register', label: 'Registration', icon: FileText },
   ],
-  GovOfficial: [{ to: '/gov/verify', label: 'Verification', icon: ClipboardCheck }],
+  GovOfficial: [
+    { to: '/gov/verify', label: 'Verification', icon: ClipboardCheck },
+    { to: '/gov/demand-map', label: 'Skill Demand Map', icon: MapIcon },
+  ],
 };
 
 const FALLBACK_NAV = [{ to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard }];
