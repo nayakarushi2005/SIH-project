@@ -5,10 +5,12 @@ const {
   leaveMembership,
   requestMembership,
   sendMembershipError,
+  currentMembership,
 } = require('../services/membership');
 const { sendError, splitFieldErrors } = require('../services/errors');
 const { validateRegistration } = require('../services/worker');
 const { syncFromRegistration } = require('../services/workerProfile');
+const InsuranceApplication = require('../models/InsuranceApplication');
 
 const router = express.Router();
 router.use(verifyToken);
@@ -100,6 +102,65 @@ router.delete('/federation', async (req, res) => {
     return res.status(200).json(await buildProfile(req.user));
   } catch (err) {
     return sendMembershipError(res, err);
+  }
+});
+
+// GET /api/worker/insurance — see available insurance and your status
+router.get('/insurance', async (req, res) => {
+  try {
+    const mem = await currentMembership(req.user._id);
+    if (!mem || mem.status !== 'verified') {
+      return res.status(403).json({ message: 'You must be a verified member of a federation to access insurance.' });
+    }
+
+    const packages = [
+      { id: 1, name: 'Gig Worker Health Secure', provider: 'LIC', coverage: '₹5,00,000', premium: '₹400/year', interest: 'Min 2%', paperwork: 'Minimal/Aadhaar Only' },
+      { id: 2, name: 'Accidental Cover Pro', provider: 'HDFC Ergo', coverage: '₹10,00,000', premium: '₹250/year', interest: '0%', paperwork: 'Paperless' },
+      { id: 3, name: 'Life & Family Safeguard', provider: 'SBI Life', coverage: '₹2,00,000', premium: '₹150/year', interest: '1%', paperwork: 'No Medicals' }
+    ];
+
+    const apps = await InsuranceApplication.find({ workerId: req.user._id, federationId: mem.id }).lean();
+    return res.status(200).json({ packages, applications: apps });
+  } catch (err) {
+    return sendError(res, 500, 'fetch_failed', 'Could not load insurance data.');
+  }
+});
+
+// POST /api/worker/insurance/:packageId/apply
+router.post('/insurance/:packageId/apply', async (req, res) => {
+  try {
+    const mem = await currentMembership(req.user._id);
+    if (!mem || mem.status !== 'verified') {
+      return res.status(403).json({ message: 'You must be a verified member of a federation to apply.' });
+    }
+    const packageId = parseInt(req.params.packageId);
+    
+    // Find name
+    const packages = [
+      { id: 1, name: 'Gig Worker Health Secure' },
+      { id: 2, name: 'Accidental Cover Pro' },
+      { id: 3, name: 'Life & Family Safeguard' }
+    ];
+    const pkg = packages.find(p => p.id === packageId);
+    if (!pkg) return res.status(404).json({ message: 'Insurance package not found.' });
+
+    // Check if already applied
+    const existing = await InsuranceApplication.findOne({ workerId: req.user._id, packageId });
+    if (existing) {
+      return res.status(400).json({ message: 'You have already applied for this insurance package.' });
+    }
+
+    const application = new InsuranceApplication({
+      workerId: req.user._id,
+      federationId: mem.id,
+      packageId,
+      packageName: pkg.name,
+      status: 'approved'
+    });
+    await application.save();
+    return res.status(200).json({ message: 'Redirecting to provider and activating policy', application });
+  } catch (err) {
+    return sendError(res, 500, 'apply_failed', 'Could not submit insurance application.');
   }
 });
 

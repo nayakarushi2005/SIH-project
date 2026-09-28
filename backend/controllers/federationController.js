@@ -240,6 +240,35 @@ const applyInsurance = async (req, res) => {
   }
 };
 
+const getInsuranceApplications = async (req, res) => {
+  try {
+    const apps = await require('../models/InsuranceApplication').find({ federationId: req.user.userId }).populate('workerId', 'name city pincode').sort({ appliedAt: -1 }).lean();
+    return res.status(200).json({ applications: apps });
+  } catch (err) {
+    return res.status(500).json({ message: 'Error fetching insurance applications' });
+  }
+};
+
+const verifyInsuranceApplication = async (req, res) => {
+  try {
+    const { appId } = req.params;
+    const { action } = req.body; // 'approve' or 'reject'
+    if (!['approve', 'reject'].includes(action)) {
+      return res.status(400).json({ message: 'Action must be approve or reject.' });
+    }
+    const InsuranceApplication = require('../models/InsuranceApplication');
+    const application = await InsuranceApplication.findOne({ _id: appId, federationId: req.user.userId });
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' });
+    }
+    application.status = action === 'approve' ? 'approved' : 'rejected';
+    await application.save();
+    return res.status(200).json({ message: 'Application status updated', application });
+  } catch (err) {
+    return res.status(500).json({ message: 'Error verifying insurance application' });
+  }
+};
+
 module.exports = {
   registerFederation,
   updateMyLocation,
@@ -252,4 +281,6 @@ module.exports = {
   verifyFederation,
   getInsurancePackages,
   applyInsurance,
+  getInsuranceApplications,
+  verifyInsuranceApplication,
 };

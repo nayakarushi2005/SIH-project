@@ -279,16 +279,7 @@ export default function Profile() {
             <DetailRow
               label={t('workerProfile.income')}
               value={user.worker.incomeBracket ? t(`income.${user.worker.incomeBracket}`) : null}
-            />
-            <DetailRow
-              label={t('federation.manage')}
-              value={
-                user.federation
-                  ? `${user.federation.name} · ${t(STATUS_KEYS[user.federation.status] ?? 'federation.statusNone')}`
-                  : t('federation.statusNone')
-              }
-              onPress={() => router.push('/federations')}
-              last
+              last={true}
             />
           </Section>
         ) : null}
