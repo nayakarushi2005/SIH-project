@@ -217,6 +217,29 @@ const removeMyMember = async (req, res) => {
   }
 };
 
+const getInsurancePackages = async (req, res) => {
+  try {
+    const packages = [
+      { id: 1, name: 'Gig Worker Health Secure', provider: 'LIC', coverage: '₹5,00,000', premium: '₹400/year', interest: 'Min 2%', paperwork: 'Minimal/Aadhaar Only' },
+      { id: 2, name: 'Accidental Cover Pro', provider: 'HDFC Ergo', coverage: '₹10,00,000', premium: '₹250/year', interest: '0%', paperwork: 'Paperless' },
+      { id: 3, name: 'Life & Family Safeguard', provider: 'SBI Life', coverage: '₹2,00,000', premium: '₹150/year', interest: '1%', paperwork: 'No Medicals' }
+    ];
+    return res.status(200).json({ packages });
+  } catch (err) {
+    return res.status(500).json({ message: 'Error fetching insurance packages' });
+  }
+};
+
+const applyInsurance = async (req, res) => {
+  try {
+    // In a real application, we would save this application to the database 
+    // and notify the insurance provider.
+    return res.status(200).json({ message: 'Insurance application submitted successfully to provider.' });
+  } catch (err) {
+    return res.status(500).json({ message: 'Error applying for insurance' });
+  }
+};
+
 module.exports = {
   registerFederation,
   updateMyLocation,
@@ -227,4 +250,6 @@ module.exports = {
   getAllFederations,
   getFederationById,
   verifyFederation,
+  getInsurancePackages,
+  applyInsurance,
 };

@@ -94,15 +94,7 @@ export default function FederationStatus() {
   return (
     <div className="min-h-screen bg-slate-950 text-white py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
-        {/* Navigation back */}
-        <div className="mb-6 flex justify-between items-center">
-          <Link
-            to="/federation/register"
-            className="text-slate-400 hover:text-white text-sm font-semibold flex items-center gap-2 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" /> Back to Registration Form
-          </Link>
-        </div>
+        {/* Removed back link as requested */}
 
         {/* Title */}
         <div className="text-center mb-8">
@@ -266,10 +258,10 @@ export default function FederationStatus() {
 
             {federation.status === 'verified' && (
               <Link
-                to="/federation/workers"
+                to="/federation/dashboard"
                 className="block w-full text-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-blue-500/25"
               >
-                Manage worker requests →
+                Go to Federation Dashboard →
               </Link>
             )}
           </div>

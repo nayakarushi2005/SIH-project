@@ -7,6 +7,7 @@ import FederationRegister from './pages/federation/FederationRegister';
 import FederationStatus from './pages/federation/FederationStatus';
 import GovernmentVerification from './pages/federation/GovernmentVerification';
 import WorkerRequests from './pages/federation/WorkerRequests';
+import FederationDashboard from './pages/federation/FederationDashboard';
 import { lazy, Suspense } from 'react';
 
 // Google Maps + deck.gl are heavy — only officials opening the map load them.
@@ -49,6 +50,7 @@ function App() {
               <Route path="/federation/register" element={<FederationRegister />} />
               <Route path="/federation/status" element={<FederationStatus />} />
               <Route path="/federation/workers" element={<WorkerRequests />} />
+              <Route path="/federation/dashboard" element={<FederationDashboard />} />
               <Route path="/gov/verify" element={<GovernmentVerification />} />
               <Route
                 path="/gov/demand-map"
