@@ -3,18 +3,10 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import useFetchWithAuth from '../../hooks/useFetchWithAuth';
 import { useAuth } from '../../context/AuthContext';
 import CityPinFields from '../../components/CityPinFields';
-import { 
-  Building2, 
-  Users, 
-  Mail, 
-  IndianRupee, 
-  MapPin,
-  Sparkles,
-  ArrowRight,
-  ShieldCheck,
-  Search,
-  RefreshCw
-} from 'lucide-react';
+import { Building2, Users, Mail, IndianRupee, MapPin } from 'lucide-react';
+import { Button, INPUT, LABEL, Notice, PageHeader, Panel, PanelHeader } from '../../components/ui';
+
+const ICON = 'w-4 h-4 text-ink-3 absolute left-3 top-3 pointer-events-none';
 
 export default function FederationRegister() {
   const navigate = useNavigate();
@@ -87,149 +79,122 @@ export default function FederationRegister() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-xl mx-auto space-y-8">
-        {/* Header Title */}
-        <div className="text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-semibold uppercase tracking-wider mb-3">
-            <Sparkles className="w-4 h-4" /> Federation Portal
-          </div>
-          <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl text-white">
-            Federation <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-emerald-400 bg-clip-text text-transparent">Registration</span>
-          </h1>
-          <p className="mt-3 text-sm text-slate-400">
-            First time logging in? Fill in your details below. If already registered, enter your email to view your status.
-          </p>
-        </div>
+    <>
+      <PageHeader
+        title="Federation registration"
+        description="Add your federation's details. A government official reviews them before you can accept workers."
+      />
 
-        {/* Removed Manual Email Check Form as we are properly authenticated */}
+      <Panel className="max-w-3xl">
+        <PanelHeader title="Federation details" description="Fields marked required must be filled in." />
+        <form onSubmit={handleSubmit}>
+          <div className="space-y-5 px-5 py-6">
+            {error && <Notice>{error}</Notice>}
 
-        {/* Main Registration Form */}
-        <form onSubmit={handleSubmit} className="bg-slate-900 rounded-3xl p-8 shadow-2xl border border-slate-800 space-y-5">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <Building2 className="w-5 h-5 text-blue-400" /> Federation Details Form
-            </h2>
-            <span className="text-xs text-slate-500">First Time Registration</span>
-          </div>
-
-          {error && (
-            <div className="p-4 bg-rose-500/10 text-rose-400 rounded-2xl border border-rose-500/20 text-sm font-medium">
-              ⚠️ {error}
-            </div>
-          )}
-
-          <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
-              Fed Name *
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                name="name"
-                required
-                value={formData.name}
-                onChange={handleInputChange}
-                placeholder="Enter Federation Name"
-                className="w-full pl-11 pr-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 text-sm"
-              />
-              <Building2 className="w-5 h-5 text-slate-500 absolute left-3.5 top-3.5" />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
-              Fed Area / Region
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                name="area"
-                value={formData.area}
-                onChange={handleInputChange}
-                placeholder="e.g. Coastal District / State"
-                className="w-full pl-11 pr-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 text-sm"
-              />
-              <MapPin className="w-5 h-5 text-slate-500 absolute left-3.5 top-3.5" />
-            </div>
-          </div>
-
-          <CityPinFields
-            city={formData.city}
-            pincode={formData.pincode}
-            onChange={(loc) => setFormData((prev) => ({ ...prev, ...loc }))}
-          />
-
-          <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
-              Official Email *
-            </label>
-            <div className="relative">
-              <input
-                type="email"
-                name="email"
-                required
-                disabled
-                value={formData.email}
-                onChange={handleInputChange}
-                className="w-full pl-11 pr-4 py-3 bg-slate-900 border border-slate-800 rounded-xl text-slate-400 focus:outline-none text-sm cursor-not-allowed"
-              />
-              <Mail className="w-5 h-5 text-slate-600 absolute left-3.5 top-3.5" />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
-                Fund Amount (₹)
+              <label htmlFor="name" className={LABEL}>
+                Federation name <span className="text-ink-3 font-normal">(required)</span>
               </label>
               <div className="relative">
                 <input
-                  type="number"
-                  name="amount"
-                  min="0"
-                  value={formData.amount}
+                  type="text"
+                  id="name"
+                  name="name"
+                  required
+                  value={formData.name}
                   onChange={handleInputChange}
-                  placeholder="e.g. 50000"
-                  className="w-full pl-11 pr-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 text-sm"
+                  placeholder="Enter federation name"
+                  className={`${INPUT} pl-9`}
                 />
-                <IndianRupee className="w-5 h-5 text-slate-500 absolute left-3.5 top-3.5" />
+                <Building2 className={ICON} />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
-                No. of Workers
-              </label>
+              <label htmlFor="area" className={LABEL}>Area or region</label>
               <div className="relative">
                 <input
-                  type="number"
-                  name="noOfWorkers"
-                  min="0"
-                  value={formData.noOfWorkers}
+                  type="text"
+                  id="area"
+                  name="area"
+                  value={formData.area}
                   onChange={handleInputChange}
-                  placeholder="e.g. 100"
-                  className="w-full pl-11 pr-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 text-sm"
+                  placeholder="e.g. Coastal District / State"
+                  className={`${INPUT} pl-9`}
                 />
-                <Users className="w-5 h-5 text-slate-500 absolute left-3.5 top-3.5" />
+                <MapPin className={ICON} />
+              </div>
+            </div>
+
+            <CityPinFields
+              city={formData.city}
+              pincode={formData.pincode}
+              onChange={(loc) => setFormData((prev) => ({ ...prev, ...loc }))}
+            />
+
+            <div>
+              <label htmlFor="email" className={LABEL}>Official email</label>
+              <div className="relative">
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  required
+                  disabled
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className={`${INPUT} pl-9`}
+                />
+                <Mail className={ICON} />
+              </div>
+              <p className="mt-1.5 text-xs text-ink-3">Taken from the Google account you signed in with.</p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              <div>
+                <label htmlFor="amount" className={LABEL}>Fund amount (₹)</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    id="amount"
+                    name="amount"
+                    min="0"
+                    value={formData.amount}
+                    onChange={handleInputChange}
+                    placeholder="e.g. 50000"
+                    className={`${INPUT} pl-9`}
+                  />
+                  <IndianRupee className={ICON} />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="noOfWorkers" className={LABEL}>Number of workers</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    id="noOfWorkers"
+                    name="noOfWorkers"
+                    min="0"
+                    value={formData.noOfWorkers}
+                    onChange={handleInputChange}
+                    placeholder="e.g. 100"
+                    className={`${INPUT} pl-9`}
+                  />
+                  <Users className={ICON} />
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="pt-4 border-t border-slate-800 flex items-center justify-between">
-            <p className="text-xs text-slate-500 flex items-center gap-1">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" /> Save details in database
-            </p>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-blue-500/25 disabled:opacity-50 flex items-center gap-2"
-            >
-              {loading ? 'Submitting...' : <>Submit Registration <ArrowRight className="w-4 h-4" /></>}
-            </button>
+          <div className="flex flex-col-reverse gap-3 border-t border-line px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-ink-3">Your details are saved and sent for government review.</p>
+            <Button type="submit" disabled={loading}>
+              {loading ? 'Submitting…' : 'Submit registration'}
+            </Button>
           </div>
         </form>
-      </div>
-    </div>
+      </Panel>
+    </>
   );
 }
