@@ -219,14 +219,58 @@ const removeMyMember = async (req, res) => {
 
 const getInsurancePackages = async (req, res) => {
   try {
-    const packages = [
-      { id: 1, name: 'Gig Worker Health Secure', provider: 'LIC', coverage: '₹5,00,000', premium: '₹400/year', interest: 'Min 2%', paperwork: 'Minimal/Aadhaar Only' },
-      { id: 2, name: 'Accidental Cover Pro', provider: 'HDFC Ergo', coverage: '₹10,00,000', premium: '₹250/year', interest: '0%', paperwork: 'Paperless' },
-      { id: 3, name: 'Life & Family Safeguard', provider: 'SBI Life', coverage: '₹2,00,000', premium: '₹150/year', interest: '1%', paperwork: 'No Medicals' }
-    ];
+    const InsurancePackage = require('../models/InsurancePackage');
+    const packages = await InsurancePackage.find({ federationId: req.user.userId }).sort({ createdAt: -1 });
     return res.status(200).json({ packages });
   } catch (err) {
     return res.status(500).json({ message: 'Error fetching insurance packages' });
+  }
+};
+
+const addInsurancePackage = async (req, res) => {
+  try {
+    const InsurancePackage = require('../models/InsurancePackage');
+    const { name, provider, coverage, premium, interest, paperwork } = req.body;
+    
+    // Generate unique ID based on federationId and timestamp
+    const count = await InsurancePackage.countDocuments({ federationId: req.user.userId });
+    const fedPrefix = req.user.userId.toString().slice(-6).toUpperCase();
+    const policyId = `FED-${fedPrefix}-POL-${count + 1}`;
+
+    const newPackage = new InsurancePackage({
+      policyId,
+      federationId: req.user.userId,
+      name, provider, coverage, premium, interest, paperwork,
+      status: 'active'
+    });
+
+    await newPackage.save();
+    return res.status(201).json({ message: 'Package added successfully', package: newPackage });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Error adding insurance package' });
+  }
+};
+
+const updateInsurancePackage = async (req, res) => {
+  try {
+    const InsurancePackage = require('../models/InsurancePackage');
+    const { id } = req.params;
+    const { status } = req.body; // 'active', 'paused', 'deprecated'
+
+    const pkg = await InsurancePackage.findOneAndUpdate(
+      { _id: id, federationId: req.user.userId },
+      { $set: { status } },
+      { new: true }
+    );
+
+    if (!pkg) {
+      return res.status(404).json({ message: 'Package not found' });
+    }
+
+    return res.status(200).json({ message: 'Package updated', package: pkg });
+  } catch (err) {
+    return res.status(500).json({ message: 'Error updating insurance package' });
   }
 };
 
@@ -280,6 +324,8 @@ module.exports = {
   getFederationById,
   verifyFederation,
   getInsurancePackages,
+  addInsurancePackage,
+  updateInsurancePackage,
   applyInsurance,
   getInsuranceApplications,
   verifyInsuranceApplication,

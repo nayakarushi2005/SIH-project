@@ -11,6 +11,8 @@ const {
   decideMyRequest,
   removeMyMember,
   getInsurancePackages,
+  addInsurancePackage,
+  updateInsurancePackage,
   applyInsurance,
   getInsuranceApplications,
   verifyInsuranceApplication,
@@ -40,6 +42,8 @@ router.delete('/me/members/:id', requireRole('Federation'), removeMyMember);
 
 // Federation portal: insurance collaboration
 router.get('/me/insurance', requireRole('Federation'), getInsurancePackages);
+router.post('/me/insurance', requireRole('Federation'), addInsurancePackage);
+router.patch('/me/insurance/:id', requireRole('Federation'), updateInsurancePackage);
 router.post('/me/insurance/:packageId/apply', requireRole('Federation'), applyInsurance);
 router.get('/me/insurance-applications', requireRole('Federation'), getInsuranceApplications);
 router.patch('/me/insurance-applications/:appId/verify', requireRole('Federation'), verifyInsuranceApplication);

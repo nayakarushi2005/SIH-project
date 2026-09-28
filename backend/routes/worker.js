@@ -113,11 +113,11 @@ router.get('/insurance', async (req, res) => {
       return res.status(403).json({ message: 'You must be a verified member of a federation to access insurance.' });
     }
 
-    const packages = [
-      { id: 1, name: 'Gig Worker Health Secure', provider: 'LIC', coverage: '₹5,00,000', premium: '₹400/year', interest: 'Min 2%', paperwork: 'Minimal/Aadhaar Only' },
-      { id: 2, name: 'Accidental Cover Pro', provider: 'HDFC Ergo', coverage: '₹10,00,000', premium: '₹250/year', interest: '0%', paperwork: 'Paperless' },
-      { id: 3, name: 'Life & Family Safeguard', provider: 'SBI Life', coverage: '₹2,00,000', premium: '₹150/year', interest: '1%', paperwork: 'No Medicals' }
-    ];
+    const InsurancePackage = require('../models/InsurancePackage');
+    const packages = await InsurancePackage.find({ 
+      federationId: mem.id, 
+      status: { $in: ['active', 'paused'] } 
+    }).sort({ createdAt: -1 }).lean();
 
     const apps = await InsuranceApplication.find({ workerId: req.user._id, federationId: mem.id }).lean();
     return res.status(200).json({ packages, applications: apps });
@@ -133,16 +133,16 @@ router.post('/insurance/:packageId/apply', async (req, res) => {
     if (!mem || mem.status !== 'verified') {
       return res.status(403).json({ message: 'You must be a verified member of a federation to apply.' });
     }
-    const packageId = parseInt(req.params.packageId);
-    
-    // Find name
-    const packages = [
-      { id: 1, name: 'Gig Worker Health Secure' },
-      { id: 2, name: 'Accidental Cover Pro' },
-      { id: 3, name: 'Life & Family Safeguard' }
-    ];
-    const pkg = packages.find(p => p.id === packageId);
+    const InsurancePackage = require('../models/InsurancePackage');
+    const mongoose = require('mongoose');
+    const packageId = req.params.packageId;
+    if (!mongoose.Types.ObjectId.isValid(packageId)) {
+      return res.status(400).json({ message: 'Invalid package ID. Please refresh the page to load new policies.' });
+    }
+    const pkg = await InsurancePackage.findOne({ _id: packageId, federationId: mem.id });
     if (!pkg) return res.status(404).json({ message: 'Insurance package not found.' });
+    if (pkg.status === 'paused') return res.status(400).json({ message: 'This insurance package is currently on hold and cannot be applied for.' });
+    if (pkg.status === 'deprecated') return res.status(400).json({ message: 'This insurance package is no longer available.' });
 
     // Check if already applied
     const existing = await InsuranceApplication.findOne({ workerId: req.user._id, packageId });
