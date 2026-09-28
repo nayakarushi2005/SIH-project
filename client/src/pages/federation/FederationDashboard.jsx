@@ -12,7 +12,9 @@ import {
   Award,
   CheckCircle2,
   Clock,
-  Briefcase
+  Briefcase,
+  UserCheck,
+  XCircle
 } from 'lucide-react';
 
 export default function FederationDashboard() {
@@ -24,6 +26,8 @@ export default function FederationDashboard() {
   const [loading, setLoading] = useState(true);
   const [packages, setPackages] = useState([]);
   const [loadingPackages, setLoadingPackages] = useState(true);
+  const [applications, setApplications] = useState([]);
+  const [loadingApps, setLoadingApps] = useState(true);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -65,19 +69,40 @@ export default function FederationDashboard() {
     fetchInsurancePackages();
   }, [authFetch]);
 
-  const handleApply = async (pkgId) => {
+  useEffect(() => {
+    const fetchApplications = async () => {
+      try {
+        const res = await authFetch('/api/federation/me/insurance-applications');
+        if (res.ok) {
+          const data = await res.json();
+          setApplications(data.applications || []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch insurance applications', err);
+      } finally {
+        setLoadingApps(false);
+      }
+    };
+
+    fetchApplications();
+  }, [authFetch]);
+
+  const handleVerifyApplication = async (appId, action) => {
     try {
-      const res = await authFetch(`/api/federation/me/insurance/${pkgId}/apply`, {
-        method: 'POST'
+      const res = await authFetch(`/api/federation/me/insurance-applications/${appId}/verify`, {
+        method: 'PATCH',
+        body: JSON.stringify({ action })
       });
       if (res.ok) {
-        alert('Insurance applied successfully for your workers!');
+        setApplications(prev => prev.map(a => a._id === appId ? { ...a, status: action === 'approve' ? 'approved' : 'rejected' } : a));
       }
     } catch (error) {
       console.error(error);
-      alert('Failed to apply insurance.');
+      alert('Failed to update application.');
     }
   };
+
+
 
   if (loading) {
     return (
@@ -147,8 +172,8 @@ export default function FederationDashboard() {
             <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <div className="flex items-center justify-between relative z-10">
               <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Insured Members</p>
-                <h3 className="text-3xl font-bold text-white">0</h3>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Applications</p>
+                <h3 className="text-3xl font-bold text-white">{applications.length}</h3>
               </div>
               <div className="w-12 h-12 bg-emerald-500/10 rounded-full flex items-center justify-center border border-emerald-500/20">
                 <ShieldCheck className="w-6 h-6 text-emerald-400" />
@@ -227,16 +252,71 @@ export default function FederationDashboard() {
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> {pkg.paperwork}
                       </span>
                     </div>
+                    <div className="flex justify-between items-center text-sm border-t border-slate-800/50 pt-3 mt-3">
+                      <span className="text-slate-400">Opted Members:</span>
+                      <span className="font-bold text-emerald-400">
+                        {applications.filter(a => a.packageId === pkg.id && a.status === 'approved').length}
+                      </span>
+                    </div>
                   </div>
 
-                  <button 
-                    onClick={() => handleApply(pkg.id)}
-                    className="w-full py-2.5 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white font-bold rounded-xl text-sm transition-all border border-emerald-500/20 group-hover:border-transparent flex justify-center items-center gap-2"
-                  >
-                    Apply for Workers <ArrowRight className="w-4 h-4" />
-                  </button>
+                  <div className="w-full py-2.5 bg-slate-800/50 text-slate-400 font-bold rounded-xl text-sm border border-slate-700/50 text-center">
+                    Available for Workers
+                  </div>
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+
+        {/* Worker Applications Section */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden mt-8">
+          <div className="relative z-10 mb-6">
+            <h2 className="text-2xl font-bold flex items-center gap-3">
+              <Users className="w-7 h-7 text-blue-400" />
+              Insured Members
+            </h2>
+            <p className="text-slate-400 text-sm mt-2 max-w-3xl">
+              List of gig workers in your federation who have active insurance policies.
+            </p>
+          </div>
+
+          {loadingApps ? (
+            <div className="py-12 flex justify-center">
+              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : applications.length === 0 ? (
+            <div className="py-12 text-center text-slate-500">
+              No members have opted for insurance yet.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-800">
+                    <th className="py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Worker Name</th>
+                    <th className="py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Location</th>
+                    <th className="py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Package</th>
+                    <th className="py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/50">
+                  {applications.map(app => (
+                    <tr key={app._id} className="hover:bg-slate-800/20 transition-colors">
+                      <td className="py-4 px-4 font-semibold text-white">{app.workerId?.name || 'Unknown Worker'}</td>
+                      <td className="py-4 px-4 text-sm text-slate-400">
+                        {app.workerId?.city || ''} {app.workerId?.pincode ? `(${app.workerId.pincode})` : ''}
+                      </td>
+                      <td className="py-4 px-4 text-sm text-blue-300 font-medium">{app.packageName}</td>
+                      <td className="py-4 px-4">
+                        {app.status === 'pending' && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20"><Clock className="w-3.5 h-3.5" /> Pending</span>}
+                        {app.status === 'approved' && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"><CheckCircle2 className="w-3.5 h-3.5" /> Verified</span>}
+                        {app.status === 'rejected' && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20"><XCircle className="w-3.5 h-3.5" /> Rejected</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
