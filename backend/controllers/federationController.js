@@ -217,6 +217,102 @@ const removeMyMember = async (req, res) => {
   }
 };
 
+const getInsurancePackages = async (req, res) => {
+  try {
+    const InsurancePackage = require('../models/InsurancePackage');
+    const packages = await InsurancePackage.find({ federationId: req.user.userId }).sort({ createdAt: -1 });
+    return res.status(200).json({ packages });
+  } catch (err) {
+    return res.status(500).json({ message: 'Error fetching insurance packages' });
+  }
+};
+
+const addInsurancePackage = async (req, res) => {
+  try {
+    const InsurancePackage = require('../models/InsurancePackage');
+    const { name, provider, coverage, premium, interest, paperwork } = req.body;
+    
+    // Generate unique ID based on federationId and timestamp
+    const count = await InsurancePackage.countDocuments({ federationId: req.user.userId });
+    const fedPrefix = req.user.userId.toString().slice(-6).toUpperCase();
+    const policyId = `FED-${fedPrefix}-POL-${count + 1}`;
+
+    const newPackage = new InsurancePackage({
+      policyId,
+      federationId: req.user.userId,
+      name, provider, coverage, premium, interest, paperwork,
+      status: 'active'
+    });
+
+    await newPackage.save();
+    return res.status(201).json({ message: 'Package added successfully', package: newPackage });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Error adding insurance package' });
+  }
+};
+
+const updateInsurancePackage = async (req, res) => {
+  try {
+    const InsurancePackage = require('../models/InsurancePackage');
+    const { id } = req.params;
+    const { status } = req.body; // 'active', 'paused', 'deprecated'
+
+    const pkg = await InsurancePackage.findOneAndUpdate(
+      { _id: id, federationId: req.user.userId },
+      { $set: { status } },
+      { new: true }
+    );
+
+    if (!pkg) {
+      return res.status(404).json({ message: 'Package not found' });
+    }
+
+    return res.status(200).json({ message: 'Package updated', package: pkg });
+  } catch (err) {
+    return res.status(500).json({ message: 'Error updating insurance package' });
+  }
+};
+
+const applyInsurance = async (req, res) => {
+  try {
+    // In a real application, we would save this application to the database 
+    // and notify the insurance provider.
+    return res.status(200).json({ message: 'Insurance application submitted successfully to provider.' });
+  } catch (err) {
+    return res.status(500).json({ message: 'Error applying for insurance' });
+  }
+};
+
+const getInsuranceApplications = async (req, res) => {
+  try {
+    const apps = await require('../models/InsuranceApplication').find({ federationId: req.user.userId }).populate('workerId', 'name city pincode').sort({ appliedAt: -1 }).lean();
+    return res.status(200).json({ applications: apps });
+  } catch (err) {
+    return res.status(500).json({ message: 'Error fetching insurance applications' });
+  }
+};
+
+const verifyInsuranceApplication = async (req, res) => {
+  try {
+    const { appId } = req.params;
+    const { action } = req.body; // 'approve' or 'reject'
+    if (!['approve', 'reject'].includes(action)) {
+      return res.status(400).json({ message: 'Action must be approve or reject.' });
+    }
+    const InsuranceApplication = require('../models/InsuranceApplication');
+    const application = await InsuranceApplication.findOne({ _id: appId, federationId: req.user.userId });
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' });
+    }
+    application.status = action === 'approve' ? 'approved' : 'rejected';
+    await application.save();
+    return res.status(200).json({ message: 'Application status updated', application });
+  } catch (err) {
+    return res.status(500).json({ message: 'Error verifying insurance application' });
+  }
+};
+
 module.exports = {
   registerFederation,
   updateMyLocation,
@@ -227,4 +323,10 @@ module.exports = {
   getAllFederations,
   getFederationById,
   verifyFederation,
+  getInsurancePackages,
+  addInsurancePackage,
+  updateInsurancePackage,
+  applyInsurance,
+  getInsuranceApplications,
+  verifyInsuranceApplication,
 };

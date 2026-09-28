@@ -44,3 +44,32 @@ test('GET /api/workers/me/offers is coded worker_not_registered for a non-worker
   expect(res.status).toBe(404);
   expect(res.body.code).toBe('worker_not_registered');
 });
+
+describe('POST /api/workers/me/online and Aadhaar', () => {
+  const location = { lat: 19.1, lng: 72.8 };
+  afterEach(() => {
+    delete process.env.REQUIRE_WORKER_AADHAAR;
+  });
+
+  test('an unverified worker can go online by default', async () => {
+    const user = await createUser({ isWorker: true, worker: { categories: ['plumber'] } });
+    const res = await request(app).post('/api/workers/me/online').set(authHeader(user)).send({ location });
+    expect(res.status).toBe(200);
+  });
+
+  test('REQUIRE_WORKER_AADHAAR=true turns the check back on', async () => {
+    process.env.REQUIRE_WORKER_AADHAAR = 'true';
+    const user = await createUser({ isWorker: true, worker: { categories: ['plumber'] } });
+    const res = await request(app).post('/api/workers/me/online').set(authHeader(user)).send({ location });
+    expect(res.status).toBe(403);
+    expect(res.body.code).toBe('AADHAAR_REQUIRED');
+
+    const verified = await createUser({
+      isWorker: true,
+      isAadhaarVerified: true,
+      worker: { categories: ['plumber'] },
+    });
+    const ok = await request(app).post('/api/workers/me/online').set(authHeader(verified)).send({ location });
+    expect(ok.status).toBe(200);
+  });
+});

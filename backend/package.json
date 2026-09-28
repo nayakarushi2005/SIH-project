@@ -11,14 +11,15 @@
     "test": "jest --runInBand",
     "seed:categories": "node scripts/seedCategories.js",
     "seed:jobs": "node scripts/seed-jobs.js",
+    "seed:heatmap": "node scripts/seed-heatmap.js",
     "llm:check": "node scripts/llm-check.js",
     "graph:reprocess": "node scripts/graph-reprocess.js"
   },
   "dependencies": {
     "@google/genai": "^2.24.0",
     "axios": "^1.7.2",
-    "cookie-parser": "^1.4.7",
     "bullmq": "^6.3.9",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
@@ -26,7 +27,9 @@
     "ioredis": "^6.0.0",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^7.6.0",
-    "mongoose": "^8.4.1"
+    "mongoose": "^8.4.1",
+    "pdfkit": "^0.20.2",
+    "razorpay": "^2.9.8"
   },
   "devDependencies": {
     "jest": "^30.5.2",

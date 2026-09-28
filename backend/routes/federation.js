@@ -10,6 +10,12 @@ const {
   listMyRequests,
   decideMyRequest,
   removeMyMember,
+  getInsurancePackages,
+  addInsurancePackage,
+  updateInsurancePackage,
+  applyInsurance,
+  getInsuranceApplications,
+  verifyInsuranceApplication,
 } = require('../controllers/federationController');
 const { ensureAuth } = require('../middleware/authMiddleware');
 const requireRole = require('../middleware/requireRole');
@@ -33,6 +39,14 @@ router.get('/all', requireRole('GovOfficial'), getAllFederations);
 router.get('/me/requests', requireRole('Federation'), listMyRequests);
 router.patch('/me/requests/:id', requireRole('Federation'), decideMyRequest);
 router.delete('/me/members/:id', requireRole('Federation'), removeMyMember);
+
+// Federation portal: insurance collaboration
+router.get('/me/insurance', requireRole('Federation'), getInsurancePackages);
+router.post('/me/insurance', requireRole('Federation'), addInsurancePackage);
+router.patch('/me/insurance/:id', requireRole('Federation'), updateInsurancePackage);
+router.post('/me/insurance/:packageId/apply', requireRole('Federation'), applyInsurance);
+router.get('/me/insurance-applications', requireRole('Federation'), getInsuranceApplications);
+router.patch('/me/insurance-applications/:appId/verify', requireRole('Federation'), verifyInsuranceApplication);
 
 // A federation's own record, or any record for government officials
 router.get('/:id', getFederationById);

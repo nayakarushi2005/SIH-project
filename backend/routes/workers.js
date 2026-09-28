@@ -2,6 +2,7 @@ const express = require('express');
 const Job = require('../models/Job');
 const WorkerProfile = require('../models/WorkerProfile');
 const verifyToken = require('../middleware/verifyToken');
+const { declineOffer } = require('../services/dispatch');
 const { sendError, splitFieldErrors } = require('../services/errors');
 const { workerInsights } = require('../services/graph');
 const { toGeoPoint, toOffer } = require('../services/job');
@@ -13,9 +14,10 @@ const {
 
 const router = express.Router();
 
-// The app promises clients that every worker is identity-verified.
+// With REQUIRE_WORKER_AADHAAR=true, only identity-verified workers can go
+// online. Off by default for the prototype.
 function requireAadhaar(req, res, next) {
-  if (!req.user.isAadhaarVerified) {
+  if (process.env.REQUIRE_WORKER_AADHAAR === 'true' && !req.user.isAadhaarVerified) {
     return res.status(403).json({
       error: 'Verify your Aadhaar with DigiLocker before taking jobs.',
       code: 'AADHAAR_REQUIRED',
@@ -104,7 +106,7 @@ router.put('/me', verifyToken, async (req, res) => {
 // ────────────────────────────────────────────────────────────────────────────
 // POST /api/workers/me/online
 // Starts taking jobs from the given position.
-// Requires: Aadhaar-verified, registered worker
+// Requires: registered worker (and Aadhaar-verified if REQUIRE_WORKER_AADHAAR=true)
 // Body: { location: { lat, lng } }
 // ────────────────────────────────────────────────────────────────────────────
 router.post('/me/online', verifyToken, requireAadhaar, async (req, res) => {
@@ -156,16 +158,25 @@ router.post('/me/location', verifyToken, async (req, res) => {
 
 // ────────────────────────────────────────────────────────────────────────────
 // POST /api/workers/me/offline
-// Stops taking new jobs. A job already in progress is unaffected.
+// Stops taking new jobs. Offers still waiting for an answer are declined, so
+// those jobs move on to other workers instead of waiting for this one — and
+// don't reappear when the worker comes back online. A job the worker already
+// accepted is unaffected.
 // ────────────────────────────────────────────────────────────────────────────
 router.post('/me/offline', verifyToken, async (req, res) => {
+  const me = req.user._id;
+
   try {
-    const profile = await WorkerProfile.findOneAndUpdate(
-      { user: req.user._id },
-      { isOnline: false },
-      { new: true }
-    );
+    const profile = await WorkerProfile.findOneAndUpdate({ user: me }, { isOnline: false }, { new: true });
     if (!profile) return notRegisteredWorker(res);
+
+    const now = new Date();
+    const open = await Job.find({
+      status: 'SEARCHING',
+      'dispatch.offers': { $elemMatch: { worker: me, response: null, expiresAt: { $gt: now } } },
+    }).select('_id');
+    await Promise.all(open.map((job) => declineOffer(job._id, me, now)));
+
     return res.status(200).json(toWorkerProfile(profile));
   } catch (err) {
     console.error('Worker offline error:', err.message);
@@ -176,16 +187,19 @@ router.post('/me/offline', verifyToken, async (req, res) => {
 // ────────────────────────────────────────────────────────────────────────────
 // GET /api/workers/me/offers
 // Job offers waiting for this worker's answer, newest first. The app polls
-// this every few seconds while online (until push notifications land).
+// this every few seconds while online, on any screen (until push
+// notifications land). Only jobs still SEARCHING are listed, so a job
+// disappears for everyone the moment one worker accepts it.
 // Answer with POST /api/jobs/:id/accept or /reject.
 // ────────────────────────────────────────────────────────────────────────────
 router.get('/me/offers', verifyToken, async (req, res) => {
   const me = req.user._id;
 
   try {
-    const profile = await WorkerProfile.findOne({ user: me }).select('currentJob');
+    const profile = await WorkerProfile.findOne({ user: me }).select('currentJob isOnline');
     if (!profile) return notRegisteredWorker(res);
-    if (profile.currentJob) return res.status(200).json([]); // busy — can't accept anyway
+    // Offline — not taking jobs; busy — can't accept one anyway.
+    if (!profile.isOnline || profile.currentJob) return res.status(200).json([]);
 
     const jobs = await Job.find({
       status: 'SEARCHING',

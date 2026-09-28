@@ -105,8 +105,8 @@ export default function FederationStatus() {
         description="Verification status and details for your federation."
         actions={
           federation?.status === 'verified' && (
-            <Link to="/federation/workers" className={buttonClass('primary')}>
-              Manage worker requests
+            <Link to="/federation/dashboard" className={buttonClass('primary')}>
+              Go to Federation Dashboard
             </Link>
           )
         }

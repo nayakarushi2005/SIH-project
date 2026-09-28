@@ -5,11 +5,24 @@ const Feedback = require('../models/Feedback');
 const Job = require('../models/Job');
 const WorkerProfile = require('../models/WorkerProfile');
 const verifyToken = require('../middleware/verifyToken');
-const { advanceNow, startDispatch } = require('../services/dispatch');
+const {
+  advanceNow,
+  declineOffer,
+  newSearchDeadline,
+  newSearchFields,
+  startDispatch,
+} = require('../services/dispatch');
 const { validateFeedback } = require('../services/feedback');
 const { enqueueFeedback } = require('../services/graph');
 const { sendError, splitFieldErrors } = require('../services/errors');
-const { toJob, validateNewJob } = require('../services/job');
+const {
+  WORKER_CANCEL_WINDOW_MS,
+  assignedWorkerCards,
+  toJob,
+  validateJobEdits,
+  validateNewJob,
+  validateWithdrawal,
+} = require('../services/job');
 const {
   recordAcceptance,
   recordCompletion,
@@ -30,6 +43,23 @@ function releaseWorker(workerId, jobId) {
   return WorkerProfile.updateOne({ user: workerId, currentJob: jobId }, { currentJob: null });
 }
 
+/** 400 body for field errors from a validator. */
+function sendFieldErrors(res, errors) {
+  const { fields, fieldCodes, fieldParams } = splitFieldErrors(errors);
+  return res.status(400).json({
+    error: 'Please fix the highlighted fields.',
+    code: 'validation',
+    fields,
+    fieldCodes,
+    fieldParams,
+  });
+}
+
+/** `job` as its client sees it, with the assigned worker's details. */
+async function toClientJob(job, clientId) {
+  return toJob(job, clientId, { workers: await assignedWorkerCards([job]) });
+}
+
 // ────────────────────────────────────────────────────────────────────────────
 // POST /api/jobs
 // Posts a new job. Photos must already be uploaded via /api/uploads.
@@ -42,22 +72,14 @@ router.post('/', verifyToken, async (req, res) => {
   const user = req.user;
   const { job: fields, errors } = await validateNewJob(user, req.body);
 
-  if (Object.keys(errors).length > 0) {
-    const { fields: fieldMessages, fieldCodes, fieldParams } = splitFieldErrors(errors);
-    return res.status(400).json({
-      error: 'Please fix the highlighted fields.',
-      code: 'validation',
-      fields: fieldMessages,
-      fieldCodes,
-      fieldParams,
-    });
-  }
+  if (Object.keys(errors).length > 0) return sendFieldErrors(res, errors);
 
   try {
     const job = await Job.create({
       ...fields,
       client: user._id,
       clientAadhaarVerified: user.isAadhaarVerified,
+      dispatch: { searchDeadline: newSearchDeadline() },
     });
 
     // If Redis is unreachable the job is still saved; the dispatcher's sweep
@@ -75,12 +97,14 @@ router.post('/', verifyToken, async (req, res) => {
 
 // ────────────────────────────────────────────────────────────────────────────
 // GET /api/jobs
-// Lists the current user's posted jobs, newest first.
+// Lists the current user's posted jobs, newest first, each with its assigned
+// worker's details (`worker`) once someone has accepted it.
 // ────────────────────────────────────────────────────────────────────────────
 router.get('/', verifyToken, async (req, res) => {
   try {
     const jobs = await Job.find({ client: req.user._id }).sort({ createdAt: -1 }).limit(50);
-    return res.status(200).json(jobs.map((job) => toJob(job, req.user._id)));
+    const workers = await assignedWorkerCards(jobs);
+    return res.status(200).json(jobs.map((job) => toJob(job, req.user._id, { workers })));
   } catch (err) {
     console.error('Job list error:', err.message);
     return sendError(res, 500, 'job_load_failed', 'Could not load your jobs.');
@@ -102,7 +126,7 @@ router.get('/:id', verifyToken, async (req, res) => {
       $or: [{ client: req.user._id }, { assignedWorker: req.user._id }],
     });
     if (!job) return sendError(res, 404, 'job_not_found', 'Job not found');
-    return res.status(200).json(toJob(job, req.user._id));
+    return res.status(200).json(await toClientJob(job, req.user._id));
   } catch (err) {
     console.error('Job fetch error:', err.message);
     return sendError(res, 500, 'job_load_failed', 'Could not load the job.');
@@ -143,7 +167,7 @@ router.post('/:id/cancel', verifyToken, async (req, res) => {
       // TODO(notify): tell the assigned worker the job was cancelled.
     }
 
-    return res.status(200).json(toJob(job, req.user._id));
+    return res.status(200).json(await toClientJob(job, req.user._id));
   } catch (err) {
     console.error('Job cancel error:', err.message);
     return sendError(res, 500, 'job_update_failed', 'Could not cancel the job.');
@@ -154,7 +178,9 @@ router.post('/:id/cancel', verifyToken, async (req, res) => {
 // POST /api/jobs/:id/accept
 // A worker accepts an offer they received. First valid accept wins: the
 // worker is claimed (one active job at a time), then the job is claimed with
-// a single conditional update, so two workers can never both get it.
+// a single conditional update, so two workers can never both get it. The job
+// leaves every other worker's offers list at once (it only lists SEARCHING
+// jobs). The response's cancelDeadline ends the worker's cancellation window.
 // 409 → the job was taken/cancelled, the offer expired, or the worker is busy
 // ────────────────────────────────────────────────────────────────────────────
 router.post('/:id/accept', verifyToken, async (req, res) => {
@@ -227,33 +253,10 @@ router.post('/:id/reject', verifyToken, async (req, res) => {
     return sendError(res, 404, 'job_not_found', 'Job not found');
   }
 
-  const now = new Date();
-
   try {
-    const job = await Job.findOneAndUpdate(
-      {
-        _id: req.params.id,
-        status: 'SEARCHING',
-        'dispatch.offers': { $elemMatch: { worker: req.user._id, response: null } },
-      },
-      {
-        $set: {
-          'dispatch.offers.$.response': 'rejected',
-          'dispatch.offers.$.respondedAt': now,
-        },
-      },
-      { new: true }
-    );
-    if (!job) return sendError(res, 409, 'offer_closed', 'This offer is no longer open.');
-
-    const round = job.dispatch.round;
-    const roundOffers = job.dispatch.offers.filter((o) => o.round === round);
-    if (roundOffers.every((o) => o.response === 'rejected')) {
-      advanceNow(job._id, round).catch((err) =>
-        console.error(`Could not advance dispatch for job ${job._id}:`, err.message)
-      );
+    if (!(await declineOffer(req.params.id, req.user._id))) {
+      return sendError(res, 409, 'offer_closed', 'This offer is no longer open.');
     }
-
     return res.status(204).end();
   } catch (err) {
     console.error('Job reject error:', err.message);
@@ -358,14 +361,21 @@ router.post('/:id/complete', verifyToken, async (req, res) => {
 
 // ────────────────────────────────────────────────────────────────────────────
 // POST /api/jobs/:id/withdraw
-// The assigned worker backs out before starting. The job goes back to
-// SEARCHING and dispatch resumes with a fresh set of rounds (this worker is
-// never offered it again); the withdrawal counts against their reliability.
+// The assigned worker backs out before starting — within
+// WORKER_CANCEL_WINDOW_MS of accepting, or at any time once they're locked out
+// by wrong start codes. A reason is required. The job goes back to SEARCHING
+// as a new search with a fresh deadline (this worker is never offered it
+// again); the withdrawal counts against their reliability.
+// Body: { reason: one of WITHDRAW_REASONS, note? (required for 'other') }
+// 400 → no/invalid reason; 409 → not theirs, started, or the window is over
 // ────────────────────────────────────────────────────────────────────────────
 router.post('/:id/withdraw', verifyToken, async (req, res) => {
   if (!mongoose.isValidObjectId(req.params.id)) {
     return sendError(res, 404, 'job_not_found', 'Job not found');
   }
+
+  const { fields: withdrawal, errors } = validateWithdrawal(req.body);
+  if (Object.keys(errors).length > 0) return sendFieldErrors(res, errors);
 
   const me = req.user._id;
   const mine = { _id: req.params.id, assignedWorker: me, status: 'ASSIGNED' };
@@ -376,28 +386,43 @@ router.post('/:id/withdraw', verifyToken, async (req, res) => {
     const current = await Job.findOne(mine).select('dispatch.round');
     if (!current) return notAllowed();
 
+    const now = new Date();
     const round = current.dispatch.round;
     const job = await Job.findOneAndUpdate(
       {
         ...mine,
         'dispatch.round': round,
         'dispatch.offers': { $elemMatch: { worker: me, response: 'accepted' } },
+        $or: [
+          { assignedAt: { $gt: new Date(now.getTime() - WORKER_CANCEL_WINDOW_MS) } },
+          { startCodeAttempts: { $gte: MAX_START_CODE_ATTEMPTS } },
+        ],
       },
       {
         $set: {
-          status: 'SEARCHING',
+          ...newSearchFields(round, now.getTime()),
           assignedWorker: null,
           assignedAt: null,
           startCode: null,
           startCodeAttempts: 0,
-          'dispatch.firstRound': round + 1,
           'dispatch.offers.$.response': 'withdrawn',
-          'dispatch.offers.$.respondedAt': new Date(),
+          'dispatch.offers.$.respondedAt': now,
+          'dispatch.offers.$.withdrawReason': withdrawal.reason,
+          'dispatch.offers.$.withdrawNote': withdrawal.note,
         },
       },
       { new: true }
     );
-    if (!job) return notAllowed();
+    if (!job) {
+      return (await Job.exists(mine))
+        ? sendError(
+            res,
+            409,
+            'job_withdraw_window_over',
+            'The time to cancel this job is over. Please go and do the job, or call the client.'
+          )
+        : notAllowed();
+    }
 
     await releaseWorker(me, job._id);
     recordWithdrawal(me).catch((err) => console.error('Stats update failed:', err.message));
@@ -411,6 +436,52 @@ router.post('/:id/withdraw', verifyToken, async (req, res) => {
   } catch (err) {
     console.error('Job withdraw error:', err.message);
     return sendError(res, 500, 'job_update_failed', 'Could not withdraw from the job.');
+  }
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// POST /api/jobs/:id/retry
+// Nobody took the job before its search deadline (EXPIRED): the client
+// searches again — as it was ("repost"), for a higher price, or with other
+// edits. A new search with a fresh deadline starts right away; workers who
+// declined before are asked again, those who withdrew are not.
+// Body (all optional): { price, description, expectedDurationMins, address, category }
+// 400 → { error, fields }; 409 → the job isn't expired
+// ────────────────────────────────────────────────────────────────────────────
+router.post('/:id/retry', verifyToken, async (req, res) => {
+  if (!mongoose.isValidObjectId(req.params.id)) {
+    return sendError(res, 404, 'job_not_found', 'Job not found');
+  }
+
+  const { fields, errors } = await validateJobEdits(req.user, req.body);
+  if (Object.keys(errors).length > 0) return sendFieldErrors(res, errors);
+
+  const owned = { _id: req.params.id, client: req.user._id };
+
+  try {
+    const current = await Job.findOne({ ...owned, status: 'EXPIRED' }).select('dispatch.round');
+    const job =
+      current &&
+      (await Job.findOneAndUpdate(
+        { ...owned, status: 'EXPIRED', 'dispatch.round': current.dispatch.round },
+        { $set: { ...fields, ...newSearchFields(current.dispatch.round) } },
+        { new: true }
+      ));
+    if (!job) {
+      return (await Job.exists(owned))
+        ? sendError(res, 409, 'job_cannot_retry', 'Only a job nobody accepted can be searched again.')
+        : sendError(res, 404, 'job_not_found', 'Job not found');
+    }
+
+    // If Redis is unreachable the dispatcher's sweep starts it within a minute.
+    advanceNow(job._id, current.dispatch.round).catch((err) =>
+      console.error(`Could not restart dispatch for job ${job._id}:`, err.message)
+    );
+
+    return res.status(200).json(toJob(job, req.user._id));
+  } catch (err) {
+    console.error('Job retry error:', err.message);
+    return sendError(res, 500, 'job_update_failed', 'Could not search again.');
   }
 });
 
@@ -440,16 +511,7 @@ router.post('/:id/feedback', verifyToken, async (req, res) => {
     }
 
     const { fields, errors } = validateFeedback(req.body);
-    if (Object.keys(errors).length > 0) {
-      const { fields: fieldMessages, fieldCodes, fieldParams } = splitFieldErrors(errors);
-      return res.status(400).json({
-        error: 'Please fix the highlighted fields.',
-        code: 'validation',
-        fields: fieldMessages,
-        fieldCodes,
-        fieldParams,
-      });
-    }
+    if (Object.keys(errors).length > 0) return sendFieldErrors(res, errors);
 
     let feedback;
     try {
