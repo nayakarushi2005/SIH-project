@@ -75,11 +75,18 @@
       ]
     ],
     "scheme": "sihconnect",
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/c7171d32-e6f0-4865-a126-a44b8a7e45c4"
+    },
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "5a71188d-d500-45ce-944d-a0dcabd344c6"
+        "projectId": "c7171d32-e6f0-4865-a126-a44b8a7e45c4"
       }
-    }
+    },
+    "owner": "ishwar156"
   }
 }

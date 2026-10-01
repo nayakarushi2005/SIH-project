@@ -1,0 +1,102 @@
+# Tests for pull requests and feature branches. Pushes to main are tested by
+# the deploy workflows themselves, right before they deploy.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches-ignore: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      ai: ${{ steps.filter.outputs.ai }}
+      app: ${{ steps.filter.outputs.app }}
+      portal: ${{ steps.filter.outputs.portal }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend: ['backend/**']
+            ai: ['ai-service/**']
+            app: ['client-native/**']
+            portal: ['client/**']
+
+  backend:
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npm test
+
+  ai-service:
+    needs: changes
+    if: needs.changes.outputs.ai == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ai-service
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: ai-service/requirements.txt
+      - run: pip install -r requirements.txt
+      - run: pytest
+
+  app:
+    needs: changes
+    if: needs.changes.outputs.app == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client-native
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: client-native/package-lock.json
+      - run: npm ci
+      - run: npm run test:i18n
+      - run: npm run check:i18n
+      - run: npx expo lint
+
+  portal:
+    needs: changes
+    if: needs.changes.outputs.portal == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
