@@ -3,9 +3,18 @@ const {
   decideRequest,
   listRequests,
   memberCount,
+  memberCounts,
   removeMember,
   sendMembershipError,
 } = require('../services/membership');
+const {
+  addWorker,
+  importWorkers,
+  listWorkers,
+  removeWorker,
+  sendWorkerError,
+  signWorkerPhoto,
+} = require('../services/federationWorkers');
 
 // City and PIN decide which workers see this federation, so both are required.
 function readLocation(body) {
@@ -22,7 +31,7 @@ function readLocation(body) {
 // the caller's own record — never one looked up from the request body.
 const registerFederation = async (req, res) => {
   try {
-    const { name, amount, noOfWorkers, area } = req.body;
+    const { name, amount, area } = req.body;
     const { city, pincode, fields } = readLocation(req.body);
     if (Object.keys(fields).length > 0) {
       return res.status(400).json({ message: 'Please fix the highlighted fields.', fields });
@@ -35,7 +44,6 @@ const registerFederation = async (req, res) => {
 
     federation.name = name || federation.name;
     federation.amount = Number(amount) || federation.amount;
-    federation.noOfWorkers = Number(noOfWorkers) || federation.noOfWorkers;
     federation.area = area || federation.area;
     federation.city = city;
     federation.pincode = pincode;
@@ -116,10 +124,11 @@ const getAllFederations = async (req, res) => {
     }
 
     const federations = await Federation.find(filter).sort({ createdAt: -1 });
+    const counts = await memberCounts(federations.map((f) => f._id));
 
     return res.status(200).json({
       count: federations.length,
-      federations,
+      federations: federations.map((f) => ({ ...f.toJSON(), memberCount: counts.get(String(f._id)) || 0 })),
     });
   } catch (error) {
     console.error('Get Federations Error:', error);
@@ -214,6 +223,50 @@ const removeMyMember = async (req, res) => {
     return res.status(200).json({ request });
   } catch (err) {
     return sendMembershipError(res, err, 'message');
+  }
+};
+
+const listMyWorkers = async (req, res) => {
+  try {
+    const workers = await listWorkers(req.user.userId);
+    return res.status(200).json({ workers });
+  } catch (err) {
+    return sendWorkerError(res, err);
+  }
+};
+
+const addMyWorker = async (req, res) => {
+  try {
+    const worker = await addWorker(req.user.userId, req.body);
+    return res.status(201).json({ worker });
+  } catch (err) {
+    return sendWorkerError(res, err);
+  }
+};
+
+const importMyWorkers = async (req, res) => {
+  try {
+    const result = await importWorkers(req.user.userId, req.body?.rows);
+    return res.status(200).json(result);
+  } catch (err) {
+    return sendWorkerError(res, err);
+  }
+};
+
+const removeMyWorker = async (req, res) => {
+  try {
+    const worker = await removeWorker(req.user.userId, req.params.id);
+    return res.status(200).json({ worker });
+  } catch (err) {
+    return sendWorkerError(res, err);
+  }
+};
+
+const signMyWorkerPhoto = async (req, res) => {
+  try {
+    return res.status(200).json(await signWorkerPhoto(req.user.userId));
+  } catch (err) {
+    return sendWorkerError(res, err);
   }
 };
 
@@ -319,6 +372,11 @@ module.exports = {
   listMyRequests,
   decideMyRequest,
   removeMyMember,
+  listMyWorkers,
+  addMyWorker,
+  importMyWorkers,
+  removeMyWorker,
+  signMyWorkerPhoto,
   checkFederationByEmail,
   getAllFederations,
   getFederationById,

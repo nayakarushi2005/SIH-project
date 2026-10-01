@@ -5,10 +5,11 @@ import AppShell from './components/AppShell';
 import { Loading, PageHeader, Panel } from './components/ui';
 import Home from './pages/Home';
 import ProtectedRoute from './components/ProtectedRoute';
+import FederationGate from './components/FederationGate';
 import FederationRegister from './pages/federation/FederationRegister';
 import FederationStatus from './pages/federation/FederationStatus';
 import GovernmentVerification from './pages/federation/GovernmentVerification';
-import WorkerRequests from './pages/federation/WorkerRequests';
+import WorkerManagement from './pages/federation/WorkerManagement';
 import FederationDashboard from './pages/federation/FederationDashboard';
 import { lazy, Suspense } from 'react';
 
@@ -43,20 +44,22 @@ function App() {
 
         <Route element={<ProtectedRoute />}>
           <Route element={<AppShell />}>
-            <Route path="/federation/register" element={<FederationRegister />} />
-            <Route path="/federation/status" element={<FederationStatus />} />
-            <Route path="/federation/workers" element={<WorkerRequests />} />
-            <Route path="/federation/dashboard" element={<FederationDashboard />} />
-            <Route path="/gov/verify" element={<GovernmentVerification />} />
-            <Route
-              path="/gov/demand-map"
-              element={
-                <Suspense fallback={<Loading label="Loading map" />}>
-                  <DemandMap />
-                </Suspense>
-              }
-            />
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route element={<FederationGate />}>
+              <Route path="/federation/register" element={<FederationRegister />} />
+              <Route path="/federation/status" element={<FederationStatus />} />
+              <Route path="/federation/workers" element={<WorkerManagement />} />
+              <Route path="/federation/dashboard" element={<FederationDashboard />} />
+              <Route path="/gov/verify" element={<GovernmentVerification />} />
+              <Route
+                path="/gov/demand-map"
+                element={
+                  <Suspense fallback={<Loading label="Loading map" />}>
+                    <DemandMap />
+                  </Suspense>
+                }
+              />
+              <Route path="/dashboard" element={<Dashboard />} />
+            </Route>
           </Route>
         </Route>
       </Routes>

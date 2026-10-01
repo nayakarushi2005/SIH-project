@@ -10,6 +10,10 @@ function jobPhotoFolder(userId) {
   return `sih/jobs/${userId}`;
 }
 
+function federationWorkerPhotoFolder(federationId) {
+  return `sih/federations/${federationId}/workers`;
+}
+
 /**
  * Credentials from CLOUDINARY_CLOUD_NAME / _API_KEY / _API_SECRET, or from the
  * single CLOUDINARY_URL (cloudinary://<key>:<secret>@<cloud>) the dashboard shows.
@@ -75,8 +79,14 @@ function signJobPhotoUpload(userId) {
   });
 }
 
-/** True if `url` is an image this user uploaded through signJobPhotoUpload. */
-function isOwnedJobPhoto(url, userId) {
+function signFederationWorkerPhotoUpload(federationId) {
+  return signUpload({
+    folder: federationWorkerPhotoFolder(federationId),
+    timestamp: Math.floor(Date.now() / 1000),
+  });
+}
+
+function isUploadedToFolder(url, folder) {
   if (typeof url !== 'string') return false;
 
   const { cloudName } = getConfig();
@@ -85,17 +95,29 @@ function isOwnedJobPhoto(url, userId) {
   const prefix = `https://res.cloudinary.com/${cloudName}/image/upload/`;
   if (!url.startsWith(prefix)) return false;
 
-  const path = url.slice(prefix.length).replace(/^v\d+\//, ''); // drop version
+  const pathWithoutVersion = url.slice(prefix.length).replace(/^v\d+\//, '');
   return (
-    path.startsWith(`${jobPhotoFolder(userId)}/`) &&
-    !path.includes('..') &&
-    !/[?#\s]/.test(path)
+    pathWithoutVersion.startsWith(`${folder}/`) &&
+    !pathWithoutVersion.includes('..') &&
+    !/[?#\s]/.test(pathWithoutVersion)
   );
+}
+
+/** True if `url` is an image this user uploaded through signJobPhotoUpload. */
+function isOwnedJobPhoto(url, userId) {
+  return isUploadedToFolder(url, jobPhotoFolder(userId));
+}
+
+function isOwnedFederationWorkerPhoto(url, federationId) {
+  return isUploadedToFolder(url, federationWorkerPhotoFolder(federationId));
 }
 
 module.exports = {
   jobPhotoFolder,
+  federationWorkerPhotoFolder,
   signJobPhotoUpload,
+  signFederationWorkerPhotoUpload,
   signUpload,
   isOwnedJobPhoto,
+  isOwnedFederationWorkerPhoto,
 };

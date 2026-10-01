@@ -2,24 +2,61 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import useFetchWithAuth from '../../hooks/useFetchWithAuth';
 import { useAuth } from '../../context/AuthContext';
-import { 
-  Building2, 
-  Users, 
-  ShieldCheck, 
-  ArrowRight,
-  ShieldPlus,
-  Activity,
-  Award,
-  CheckCircle2,
-  Clock,
-  Briefcase,
-  UserCheck,
-  XCircle,
-  PlusCircle,
-  Pause,
-  Play,
-  Trash2
-} from 'lucide-react';
+import { Award, Briefcase, Pause, Play, PlusCircle, ShieldCheck, Trash2, Users } from 'lucide-react';
+import {
+  Button,
+  EmptyState,
+  INPUT,
+  LABEL,
+  Loading,
+  Modal,
+  PageHeader,
+  Panel,
+  PanelHeader,
+  StatusBadge,
+  buttonClass,
+} from '../../components/ui';
+
+const TH = 'px-5 py-3 text-left text-xs font-medium text-ink-3';
+const TD = 'px-5 py-3.5 align-middle';
+const POLICY_FORM_ID = 'add-policy-form';
+
+const POLICY_FIELDS = [
+  { key: 'name', label: 'Policy name', placeholder: 'e.g. Gig Worker Health Secure', wide: true },
+  { key: 'provider', label: 'Provider', placeholder: 'e.g. LIC' },
+  { key: 'coverage', label: 'Coverage', placeholder: 'e.g. ₹5,00,000' },
+  { key: 'premium', label: 'Premium', placeholder: 'e.g. ₹400/year' },
+  { key: 'paperwork', label: 'Paperwork', placeholder: 'e.g. Aadhaar only' },
+];
+
+const APPLICATION_BADGE = {
+  pending: { status: 'pending', label: 'Pending' },
+  approved: { status: 'verified', label: 'Verified' },
+  rejected: { status: 'rejected', label: 'Rejected' },
+};
+
+function StatCard({ label, value, icon: Icon }) {
+  return (
+    <Panel className="flex items-center justify-between gap-4 px-5 py-4">
+      <div>
+        <p className="text-xs font-medium text-ink-3">{label}</p>
+        <p className="mt-1 text-2xl font-semibold text-ink">{value}</p>
+      </div>
+      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-accent-soft text-accent">
+        <Icon className="w-5 h-5" />
+      </span>
+    </Panel>
+  );
+}
+
+function PolicyRow({ label, children }) {
+  return (
+    <div className="flex items-center justify-between gap-3 text-sm">
+      <span className="text-ink-3">{label}</span>
+      <span className="font-medium text-ink">{children}</span>
+    </div>
+  );
+}
 
 export default function FederationDashboard() {
   const authFetch = useFetchWithAuth();
@@ -154,189 +191,116 @@ export default function FederationDashboard() {
 
 
 
+
+  const optedMembers = (pkg) => applications.filter((a) => a.packageId === pkg._id && a.status === 'approved').length;
+  const currentPolicies = packages.filter((p) => p.status !== 'deprecated');
+  const deprecatedPolicies = packages.filter((p) => p.status === 'deprecated');
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-      </div>
+      <Panel>
+        <Loading label="Loading dashboard" />
+      </Panel>
     );
   }
 
   if (!federation || federation.status !== 'verified') {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-8">
-        <ShieldCheck className="w-16 h-16 text-amber-500 mb-4" />
-        <h2 className="text-2xl font-bold mb-2">Access Restricted</h2>
-        <p className="text-slate-400">Only verified federations can access this dashboard.</p>
-        <Link to="/federation/status" className="mt-6 text-blue-400 hover:underline">
-          Check your verification status
-        </Link>
-      </div>
+      <Panel>
+        <EmptyState icon={ShieldCheck} title="Only verified federations can open the dashboard">
+          <Link to="/federation/status" className="font-medium text-accent hover:underline">
+            Check your verification status
+          </Link>
+        </EmptyState>
+      </Panel>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto space-y-8">
-        
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-semibold uppercase tracking-wider mb-3">
-              <Activity className="w-4 h-4" /> Federation Portal
-            </div>
-            <h1 className="text-3xl font-extrabold sm:text-4xl">
-              Welcome, <span className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">{federation.name}</span>
-            </h1>
-            <p className="text-slate-400 mt-2 text-sm max-w-2xl">
-              Manage your workforce and explore zero-paperwork insurance collaborations to secure your community.
-            </p>
-          </div>
-          
-          <div className="flex gap-3">
-            <Link
-              to="/federation/workers"
-              className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-xl text-sm transition-all border border-slate-700 flex items-center gap-2"
-            >
-              <Users className="w-4 h-4" /> Manage Workers
-            </Link>
-          </div>
+    <>
+      <PageHeader
+        title={`Welcome, ${federation.name}`}
+        description="Manage your workers and offer insurance with minimal paperwork to keep your members secure."
+        actions={
+          <Link to="/federation/workers" className={buttonClass('secondary')}>
+            <Users className="w-4 h-4" /> Manage workers
+          </Link>
+        }
+      />
+
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <StatCard label="Total workers" value={memberCount} icon={Users} />
+          <StatCard label="Applications" value={applications.length} icon={ShieldCheck} />
+          <StatCard label="Active offers" value={packages.length} icon={Briefcase} />
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-slate-900 rounded-2xl p-6 border border-slate-800 shadow-lg relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <div className="flex items-center justify-between relative z-10">
-              <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Workers</p>
-                <h3 className="text-3xl font-bold text-white">{memberCount}</h3>
-              </div>
-              <div className="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center border border-blue-500/20">
-                <Users className="w-6 h-6 text-blue-400" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-slate-900 rounded-2xl p-6 border border-slate-800 shadow-lg relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <div className="flex items-center justify-between relative z-10">
-              <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Applications</p>
-                <h3 className="text-3xl font-bold text-white">{applications.length}</h3>
-              </div>
-              <div className="w-12 h-12 bg-emerald-500/10 rounded-full flex items-center justify-center border border-emerald-500/20">
-                <ShieldCheck className="w-6 h-6 text-emerald-400" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-slate-900 rounded-2xl p-6 border border-slate-800 shadow-lg relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <div className="flex items-center justify-between relative z-10">
-              <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Active Offers</p>
-                <h3 className="text-3xl font-bold text-white">{packages.length}</h3>
-              </div>
-              <div className="w-12 h-12 bg-indigo-500/10 rounded-full flex items-center justify-center border border-indigo-500/20">
-                <Briefcase className="w-6 h-6 text-indigo-400" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Insurance Collaboration Section */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
-          
-          <div className="relative z-10 mb-8 flex justify-between items-start">
-            <div>
-              <h2 className="text-2xl font-bold flex items-center gap-3">
-                <ShieldPlus className="w-7 h-7 text-emerald-400" />
-                Insurance Collaboration
-              </h2>
-              <p className="text-slate-400 text-sm mt-2 max-w-3xl">
-                Provide social security to your gig workers with curated insurance packages. 
-                Minimal paperwork, verified by government, and specialized for unorganized sectors.
-              </p>
-            </div>
-            <button
-              onClick={() => setShowAddPolicyModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold transition-all text-sm"
-            >
-              <PlusCircle className="w-4 h-4" /> Add Policy
-            </button>
-          </div>
+        <Panel className="overflow-hidden">
+          <PanelHeader
+            title="Insurance collaboration"
+            description="Curated insurance packages for your gig workers, with minimal paperwork and government verification."
+            actions={
+              <Button size="sm" onClick={() => setShowAddPolicyModal(true)}>
+                <PlusCircle className="w-4 h-4" /> Add policy
+              </Button>
+            }
+          />
 
           {loadingPackages ? (
-            <div className="py-12 flex justify-center">
-              <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-            </div>
+            <Loading label="Loading policies" />
           ) : packages.length === 0 ? (
-            <div className="py-12 text-center text-slate-500">
-              No insurance packages available at the moment.
-            </div>
+            <EmptyState icon={Award} title="No insurance packages yet">
+              Add a policy to offer it to your members.
+            </EmptyState>
           ) : (
-            <>
-              {/* Active Policies */}
-              <div className="mb-6">
-                <h3 className="text-xl font-bold text-white mb-4">Active & Paused Policies</h3>
-                {packages.filter(p => p.status !== 'deprecated').length === 0 ? (
-                  <p className="text-slate-500">No active policies found.</p>
+            <div className="space-y-6 px-5 py-5">
+              <div>
+                <h3 className="mb-3 text-sm font-semibold text-ink">Active and paused policies</h3>
+                {currentPolicies.length === 0 ? (
+                  <p className="text-sm text-ink-3">No active policies.</p>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
-                    {packages.filter(p => p.status !== 'deprecated').map(pkg => (
-                      <div key={pkg._id} className="bg-slate-950 border border-slate-800 rounded-2xl p-6 hover:border-emerald-500/50 transition-all group flex flex-col h-full">
-                        <div className="flex justify-between items-start mb-4">
-                          <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center border border-slate-800">
-                            <Award className="w-5 h-5 text-emerald-400" />
-                          </div>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {currentPolicies.map((pkg) => (
+                      <div key={pkg._id} className="flex flex-col rounded-lg border border-line bg-surface p-4">
+                        <div className="mb-3 flex items-start justify-between gap-3">
+                          <span className="flex h-9 w-9 items-center justify-center rounded-md bg-accent-soft text-accent">
+                            <Award className="w-[18px] h-[18px]" />
+                          </span>
                           <div className="flex flex-col items-end gap-1">
-                            <span className="text-xs font-bold px-2.5 py-1 bg-emerald-500/10 text-emerald-400 rounded-lg border border-emerald-500/20">
-                              {pkg.provider}
-                            </span>
-                            <span className="text-[10px] text-slate-500 font-mono">{pkg.policyId}</span>
+                            <span className="rounded border border-line bg-canvas px-1.5 py-0.5 text-xs text-ink-2">{pkg.provider}</span>
+                            <span className="font-mono text-[11px] text-ink-3">{pkg.policyId}</span>
                           </div>
                         </div>
-                        
-                        <h3 className="text-lg font-bold text-white mb-2">{pkg.name}</h3>
-                        
-                        <div className="space-y-3 mb-6 flex-1">
-                          <div className="flex justify-between items-center text-sm">
-                            <span className="text-slate-400">Coverage:</span>
-                            <span className="font-bold text-white">{pkg.coverage}</span>
-                          </div>
-                          <div className="flex justify-between items-center text-sm">
-                            <span className="text-slate-400">Premium:</span>
-                            <span className="font-bold text-white">{pkg.premium}</span>
-                          </div>
-                          <div className="flex justify-between items-center text-sm">
-                            <span className="text-slate-400">Status:</span>
-                            <span className={`font-bold ${pkg.status === 'paused' ? 'text-amber-400' : 'text-emerald-400'}`}>
-                              {pkg.status.toUpperCase()}
-                            </span>
-                          </div>
-                          <div className="flex justify-between items-center text-sm border-t border-slate-800/50 pt-3 mt-3">
-                            <span className="text-slate-400">Opted Members:</span>
-                            <span className="font-bold text-emerald-400">
-                              {applications.filter(a => a.packageId === pkg._id && a.status === 'approved').length}
-                            </span>
+
+                        <h4 className="mb-3 text-base font-semibold text-ink">{pkg.name}</h4>
+
+                        <div className="mb-4 flex-1 space-y-2">
+                          <PolicyRow label="Coverage">{pkg.coverage}</PolicyRow>
+                          <PolicyRow label="Premium">{pkg.premium}</PolicyRow>
+                          <PolicyRow label="Status">
+                            <StatusBadge
+                              status={pkg.status === 'paused' ? 'pending' : 'verified'}
+                              label={pkg.status === 'paused' ? 'Paused' : 'Active'}
+                            />
+                          </PolicyRow>
+                          <div className="border-t border-line pt-2">
+                            <PolicyRow label="Opted members">{optedMembers(pkg)}</PolicyRow>
                           </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-2">
                           {pkg.status === 'active' ? (
-                            <button onClick={() => handleUpdatePolicyStatus(pkg._id, 'paused')} className="py-2 bg-amber-500/10 text-amber-400 font-bold rounded-xl text-sm border border-amber-500/20 flex items-center justify-center gap-2 hover:bg-amber-500/20">
+                            <Button variant="secondary" size="sm" onClick={() => handleUpdatePolicyStatus(pkg._id, 'paused')}>
                               <Pause className="w-4 h-4" /> Hold
-                            </button>
+                            </Button>
                           ) : (
-                            <button onClick={() => handleUpdatePolicyStatus(pkg._id, 'active')} className="py-2 bg-emerald-500/10 text-emerald-400 font-bold rounded-xl text-sm border border-emerald-500/20 flex items-center justify-center gap-2 hover:bg-emerald-500/20">
+                            <Button variant="secondary" size="sm" onClick={() => handleUpdatePolicyStatus(pkg._id, 'active')}>
                               <Play className="w-4 h-4" /> Resume
-                            </button>
+                            </Button>
                           )}
-                          <button onClick={() => handleUpdatePolicyStatus(pkg._id, 'deprecated')} className="py-2 bg-rose-500/10 text-rose-400 font-bold rounded-xl text-sm border border-rose-500/20 flex items-center justify-center gap-2 hover:bg-rose-500/20">
+                          <Button variant="danger" size="sm" onClick={() => handleUpdatePolicyStatus(pkg._id, 'deprecated')}>
                             <Trash2 className="w-4 h-4" /> Remove
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     ))}
@@ -344,131 +308,108 @@ export default function FederationDashboard() {
                 )}
               </div>
 
-              {/* Deprecated Policies */}
-              {packages.filter(p => p.status === 'deprecated').length > 0 && (
-                <div className="mt-8 border-t border-slate-800 pt-8">
-                  <h3 className="text-lg font-bold text-slate-400 mb-4">Deprecated Policies</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 relative z-10 opacity-60 grayscale hover:grayscale-0 transition-all">
-                    {packages.filter(p => p.status === 'deprecated').map(pkg => (
-                      <div key={pkg._id} className="bg-slate-950 border border-slate-800 rounded-2xl p-4 flex flex-col h-full">
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="text-xs font-bold text-slate-500">{pkg.provider}</span>
-                          <span className="text-[10px] text-slate-600 font-mono">{pkg.policyId}</span>
+              {deprecatedPolicies.length > 0 && (
+                <div className="border-t border-line pt-6">
+                  <h3 className="mb-3 text-sm font-semibold text-ink-2">Deprecated policies</h3>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {deprecatedPolicies.map((pkg) => (
+                      <div key={pkg._id} className="flex flex-col rounded-lg border border-line bg-canvas p-4">
+                        <div className="mb-2 flex items-center justify-between gap-3">
+                          <span className="text-xs font-medium text-ink-3">{pkg.provider}</span>
+                          <span className="font-mono text-[11px] text-ink-3">{pkg.policyId}</span>
                         </div>
-                        <h3 className="text-md font-bold text-slate-300 mb-2">{pkg.name}</h3>
-                        <div className="text-xs text-slate-500 mb-4">
-                          Legacy members supported: <span className="text-emerald-500 font-bold">{applications.filter(a => a.packageId === pkg._id && a.status === 'approved').length}</span>
-                        </div>
-                        <div className="w-full py-1.5 bg-slate-800/30 text-slate-500 font-bold rounded-lg text-xs border border-slate-800 text-center">
-                          Removed / Deprecated
-                        </div>
+                        <h4 className="mb-2 text-sm font-semibold text-ink-2">{pkg.name}</h4>
+                        <p className="mb-3 text-xs text-ink-3">
+                          Legacy members supported: <span className="font-medium text-ink-2">{optedMembers(pkg)}</span>
+                        </p>
+                        <span className="mt-auto inline-flex h-6 w-fit items-center rounded bg-surface px-2 text-xs font-medium text-ink-3 border border-line">
+                          Removed
+                        </span>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
-            </>
+            </div>
           )}
-        </div>
+        </Panel>
 
-        {/* Worker Applications Section */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden mt-8">
-          <div className="relative z-10 mb-6">
-            <h2 className="text-2xl font-bold flex items-center gap-3">
-              <Users className="w-7 h-7 text-blue-400" />
-              Insured Members
-            </h2>
-            <p className="text-slate-400 text-sm mt-2 max-w-3xl">
-              List of gig workers in your federation who have active insurance policies.
-            </p>
-          </div>
-
+        <Panel className="overflow-hidden">
+          <PanelHeader
+            title="Insured members"
+            description="Gig workers in your federation who applied for an insurance policy."
+          />
           {loadingApps ? (
-            <div className="py-12 flex justify-center">
-              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-            </div>
+            <Loading label="Loading members" />
           ) : applications.length === 0 ? (
-            <div className="py-12 text-center text-slate-500">
-              No members have opted for insurance yet.
-            </div>
+            <EmptyState icon={Users} title="No members have opted for insurance yet" />
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-slate-800">
-                    <th className="py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Worker Name</th>
-                    <th className="py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Location</th>
-                    <th className="py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Package</th>
-                    <th className="py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
+            <div className="relative overflow-x-auto">
+              <table className="w-full min-w-[640px] text-sm">
+                <thead className="border-b border-line bg-canvas">
+                  <tr>
+                    <th className={TH}>Worker</th>
+                    <th className={TH}>Location</th>
+                    <th className={TH}>Package</th>
+                    <th className={TH}>Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/50">
-                  {applications.map(app => (
-                    <tr key={app._id} className="hover:bg-slate-800/20 transition-colors">
-                      <td className="py-4 px-4 font-semibold text-white">{app.workerId?.name || 'Unknown Worker'}</td>
-                      <td className="py-4 px-4 text-sm text-slate-400">
-                        {app.workerId?.city || ''} {app.workerId?.pincode ? `(${app.workerId.pincode})` : ''}
-                      </td>
-                      <td className="py-4 px-4 text-sm text-blue-300 font-medium">{app.packageName}</td>
-                      <td className="py-4 px-4">
-                        {app.status === 'pending' && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20"><Clock className="w-3.5 h-3.5" /> Pending</span>}
-                        {app.status === 'approved' && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"><CheckCircle2 className="w-3.5 h-3.5" /> Verified</span>}
-                        {app.status === 'rejected' && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20"><XCircle className="w-3.5 h-3.5" /> Rejected</span>}
-                      </td>
-                    </tr>
-                  ))}
+                <tbody className="divide-y divide-line">
+                  {applications.map((app) => {
+                    const badge = APPLICATION_BADGE[app.status];
+                    return (
+                      <tr key={app._id} className="hover:bg-canvas/60">
+                        <td className={`${TD} font-medium text-ink`}>{app.workerId?.name || 'Unknown worker'}</td>
+                        <td className={`${TD} text-ink-2`}>
+                          {[app.workerId?.city, app.workerId?.pincode].filter(Boolean).join(', ') || 'Not added'}
+                        </td>
+                        <td className={`${TD} text-ink-2`}>{app.packageName}</td>
+                        <td className={TD}>{badge ? <StatusBadge status={badge.status} label={badge.label} /> : <StatusBadge status={app.status} />}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           )}
-        </div>
+        </Panel>
       </div>
 
-      {/* Add Policy Modal */}
-      {showAddPolicyModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 relative">
-            <button 
-              onClick={() => setShowAddPolicyModal(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white"
-            >
-              <XCircle className="w-6 h-6" />
-            </button>
-            <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-              <ShieldPlus className="w-6 h-6 text-emerald-400" />
-              Add New Insurance Policy
-            </h3>
-            
-            <form onSubmit={handleAddPolicy} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <label className="block text-sm font-bold text-slate-400 mb-1">Policy Name</label>
-                  <input required value={newPolicy.name} onChange={e => setNewPolicy({...newPolicy, name: e.target.value})} type="text" className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-white focus:border-emerald-500 outline-none" placeholder="e.g. Gig Worker Health Secure" />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-slate-400 mb-1">Provider</label>
-                  <input required value={newPolicy.provider} onChange={e => setNewPolicy({...newPolicy, provider: e.target.value})} type="text" className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-white focus:border-emerald-500 outline-none" placeholder="e.g. LIC" />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-slate-400 mb-1">Coverage</label>
-                  <input required value={newPolicy.coverage} onChange={e => setNewPolicy({...newPolicy, coverage: e.target.value})} type="text" className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-white focus:border-emerald-500 outline-none" placeholder="e.g. ₹5,00,000" />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-slate-400 mb-1">Premium</label>
-                  <input required value={newPolicy.premium} onChange={e => setNewPolicy({...newPolicy, premium: e.target.value})} type="text" className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-white focus:border-emerald-500 outline-none" placeholder="e.g. ₹400/year" />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-slate-400 mb-1">Paperwork</label>
-                  <input required value={newPolicy.paperwork} onChange={e => setNewPolicy({...newPolicy, paperwork: e.target.value})} type="text" className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-white focus:border-emerald-500 outline-none" placeholder="e.g. Aadhaar Only" />
-                </div>
-              </div>
-              <button type="submit" className="w-full mt-6 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl transition-colors">
-                Save & Publish Policy
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
+      <Modal
+        open={showAddPolicyModal}
+        onClose={() => setShowAddPolicyModal(false)}
+        title="Add insurance policy"
+        description="The policy is published to your members once saved."
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setShowAddPolicyModal(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" form={POLICY_FORM_ID}>
+              Save and publish
+            </Button>
+          </>
+        }
+      >
+        <form id={POLICY_FORM_ID} onSubmit={handleAddPolicy} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {POLICY_FIELDS.map(({ key, label, placeholder, wide }) => (
+            <div key={key} className={wide ? 'sm:col-span-2' : ''}>
+              <label htmlFor={`policy-${key}`} className={LABEL}>
+                {label}
+              </label>
+              <input
+                id={`policy-${key}`}
+                type="text"
+                required
+                value={newPolicy[key]}
+                onChange={(e) => setNewPolicy({ ...newPolicy, [key]: e.target.value })}
+                placeholder={placeholder}
+                className={INPUT}
+              />
+            </div>
+          ))}
+        </form>
+      </Modal>
+    </>
   );
 }

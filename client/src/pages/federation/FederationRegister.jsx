@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import useFetchWithAuth from '../../hooks/useFetchWithAuth';
 import { useAuth } from '../../context/AuthContext';
+import { useFederation } from '../../context/FederationContext';
 import CityPinFields from '../../components/CityPinFields';
-import { Building2, Users, Mail, IndianRupee, MapPin } from 'lucide-react';
+import { Building2, Mail, IndianRupee, MapPin } from 'lucide-react';
 import { Button, INPUT, LABEL, Notice, PageHeader, Panel, PanelHeader } from '../../components/ui';
 
 const ICON = 'w-4 h-4 text-ink-3 absolute left-3 top-3 pointer-events-none';
@@ -13,15 +14,15 @@ export default function FederationRegister() {
   const location = useLocation();
   const authFetch = useFetchWithAuth();
   const { user } = useAuth();
+  const { federation, setFederation } = useFederation();
 
   const [formData, setFormData] = useState({
-    name: user?.name || location.state?.user?.name || '',
+    name: federation?.name || user?.name || location.state?.user?.name || '',
     email: user?.email || location.state?.user?.email || '',
-    area: '',
-    city: '',
-    pincode: '',
-    amount: '',
-    noOfWorkers: '',
+    area: federation?.area || '',
+    city: federation?.city || '',
+    pincode: federation?.pincode || '',
+    amount: federation?.amount > 0 ? String(federation.amount) : '',
   });
 
   useEffect(() => {
@@ -54,7 +55,6 @@ export default function FederationRegister() {
           name: formData.name,
           email: formData.email,
           amount: Number(formData.amount) || 0,
-          noOfWorkers: Number(formData.noOfWorkers) || 0,
           area: formData.area,
           city: formData.city.trim(),
           pincode: formData.pincode,
@@ -66,6 +66,8 @@ export default function FederationRegister() {
       if (!res.ok) {
         throw new Error(data.fields?.pincode || data.fields?.city || data.message || 'Failed to submit registration');
       }
+
+      setFederation(data.federation);
 
       // Save details in DB -> Directly redirect to Federation Status page
       navigate('/federation/status', {
@@ -150,39 +152,20 @@ export default function FederationRegister() {
               <p className="mt-1.5 text-xs text-ink-3">Taken from the Google account you signed in with.</p>
             </div>
 
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-              <div>
-                <label htmlFor="amount" className={LABEL}>Fund amount (₹)</label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    id="amount"
-                    name="amount"
-                    min="0"
-                    value={formData.amount}
-                    onChange={handleInputChange}
-                    placeholder="e.g. 50000"
-                    className={`${INPUT} pl-9`}
-                  />
-                  <IndianRupee className={ICON} />
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="noOfWorkers" className={LABEL}>Number of workers</label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    id="noOfWorkers"
-                    name="noOfWorkers"
-                    min="0"
-                    value={formData.noOfWorkers}
-                    onChange={handleInputChange}
-                    placeholder="e.g. 100"
-                    className={`${INPUT} pl-9`}
-                  />
-                  <Users className={ICON} />
-                </div>
+            <div>
+              <label htmlFor="amount" className={LABEL}>Fund amount (₹)</label>
+              <div className="relative">
+                <input
+                  type="number"
+                  id="amount"
+                  name="amount"
+                  min="0"
+                  value={formData.amount}
+                  onChange={handleInputChange}
+                  placeholder="e.g. 50000"
+                  className={`${INPUT} pl-9`}
+                />
+                <IndianRupee className={ICON} />
               </div>
             </div>
           </div>

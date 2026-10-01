@@ -25,6 +25,7 @@ app.use(cors({
 }));
 // Webhooks verify a signature over the raw body, so they go before JSON parsing.
 app.use('/api/webhooks', webhookRoutes);
+app.use('/api/federation/me/workers/import', express.json({ limit: '2mb' }));
 app.use(express.json());
 app.use(cookieParser()); // <-- Allows reading HTTP-only cookies
 

@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { APIProvider, Map } from '@vis.gl/react-google-maps';
-import { AlertTriangle, BriefcaseBusiness, Flame, Map as MapIcon, RefreshCw, Users, ZoomIn } from 'lucide-react';
+import { RefreshCw, ZoomIn } from 'lucide-react';
 
 import CanvasHeatmap from '../../components/CanvasHeatmap';
+import { Button, EmptyState, INPUT, Notice, PageHeader, Panel, PanelHeader, Tabs } from '../../components/ui';
 import useFetchWithAuth from '../../hooks/useFetchWithAuth';
 
 const MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-const MAP_ID = import.meta.env.VITE_GOOGLE_MAP_ID || 'DEMO_MAP_ID'; // vector map: smooth zoom, dark theme
+const MAP_ID = import.meta.env.VITE_GOOGLE_MAP_ID || 'DEMO_MAP_ID';
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
 
 const CENTER = (() => {
@@ -20,47 +21,57 @@ const LAYERS = {
     label: 'Demand',
     help: 'Jobs posted',
     weight: (c) => c.jobs,
-    colors: ['#7BD3A8', '#F2C94C', '#F2994A', '#D93025'],
+    colors: ['#C9D6F2', '#8AA4E0', '#4F70C4', '#2B4789'],
   },
   unfilled: {
     label: 'Unfilled',
     help: 'Jobs no worker took',
     weight: (c) => c.unfilled,
-    colors: ['#FCBBA1', '#FB6A4A', '#DE2D26', '#A50F15'],
+    colors: ['#F9C6BE', '#EE7B6B', '#D1432F', '#9E2415'],
   },
   workers: {
     label: 'Workers',
     help: 'Registered workers',
     weight: (c) => c.workers,
-    colors: ['#C7E9C0', '#74C476', '#31A354', '#006D2C'],
+    colors: ['#C9E8D5', '#7CC49A', '#3A9463', '#1F6B42'],
   },
   shortage: {
     label: 'Shortage',
     help: 'Jobs per registered worker',
     weight: (c) => c.shortage,
-    colors: ['#DADAEB', '#9E9AC8', '#756BB1', '#54278F'],
+    colors: ['#FCE3B0', '#F5B452', '#DB7A1C', '#A14F06'],
   },
 };
 const WINDOWS = [
-  { value: '7d', label: '7 days' },
-  { value: '30d', label: '30 days' },
-  { value: '90d', label: '90 days' },
+  { key: '7d', label: '7 days' },
+  { key: '30d', label: '30 days' },
+  { key: '90d', label: '90 days' },
 ];
+const LAYER_TABS = Object.entries(LAYERS).map(([key, l]) => ({ key, label: l.label }));
+
+const TH = 'px-4 py-3 text-left text-xs font-medium text-ink-3';
+const TD = 'px-4 py-3 align-middle';
 
 const pct = (x) => `${Math.round(x * 100)}%`;
 
-function Stat({ icon: Icon, label, value, tone }) {
+function Stat({ label, value }) {
   return (
-    <div className="flex-1 min-w-[140px] p-4 bg-slate-900 border border-slate-800 rounded-2xl">
-      <div className={`flex items-center gap-2 text-xs font-semibold uppercase tracking-wider ${tone}`}>
-        <Icon className="w-4 h-4" /> {label}
-      </div>
-      <div className="mt-1 text-2xl font-extrabold text-white">{value}</div>
+    <div className="bg-surface px-5 py-4">
+      <dt className="text-xs font-medium text-ink-3">{label}</dt>
+      <dd className="mt-1 text-xl font-semibold text-ink">{value}</dd>
     </div>
   );
 }
 
-/** Government officials: where demand for skilled work outstrips supply. */
+function HoverRow({ label, value }) {
+  return (
+    <div className="flex justify-between gap-6">
+      <dt className="text-ink-3">{label}</dt>
+      <dd className="font-medium text-ink">{value}</dd>
+    </div>
+  );
+}
+
 export default function DemandMap() {
   const authFetch = useFetchWithAuth();
   const [layer, setLayer] = useState('shortage');
@@ -141,15 +152,17 @@ export default function DemandMap() {
 
   if (!MAPS_KEY) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-8">
-        <div className="max-w-lg p-6 bg-slate-900 border border-amber-500/30 rounded-2xl text-sm text-slate-300">
-          <div className="flex items-center gap-2 text-amber-400 font-bold mb-2">
-            <AlertTriangle className="w-5 h-5" /> Google Maps key missing
-          </div>
-          Set <code className="text-amber-300">VITE_GOOGLE_MAPS_API_KEY</code> in <code>client/.env</code> (Maps
-          JavaScript API, restricted to this site) and restart the dev server.
-        </div>
-      </div>
+      <>
+        <PageHeader title="Skill demand map" />
+        <Notice tone="warn">
+          <p className="font-medium">Google Maps key missing</p>
+          <p className="mt-0.5">
+            Set <code className="font-mono text-[13px]">VITE_GOOGLE_MAPS_API_KEY</code> in{' '}
+            <code className="font-mono text-[13px]">client/.env</code> (Maps JavaScript API, restricted to this site) and
+            restart the dev server.
+          </p>
+        </Notice>
+      </>
     );
   }
 
@@ -157,180 +170,150 @@ export default function DemandMap() {
   const tooLarge = error?.code === 'heatmap_area_too_large';
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 py-10 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 pb-6 border-b border-slate-800">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-semibold uppercase tracking-wider mb-2 border border-emerald-500/20">
-              <MapIcon className="w-3.5 h-3.5" /> Skill Demand Map
-            </div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-              Where are <span className="text-emerald-400">skills short?</span>
-            </h1>
-            <p className="text-slate-400 text-sm mt-1">
-              Jobs posted vs registered workers in the visible area. Pan and zoom to a city; areas are shown as ~500 m
-              cells to protect privacy.
-            </p>
-          </div>
-          <button
-            onClick={() => changing(setAttempt)(attempt + 1)}
-            disabled={loading || !bounds}
-            className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-slate-200 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 border border-slate-800 self-start md:self-auto"
-          >
+    <>
+      <PageHeader
+        title="Skill demand map"
+        description="Jobs posted against registered workers in the visible area. Pan and zoom to a city. Areas are grouped into cells of about 500 m to protect privacy."
+        actions={
+          <Button variant="secondary" onClick={() => changing(setAttempt)(attempt + 1)} disabled={loading || !bounds}>
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
-          </button>
-        </div>
+          </Button>
+        }
+      />
 
-        {/* Filters */}
-        <div className="flex flex-col lg:flex-row gap-3 mb-6">
-          <div className="flex bg-slate-900 p-1 rounded-xl border border-slate-800 overflow-x-auto">
-            {Object.entries(LAYERS).map(([key, l]) => (
-              <button
-                key={key}
-                onClick={() => setLayer(key)}
-                title={l.help}
-                className={`px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
-                  layer === key ? 'bg-emerald-500 text-slate-950' : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                {l.label}
-              </button>
-            ))}
-          </div>
-          <div className="flex bg-slate-900 p-1 rounded-xl border border-slate-800">
-            {WINDOWS.map((w) => (
-              <button
-                key={w.value}
-                onClick={() => changing(setTimeWindow)(w.value)}
-                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-                  timeWindow === w.value ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                {w.label}
-              </button>
-            ))}
-          </div>
-          <select
-            value={category}
-            onChange={(e) => changing(setCategory)(e.target.value)}
-            className="px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-sm text-slate-200 lg:ml-auto"
-          >
-            <option value="">All trades</option>
-            {categoryOptions.map((c) => (
-              <option key={c.slug} value={c.slug}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+      <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center">
+        <div className="overflow-x-auto">
+          <Tabs items={LAYER_TABS} value={layer} onChange={setLayer} />
         </div>
+        <Tabs items={WINDOWS} value={timeWindow} onChange={changing(setTimeWindow)} />
+        <select
+          aria-label="Trade"
+          value={category}
+          onChange={(e) => changing(setCategory)(e.target.value)}
+          className={`${INPUT} h-9 lg:ml-auto lg:w-64`}
+        >
+          <option value="">All trades</option>
+          {categoryOptions.map((c) => (
+            <option key={c.slug} value={c.slug}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+      </div>
 
-        {/* Summary */}
-        <div className="flex flex-wrap gap-3 mb-6">
-          <Stat icon={BriefcaseBusiness} label="Jobs posted" value={s ? s.jobs : '—'} tone="text-amber-400" />
+      <Panel className="mb-6 overflow-hidden">
+        <dl className="grid grid-cols-2 gap-px bg-line lg:grid-cols-4">
+          <Stat label="Jobs posted" value={s ? s.jobs : '-'} />
           <Stat
-            icon={Flame}
             label="Unfilled"
-            value={s ? `${s.unfilled}${s.jobs ? ` (${pct(s.unfilled / s.jobs)})` : ''}` : '—'}
-            tone="text-red-400"
+            value={s ? `${s.unfilled}${s.jobs ? ` (${pct(s.unfilled / s.jobs)})` : ''}` : '-'}
           />
-          <Stat icon={Users} label="Registered workers" value={s ? s.workers : '—'} tone="text-emerald-400" />
-        </div>
+          <Stat label="Registered workers" value={s ? s.workers : '-'} />
+          <Stat label="Jobs per worker" value={s && s.workers ? (s.jobs / s.workers).toFixed(1) : '-'} />
+        </dl>
+      </Panel>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Map */}
-          <div className="lg:col-span-2">
-            <div className="relative h-[560px] rounded-2xl overflow-hidden border border-slate-800">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <Panel className="overflow-hidden">
+            <div className="relative h-[420px] sm:h-[560px]">
               <APIProvider apiKey={MAPS_KEY}>
                 <Map
                   mapId={MAP_ID}
+                  mapTypeId="hybrid"
                   defaultCenter={CENTER}
                   defaultZoom={12}
                   gestureHandling="greedy"
-                  disableDefaultUI={false}
+                  mapTypeControl={false}
+                  streetViewControl={false}
                   onIdle={onIdle}
-                  colorScheme="DARK"
+                  colorScheme="LIGHT"
                 >
                   <CanvasHeatmap cells={cells} weight={spec.weight} colors={spec.colors} onHover={setHovered} />
                 </Map>
               </APIProvider>
+
               {tooLarge ? (
-                <div className="absolute inset-x-0 top-4 mx-auto w-fit px-4 py-2 rounded-xl bg-slate-900/90 border border-amber-500/40 text-amber-300 text-sm flex items-center gap-2">
-                  <ZoomIn className="w-4 h-4" /> Zoom in to a city to see the map.
+                <div className="absolute inset-x-0 top-4 mx-auto flex w-fit items-center gap-2 rounded-md border border-line bg-surface px-3 py-2 text-sm text-ink">
+                  <ZoomIn className="w-4 h-4 text-ink-3" /> Zoom in to a city to see the map.
                 </div>
               ) : error ? (
-                <div className="absolute inset-x-0 top-4 mx-auto w-fit px-4 py-2 rounded-xl bg-slate-900/90 border border-red-500/40 text-red-300 text-sm">
+                <div className="absolute inset-x-0 top-4 mx-auto w-fit rounded-md border border-bad/25 bg-bad-soft px-3 py-2 text-sm text-bad">
                   {error.error || error.message || 'Could not load the map.'}
                 </div>
               ) : null}
+
               {hovered ? (
-                <div className="absolute left-4 bottom-4 px-4 py-3 rounded-xl bg-slate-900/95 border border-slate-700 text-sm space-y-0.5">
-                  <div>
-                    <span className="text-slate-400">Jobs:</span> <b>{hovered.jobs}</b>
-                  </div>
-                  <div>
-                    <span className="text-slate-400">Unfilled:</span> <b>{hovered.unfilled}</b>
-                  </div>
-                  <div>
-                    <span className="text-slate-400">Workers:</span> <b>{hovered.workers}</b>
-                  </div>
-                  <div>
-                    <span className="text-slate-400">Jobs per worker:</span> <b>{hovered.shortage}</b>
-                  </div>
-                </div>
+                <dl className="absolute bottom-4 left-3 space-y-1 rounded-md border border-line bg-surface px-4 py-3 text-sm">
+                  <HoverRow label="Jobs" value={hovered.jobs} />
+                  <HoverRow label="Unfilled" value={hovered.unfilled} />
+                  <HoverRow label="Workers" value={hovered.workers} />
+                  <HoverRow label="Jobs per worker" value={hovered.shortage} />
+                </dl>
               ) : null}
             </div>
-            <p className="text-xs text-slate-500 mt-2">
-              {spec.label}: {spec.help.toLowerCase()}. Cells with too little activity are hidden.
-            </p>
-          </div>
 
-          {/* Trades table */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 max-h-[600px] overflow-y-auto">
-            <h2 className="text-sm font-bold text-white mb-1">Trades most short of workers</h2>
-            <p className="text-xs text-slate-500 mb-3">By share of jobs left unfilled, in the visible area.</p>
-            {data?.categories?.length ? (
+            <div className="flex flex-col gap-2 border-t border-line px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-xs text-ink-3">
+                {spec.label}: {spec.help.toLowerCase()}. Cells with too little activity are hidden.
+              </p>
+              <div className="flex items-center gap-2 text-xs text-ink-3" aria-hidden="true">
+                Low
+                <span className="flex">
+                  {spec.colors.map((c) => (
+                    <span key={c} className="h-2.5 w-6" style={{ background: c }} />
+                  ))}
+                </span>
+                High
+              </div>
+            </div>
+          </Panel>
+        </div>
+
+        <Panel className="flex max-h-[640px] flex-col overflow-hidden">
+          <PanelHeader title="Trades most short of workers" description="By share of jobs left unfilled in the visible area." />
+          {data?.categories?.length ? (
+            <div className="overflow-y-auto">
               <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-xs text-slate-500 uppercase tracking-wider">
-                    <th className="py-2 font-semibold">Trade</th>
-                    <th className="py-2 font-semibold text-right">Jobs</th>
-                    <th className="py-2 font-semibold text-right">Unfilled</th>
-                    <th className="py-2 font-semibold text-right">Workers</th>
+                <thead className="sticky top-0 border-b border-line bg-canvas">
+                  <tr>
+                    <th className={TH}>Trade</th>
+                    <th className={`${TH} text-right`}>Jobs</th>
+                    <th className={`${TH} text-right`}>Unfilled</th>
+                    <th className={`${TH} text-right`}>Workers</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-line">
                   {data.categories.map((c) => (
                     <tr
                       key={c.category}
                       onClick={() => changing(setCategory)(category === c.category ? '' : c.category)}
-                      className={`border-t border-slate-800 cursor-pointer hover:bg-slate-800/60 ${
-                        category === c.category ? 'bg-emerald-500/10' : ''
-                      }`}
+                      aria-selected={category === c.category}
+                      className={`cursor-pointer ${category === c.category ? 'bg-accent-soft' : 'hover:bg-canvas/60'}`}
                     >
-                      <td className="py-2">
-                        <div className="font-semibold text-slate-200">{nameOf(c.category)}</div>
+                      <td className={TD}>
+                        <p className="font-medium text-ink">{nameOf(c.category)}</p>
                         {catalogue.get(c.category)?.ncoCode ? (
-                          <div className="text-xs text-slate-500">NCO {catalogue.get(c.category).ncoCode}</div>
+                          <p className="text-xs text-ink-3">NCO {catalogue.get(c.category).ncoCode}</p>
                         ) : null}
                       </td>
-                      <td className="py-2 text-right text-slate-300">{c.jobs}</td>
-                      <td className="py-2 text-right">
-                        <span className={c.unfilledRate >= 0.4 ? 'text-red-400 font-bold' : 'text-slate-300'}>
+                      <td className={`${TD} text-right text-ink-2`}>{c.jobs}</td>
+                      <td className={`${TD} text-right`}>
+                        <span className={c.unfilledRate >= 0.4 ? 'font-medium text-bad' : 'text-ink-2'}>
                           {pct(c.unfilledRate)}
                         </span>
                       </td>
-                      <td className="py-2 text-right text-slate-300">{c.workers}</td>
+                      <td className={`${TD} text-right text-ink-2`}>{c.workers}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            ) : (
-              <p className="text-sm text-slate-500">{loading ? 'Loading…' : 'No jobs in this area yet.'}</p>
-            )}
-          </div>
-        </div>
+            </div>
+          ) : (
+            <EmptyState title={loading ? 'Loading trades' : 'No jobs in this area yet'} />
+          )}
+        </Panel>
       </div>
-    </div>
+    </>
   );
 }
