@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import useFetchWithAuth from '../../hooks/useFetchWithAuth';
-import { Building2, CircleCheck, Search, RefreshCw, Check, X } from 'lucide-react';
+import { Ban, Building2, CircleCheck, Search, RefreshCw, Check, X } from 'lucide-react';
 import { Button, EmptyState, INPUT, Loading, Notice, PageHeader, Panel, StatusBadge, Tabs } from '../../components/ui';
 
 const TH = 'px-5 py-3 text-left text-xs font-medium text-ink-3';
@@ -37,19 +37,19 @@ export default function GovernmentVerification() {
     fetchFederations();
   }, []);
 
-  const handleVerification = async (id, status) => {
+  const handleVerification = async (id, status, rejectionReason) => {
     setActionLoadingId(id);
     try {
       const res = await authFetch(`/api/federation/${id}/verify`, {
         method: 'PATCH',
-        body: JSON.stringify({ status })
+        body: JSON.stringify({ status, rejectionReason })
       });
       if (!res.ok) throw new Error('Failed to update status');
       const data = await res.json();
 
       // Update local state instantly so UI matches DB state!
       setFederations((prev) =>
-        prev.map((f) => (f._id === id ? data.federation : f))
+        prev.map((f) => (f._id === id ? { ...f, ...data.federation } : f))
       );
 
       if (status === 'verified') {
@@ -60,6 +60,11 @@ export default function GovernmentVerification() {
     } finally {
       setActionLoadingId(null);
     }
+  };
+
+  const handleDeregister = (fed) => {
+    if (!window.confirm(`Deregister ${fed.name}? It will lose its verified status and can no longer manage workers.`)) return;
+    handleVerification(fed._id, 'rejected', 'Deregistered by a government official.');
   };
 
   // Filter federations based on status & search
@@ -148,12 +153,22 @@ export default function GovernmentVerification() {
                       <p className="text-xs text-ink-3">{fed.email}</p>
                     </td>
                     <td className={`${TD} font-mono text-[13px] text-ink-2`}>{fed.fedId}</td>
-                    <td className={`${TD} text-ink-2`}>{fed.noOfWorkers}</td>
+                    <td className={`${TD} text-ink-2`}>{fed.memberCount ?? 0}</td>
                     <td className={`${TD} text-ink-2`}>₹{fed.amount?.toLocaleString()}</td>
                     <td className={TD}>
                       <StatusBadge status={fed.status} />
                     </td>
                     <td className={`${TD} text-right`}>
+                      {fed.status === 'verified' && (
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          onClick={() => handleDeregister(fed)}
+                          disabled={actionLoadingId === fed._id}
+                        >
+                          <Ban className="w-4 h-4" /> Deregister
+                        </Button>
+                      )}
                       {fed.status !== 'verified' && (
                         <div className="inline-flex items-center gap-2">
                           <Button

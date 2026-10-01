@@ -10,6 +10,11 @@ const {
   listMyRequests,
   decideMyRequest,
   removeMyMember,
+  listMyWorkers,
+  addMyWorker,
+  importMyWorkers,
+  removeMyWorker,
+  signMyWorkerPhoto,
   getInsurancePackages,
   addInsurancePackage,
   updateInsurancePackage,
@@ -39,6 +44,11 @@ router.get('/all', requireRole('GovOfficial'), getAllFederations);
 router.get('/me/requests', requireRole('Federation'), listMyRequests);
 router.patch('/me/requests/:id', requireRole('Federation'), decideMyRequest);
 router.delete('/me/members/:id', requireRole('Federation'), removeMyMember);
+router.get('/me/workers', requireRole('Federation'), listMyWorkers);
+router.post('/me/workers', requireRole('Federation'), addMyWorker);
+router.post('/me/workers/import', requireRole('Federation'), importMyWorkers);
+router.post('/me/workers/photo/sign', requireRole('Federation'), signMyWorkerPhoto);
+router.delete('/me/workers/:id', requireRole('Federation'), removeMyWorker);
 
 // Federation portal: insurance collaboration
 router.get('/me/insurance', requireRole('Federation'), getInsurancePackages);

@@ -1,13 +1,17 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { ClipboardCheck, FileText, Landmark, LayoutDashboard, LogOut, Map as MapIcon, Users } from 'lucide-react';
+import { ClipboardCheck, FileText, LayoutDashboard, LogOut, Map as MapIcon, Users } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useFederation } from '../context/FederationContext';
+import logo from '../assets/logo sahayak.png';
+
+const REGISTERED_FEDERATION_NAV = [
+  { to: '/federation/status', label: 'Overview', icon: LayoutDashboard },
+  { to: '/federation/workers', label: 'Worker management', icon: Users },
+];
+
+const UNREGISTERED_FEDERATION_NAV = [{ to: '/federation/register', label: 'Registration', icon: FileText }];
 
 const NAV = {
-  Federation: [
-    { to: '/federation/status', label: 'Overview', icon: LayoutDashboard },
-    { to: '/federation/workers', label: 'Worker requests', icon: Users },
-    { to: '/federation/register', label: 'Registration', icon: FileText },
-  ],
   GovOfficial: [
     { to: '/gov/verify', label: 'Verification', icon: ClipboardCheck },
     { to: '/gov/demand-map', label: 'Skill Demand Map', icon: MapIcon },
@@ -24,18 +28,22 @@ const ROLE_LABEL = {
 export function Brand() {
   return (
     <span className="flex items-center gap-2.5">
-      <span className="flex h-7 w-7 items-center justify-center rounded-md bg-accent text-white">
-        <Landmark className="w-4 h-4" />
+      <img src={logo} alt="" className="h-9 w-9 shrink-0 rounded-lg" />
+      <span className="flex flex-col leading-tight">
+        <span className="text-[15px] font-semibold tracking-tight text-ink">Sahayak</span>
+        <span className="text-xs text-ink-3">Federation Portal</span>
       </span>
-      <span className="text-[15px] font-semibold tracking-tight text-ink">GigWorkers Fed</span>
     </span>
   );
 }
 
+const SIDEBAR_ITEM =
+  'flex items-center gap-3 h-10 px-3 rounded-lg text-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent';
+
+const SIDEBAR_ITEM_IDLE = 'text-ink-2 hover:bg-canvas hover:text-ink';
+
 function navClass({ isActive }) {
-  return `flex items-center gap-3 h-9 px-3 rounded-md text-sm font-medium transition-colors ${
-    isActive ? 'bg-accent-soft text-accent' : 'text-ink-2 hover:bg-canvas hover:text-ink'
-  }`;
+  return `${SIDEBAR_ITEM} ${isActive ? 'bg-accent-soft text-accent font-medium' : SIDEBAR_ITEM_IDLE}`;
 }
 
 function mobileNavClass({ isActive }) {
@@ -44,10 +52,19 @@ function mobileNavClass({ isActive }) {
   }`;
 }
 
+function navItems(userType, federationLoading, federationRegistered) {
+  if (userType === 'Federation') {
+    if (federationLoading) return [];
+    return federationRegistered ? REGISTERED_FEDERATION_NAV : UNREGISTERED_FEDERATION_NAV;
+  }
+  return NAV[userType] || FALLBACK_NAV;
+}
+
 export default function AppShell() {
   const { user, userType, logout } = useAuth();
+  const { loading: federationLoading, registered: federationRegistered } = useFederation();
   const navigate = useNavigate();
-  const items = NAV[userType] || FALLBACK_NAV;
+  const items = navItems(userType, federationLoading, federationRegistered);
   const initial = (user?.name || user?.email || '?').trim().charAt(0).toUpperCase();
 
   const handleLogout = async () => {
@@ -61,7 +78,7 @@ export default function AppShell() {
         <div className="flex h-14 items-center px-5 border-b border-line">
           <Brand />
         </div>
-        <nav className="flex-1 space-y-0.5 p-3" aria-label="Main">
+        <nav className="flex-1 space-y-1 p-3" aria-label="Main">
           {items.map(({ to, label, icon: Icon }) => (
             <NavLink key={to} to={to} className={navClass}>
               <Icon className="w-4 h-4" />
@@ -70,11 +87,7 @@ export default function AppShell() {
           ))}
         </nav>
         <div className="border-t border-line p-3">
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="flex w-full items-center gap-3 h-9 px-3 rounded-md text-sm font-medium text-ink-2 hover:bg-canvas hover:text-ink"
-          >
+          <button type="button" onClick={handleLogout} className={`${SIDEBAR_ITEM} w-full text-ink-2 hover:bg-bad-soft hover:text-bad`}>
             <LogOut className="w-4 h-4" />
             Log out
           </button>
@@ -99,7 +112,7 @@ export default function AppShell() {
               type="button"
               onClick={handleLogout}
               aria-label="Log out"
-              className="md:hidden flex h-8 w-8 items-center justify-center rounded-md text-ink-2 hover:bg-canvas"
+              className="md:hidden flex h-8 w-8 items-center justify-center rounded-md text-ink-2 hover:bg-bad-soft hover:text-bad"
             >
               <LogOut className="w-4 h-4" />
             </button>

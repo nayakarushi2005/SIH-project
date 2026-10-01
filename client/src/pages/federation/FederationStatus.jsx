@@ -6,9 +6,9 @@ import CityPinFields from '../../components/CityPinFields';
 import { Building2, Pencil } from 'lucide-react';
 import { Button, Notice, PageHeader, Panel, PanelHeader, StatusBadge, Loading, EmptyState, buttonClass } from '../../components/ui';
 
-function Detail({ label, children }) {
+function Detail({ label, children, className = '' }) {
   return (
-    <div className="bg-surface px-5 py-4">
+    <div className={`bg-surface px-5 py-4 ${className}`}>
       <dt className="text-xs font-medium text-ink-3">{label}</dt>
       <dd className="mt-1 text-sm text-ink">{children}</dd>
     </div>
@@ -121,6 +121,11 @@ export default function FederationStatus() {
             <p className={`text-sm ${federation.status === 'rejected' ? 'text-bad' : 'text-ink-2'}`}>
               {statusMessage(federation)}
             </p>
+            {federation.status === 'rejected' && (
+              <Link to="/federation/register" className={`${buttonClass('secondary', 'sm')} sm:ml-auto`}>
+                Fix and resubmit
+              </Link>
+            )}
           </Panel>
 
           <Panel className="overflow-hidden">
@@ -130,10 +135,9 @@ export default function FederationStatus() {
                 <span className="font-mono text-[13px]">{federation.fedId}</span>
               </Detail>
               <Detail label="Official email">{federation.email}</Detail>
-              <Detail label="Registered workers">{federation.noOfWorkers}</Detail>
-              <Detail label="Connected workers">{memberCount ?? 'Not available'}</Detail>
+              <Detail label="Registered workers">{memberCount ?? 'Not available'}</Detail>
               <Detail label="Fund amount">₹{federation.amount?.toLocaleString()}</Detail>
-              <Detail label="City and PIN code">
+              <Detail label="City and PIN code" className="sm:col-span-2">
                 {editingLocation ? (
                   <span className="text-ink-3">Editing below</span>
                 ) : (

@@ -6,6 +6,7 @@
 const mongoose = require('mongoose');
 const Federation = require('../models/Federation');
 const FederationMembership = require('../models/FederationMembership');
+const FederationWorker = require('../models/FederationWorker');
 const User = require('../models/User');
 const { ACTIVE_STATUSES } = require('../models/FederationMembership');
 const { toProfile } = require('./profile');
@@ -37,15 +38,30 @@ const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const isId = (id) => mongoose.isValidObjectId(id) && String(new mongoose.Types.ObjectId(id)) === String(id);
 
 async function memberCounts(federationIds) {
-  const rows = await FederationMembership.aggregate([
-    { $match: { federation: { $in: federationIds }, status: 'verified' } },
-    { $group: { _id: '$federation', count: { $sum: 1 } } },
+  const [memberships, roster] = await Promise.all([
+    FederationMembership.aggregate([
+      { $match: { federation: { $in: federationIds }, status: 'verified' } },
+      { $group: { _id: '$federation', count: { $sum: 1 } } },
+    ]),
+    FederationWorker.aggregate([
+      { $match: { federation: { $in: federationIds }, status: 'active' } },
+      { $group: { _id: '$federation', count: { $sum: 1 } } },
+    ]),
   ]);
-  return new Map(rows.map((r) => [String(r._id), r.count]));
+  const counts = new Map();
+  for (const r of [...memberships, ...roster]) {
+    const key = String(r._id);
+    counts.set(key, (counts.get(key) || 0) + r.count);
+  }
+  return counts;
 }
 
 async function memberCount(federationId) {
-  return FederationMembership.countDocuments({ federation: federationId, status: 'verified' });
+  const [memberships, roster] = await Promise.all([
+    FederationMembership.countDocuments({ federation: federationId, status: 'verified' }),
+    FederationWorker.countDocuments({ federation: federationId, status: 'active' }),
+  ]);
+  return memberships + roster;
 }
 
 /** Verified federations for this worker: same PIN, else same city. */
@@ -133,6 +149,11 @@ async function buildProfile(user) {
 
 // ── Federation side (web portal) ────────────────────────────────────────────
 
+function maskAadhaar(value) {
+  const digits = String(value ?? '').replace(/\D/g, '');
+  return digits.length >= 4 ? `XXXX-XXXX-${digits.slice(-4)}` : null;
+}
+
 async function loadVerifiedFederation(federationId) {
   const federation = await Federation.findById(federationId).lean();
   if (!federation || federation.status !== 'verified') fail('federation_unverified', 403);
@@ -146,7 +167,7 @@ async function listRequests(federationId, status = 'pending') {
     .sort({ requestedAt: 1 })
     .lean();
   const users = await User.find({ _id: { $in: rows.map((r) => r.user) } })
-    .select('name isAadhaarVerified worker.categories city pincode')
+    .select('name isAadhaarVerified worker.categories city pincode phone aadhaarNumber googleAvatar')
     .lean();
   const byId = new Map(users.map((u) => [String(u._id), u]));
   return rows.map((r) => {
@@ -162,6 +183,9 @@ async function listRequests(federationId, status = 'pending') {
         categories: u.worker?.categories || [],
         city: u.city || null,
         pincode: u.pincode || null,
+        phone: u.phone || null,
+        aadhaar: maskAadhaar(u.aadhaarNumber),
+        photoUrl: u.googleAvatar || null,
       },
     };
   });
@@ -221,7 +245,9 @@ module.exports = {
   findNearby,
   leaveMembership,
   listRequests,
+  loadVerifiedFederation,
   memberCount,
+  memberCounts,
   removeMember,
   requestMembership,
   sendMembershipError,

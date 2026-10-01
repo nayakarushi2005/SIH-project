@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useGoogleLogin } from '@react-oauth/google';
 import { Building2, Landmark } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { Brand } from '../components/AppShell';
+import logo from '../assets/logo sahayak.png';
 import { Notice, Panel } from '../components/ui';
 
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
@@ -143,17 +143,17 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-canvas text-ink flex flex-col">
-      <header className="h-14 border-b border-line bg-surface">
-        <div className="mx-auto flex h-full max-w-6xl items-center px-4 sm:px-6">
-          <Brand />
-        </div>
-      </header>
-
-      <main className="flex-1">
-        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_420px] lg:items-center lg:gap-16 lg:py-20">
+      <main className="flex flex-1 items-center">
+        <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_420px] lg:items-center lg:gap-16">
           <div>
-            <p className="text-sm font-medium text-accent">Gig worker federation portal</p>
-            <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
+            <div className="flex items-center gap-3">
+              <img src={logo} alt="" className="h-12 w-12 shrink-0 rounded-xl" />
+              <div className="leading-tight">
+                <p className="text-xl font-semibold tracking-tight text-ink">Sahayak</p>
+                <p className="text-sm text-ink-3">Gig worker federation portal</p>
+              </div>
+            </div>
+            <h1 className="mt-6 text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
               Welfare and verification for India's gig worker federations
             </h1>
             <p className="mt-4 max-w-xl text-base leading-relaxed text-ink-2">
