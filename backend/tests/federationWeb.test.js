@@ -98,12 +98,12 @@ test('only a government official can verify a federation', async () => {
 test('register updates the caller only and requires city and PIN', async () => {
   const mine = await fed({ status: 'unverified', city: '', pincode: '' });
   const victim = await fed({ status: 'unverified' });
-  const bad = await request(app).post('/api/federation/register').set(as(mine, 'Federation')).send({ name: 'Mine', noOfWorkers: 5, city: 'Pune', pincode: '12' });
+  const bad = await request(app).post('/api/federation/register').set(as(mine, 'Federation')).send({ name: 'Mine', city: 'Pune', pincode: '12' });
   expect(bad.status).toBe(400);
   const ok = await request(app)
     .post('/api/federation/register')
     .set(as(mine, 'Federation'))
-    .send({ name: 'Mine', email: victim.email, noOfWorkers: 5, city: 'Pune', pincode: '411001' });
+    .send({ name: 'Mine', email: victim.email, city: 'Pune', pincode: '411001' });
   expect(ok.status).toBe(200);
   expect(ok.body.federation._id).toBe(String(mine._id));
   expect((await Federation.findById(victim._id)).name).toBe(victim.name);
@@ -183,5 +183,6 @@ test('register works without a number of workers', async () => {
   const f = await fed({ status: 'unverified', city: '', pincode: '' });
   const res = await request(app).post('/api/federation/register').set(as(f, 'Federation')).send({ name: 'Mine', city: 'Pune', pincode: '411001' });
   expect(res.status).toBe(200);
-  expect(res.body.federation.noOfWorkers).toBe(0);
+  expect(res.body.federation).not.toHaveProperty('noOfWorkers');
+  expect(await Federation.findById(f._id).lean()).not.toHaveProperty('noOfWorkers');
 });

@@ -70,3 +70,51 @@ feedback_criticized_invalid — Choose what could be better from the list.
 feedback_traits_conflict — Something can’t be both good and bad — pick one.
 feedback_rehire_invalid — Answer yes or no.
 feedback_comment_length — Keep your comment under 500 characters.
+payment_job_not_completed — You can pay once the job is completed.
+payment_already_paid — This job is already paid for.
+payments_not_configured — Online payments aren’t set up yet.
+payment_order_failed — Could not start the payment. Please try again.
+payment_verification_failed — We couldn’t verify this payment.
+payment_verify_failed — Could not confirm the payment. Please check again shortly.
+payment_update_failed — Could not record the payment.
+payment_load_failed — Could not load the payment.
+receipt_not_found — Receipt not found
+receipt_link_expired — This receipt link has expired. Open it again from the app.
+receipt_failed — Could not open the receipt.
+earnings_load_failed — Could not load your earnings.
+payout_holder_name_invalid — Enter the name exactly as it is on your bank account.
+payout_account_number_invalid — Enter a valid account number (9–18 digits).
+payout_account_number_mismatch — The account numbers don’t match.
+payout_ifsc_invalid — Enter a valid 11-character IFSC code.
+payout_ifsc_not_found — We couldn’t find a bank branch with this IFSC code.
+payout_profile_incomplete — Add your phone number and PIN code to your profile first.
+payout_account_failed — We couldn’t register this bank account. Please check the details and try again.
+payout_worker_only — Register as a worker to add bank details.
+payout_account_load_failed — Could not load your bank details.
+payout_account_save_failed — Could not save your bank details.
+heatmap_workers_only — Register as a worker to see where the work is.
+heatmap_bounds_invalid — Map bounds are missing or invalid.
+heatmap_area_too_large — Zoom in to a city to see the map.
+heatmap_load_failed — Could not load the map.
+insurance_not_member — You must be a verified member of a federation to access insurance.
+insurance_load_failed — Could not load insurance data.
+insurance_package_not_found — Insurance package not found.
+insurance_package_paused — This insurance package is currently on hold and cannot be applied for.
+insurance_package_closed — This insurance package is no longer available.
+insurance_already_applied — You have already applied for this insurance package.
+insurance_apply_failed — Could not submit insurance application.
+safety_location_invalid — We couldn’t read your location. Please allow location access.
+safety_location_required — We need your location to send an SOS.
+safety_outcome_invalid — Choose whether it was a false alarm or a real emergency.
+safety_load_failed — Could not load the safety shield.
+safety_location_failed — Could not update your location.
+safety_end_failed — Could not close the safety shield.
+sos_start_failed — Could not send your SOS. Call 112 if you are in danger.
+sos_stop_failed — Could not turn off your SOS.
+sos_outcome_not_found — That SOS was not found or is already answered.
+sos_outcome_failed — Could not save your answer.
+voice_upload_unavailable — Voice notes can’t be uploaded right now.
+voice_note_url_invalid — Upload the recording before sending it.
+voice_note_duration_invalid — That recording length doesn’t look right.
+voice_note_failed — Could not save your voice note.
+voice_notes_load_failed — Could not load your voice notes.

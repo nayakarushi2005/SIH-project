@@ -121,6 +121,14 @@ export default function TabsLayout() {
           name="messages"
           options={{ title: t('tabs.messages'), tabBarIcon: tabIcon('chatbubble-ellipses') }}
         />
+        <Tabs.Screen
+          name="benefits"
+          options={{
+            title: t('tabs.benefits'),
+            tabBarIcon: tabIcon('shield-checkmark'),
+            href: user?.isWorker ? '/benefits' : null,
+          }}
+        />
         <Tabs.Screen name="profile" options={{ title: t('tabs.profile'), tabBarIcon: tabIcon('person') }} />
       </Tabs>
 

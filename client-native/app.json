@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "SIH Connect",
+    "name": "Sahayak",
     "slug": "sih-connect",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -13,7 +13,7 @@
     "android": {
       "package": "com.sihproject.connect",
       "adaptiveIcon": {
-        "backgroundColor": "#0d0d1a",
+        "backgroundColor": "#ffffff",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -32,7 +32,20 @@
         }
       ],
       "expo-web-browser",
-      "expo-font",
+      [
+        "expo-font",
+        {
+          "fonts": ["./assets/fonts/CenturyGothic-Bold.ttf"]
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#097d4c",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 188
+        }
+      ],
       [
         "expo-image-picker",
         {
@@ -43,8 +56,8 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "SIH Connect uses your location to show jobs and workers near you, and for the Sisterhood Shield.",
-          "locationAlwaysAndWhenInUsePermission": "While the Sisterhood Shield is on, SIH Connect uses your location in the background so your SOS still works with the screen off.",
+          "locationWhenInUsePermission": "Sahayak uses your location to show jobs and workers near you, and for the Sisterhood Shield.",
+          "locationAlwaysAndWhenInUsePermission": "While the Sisterhood Shield is on, Sahayak uses your location in the background so your SOS still works with the screen off.",
           "isAndroidBackgroundLocationEnabled": true,
           "isAndroidForegroundServiceEnabled": true,
           "isIosBackgroundLocationEnabled": true
@@ -60,8 +73,8 @@
       [
         "expo-speech-recognition",
         {
-          "microphonePermission": "SIH Connect uses the microphone so you can answer questions by speaking, and to record voice notes from the Sisterhood Shield.",
-          "speechRecognitionPermission": "SIH Connect converts your speech to text to fill in your registration, and listens for “help” while the Sisterhood Shield is open.",
+          "microphonePermission": "Sahayak uses the microphone so you can answer questions by speaking, and to record voice notes from the Sisterhood Shield.",
+          "speechRecognitionPermission": "Sahayak converts your speech to text to fill in your registration, and listens for “help” while the Sisterhood Shield is open.",
           "androidSpeechServicePackages": [
             "com.google.android.googlequicksearchbox"
           ]
@@ -70,7 +83,7 @@
       [
         "expo-audio",
         {
-          "microphonePermission": "SIH Connect uses the microphone so you can answer questions by speaking, and to record voice notes from the Sisterhood Shield."
+          "microphonePermission": "Sahayak uses the microphone so you can answer questions by speaking, and to record voice notes from the Sisterhood Shield."
         }
       ]
     ],
