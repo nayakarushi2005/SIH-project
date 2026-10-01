@@ -76,6 +76,13 @@ const jobSchema = new mongoose.Schema(
       required: true,
     },
 
+    // Embedding of "<category>: <description>" (float32 — services/vectors.js),
+    // written by the dispatcher before ranking. Never loaded unless asked for.
+    embedding: {
+      type: Buffer,
+      select: false,
+    },
+
     // ── Lifecycle ───────────────────────────────────────────────────────
     status: {
       type: String,

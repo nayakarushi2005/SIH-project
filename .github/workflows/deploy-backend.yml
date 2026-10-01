@@ -1,0 +1,72 @@
+# Tests, then deploys backend/ to Cloud Run: the API (sih-backend) and the
+# dispatcher (sih-dispatcher) from one image. Runs on every push to main that
+# touches backend/, or from the Actions tab ("Run workflow").
+#
+# Only the code changes: each service keeps its env vars, Vertex key mount,
+# instance settings and (dispatcher) start command from the last deploy. To
+# change those, deploy by hand with deploy/backend.env.yaml (deployment_guide.md).
+name: Deploy backend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-backend
+  cancel-in-progress: false
+
+env:
+  REGION: asia-south1
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npm test
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # keyless login to Google Cloud
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SA }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+
+      - name: Deploy API (sih-backend)
+        run: gcloud run deploy sih-backend --source backend --region "$REGION" --quiet
+
+      - name: Deploy dispatcher (sih-dispatcher) with the same image
+        run: |
+          IMAGE=$(gcloud run services describe sih-backend --region "$REGION" \
+            --format='value(spec.template.spec.containers[0].image)')
+          echo "Image: $IMAGE"
+          gcloud run deploy sih-dispatcher --image "$IMAGE" --region "$REGION" --quiet
+
+      - name: Health check
+        run: |
+          URL=$(gcloud run services describe sih-backend --region "$REGION" --format='value(status.url)')
+          curl -fsS --retry 3 --retry-delay 5 "$URL/api/health"

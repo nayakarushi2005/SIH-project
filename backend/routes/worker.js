@@ -110,7 +110,7 @@ router.get('/insurance', async (req, res) => {
   try {
     const mem = await currentMembership(req.user._id);
     if (!mem || mem.status !== 'verified') {
-      return res.status(403).json({ message: 'You must be a verified member of a federation to access insurance.' });
+      return sendError(res, 403, 'insurance_not_member', 'You must be a verified member of a federation to access insurance.');
     }
 
     const InsurancePackage = require('../models/InsurancePackage');
@@ -122,7 +122,7 @@ router.get('/insurance', async (req, res) => {
     const apps = await InsuranceApplication.find({ workerId: req.user._id, federationId: mem.id }).lean();
     return res.status(200).json({ packages, applications: apps });
   } catch (err) {
-    return sendError(res, 500, 'fetch_failed', 'Could not load insurance data.');
+    return sendError(res, 500, 'insurance_load_failed', 'Could not load insurance data.');
   }
 });
 
@@ -131,23 +131,23 @@ router.post('/insurance/:packageId/apply', async (req, res) => {
   try {
     const mem = await currentMembership(req.user._id);
     if (!mem || mem.status !== 'verified') {
-      return res.status(403).json({ message: 'You must be a verified member of a federation to apply.' });
+      return sendError(res, 403, 'insurance_not_member', 'You must be a verified member of a federation to apply.');
     }
     const InsurancePackage = require('../models/InsurancePackage');
     const mongoose = require('mongoose');
     const packageId = req.params.packageId;
     if (!mongoose.Types.ObjectId.isValid(packageId)) {
-      return res.status(400).json({ message: 'Invalid package ID. Please refresh the page to load new policies.' });
+      return sendError(res, 404, 'insurance_package_not_found', 'Insurance package not found.');
     }
     const pkg = await InsurancePackage.findOne({ _id: packageId, federationId: mem.id });
-    if (!pkg) return res.status(404).json({ message: 'Insurance package not found.' });
-    if (pkg.status === 'paused') return res.status(400).json({ message: 'This insurance package is currently on hold and cannot be applied for.' });
-    if (pkg.status === 'deprecated') return res.status(400).json({ message: 'This insurance package is no longer available.' });
+    if (!pkg) return sendError(res, 404, 'insurance_package_not_found', 'Insurance package not found.');
+    if (pkg.status === 'paused') return sendError(res, 400, 'insurance_package_paused', 'This insurance package is currently on hold and cannot be applied for.');
+    if (pkg.status === 'deprecated') return sendError(res, 400, 'insurance_package_closed', 'This insurance package is no longer available.');
 
     // Check if already applied
     const existing = await InsuranceApplication.findOne({ workerId: req.user._id, packageId });
     if (existing) {
-      return res.status(400).json({ message: 'You have already applied for this insurance package.' });
+      return sendError(res, 409, 'insurance_already_applied', 'You have already applied for this insurance package.');
     }
 
     const application = new InsuranceApplication({
@@ -160,7 +160,7 @@ router.post('/insurance/:packageId/apply', async (req, res) => {
     await application.save();
     return res.status(200).json({ message: 'Redirecting to provider and activating policy', application });
   } catch (err) {
-    return sendError(res, 500, 'apply_failed', 'Could not submit insurance application.');
+    return sendError(res, 500, 'insurance_apply_failed', 'Could not submit insurance application.');
   }
 });
 

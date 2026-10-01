@@ -15,6 +15,8 @@ const workerModeRoutes = require('./routes/workers'); // Worker mode: online, of
 const paymentRoutes = require('./routes/payments'); // Pay for jobs, receipts, worker payouts
 const webhookRoutes = require('./routes/webhooks'); // Razorpay events (raw body)
 const heatmapRoutes = require('./routes/heatmap'); // Demand / availability / gov heatmaps
+const safetyRoutes = require('./routes/safety'); // App: safety shield, SOS, voice notes
+const safetyAdminRoutes = require('./routes/safetyAdmin'); // Portal: SOS alerts for officials
 
 const app = express();
 
@@ -41,6 +43,8 @@ app.use('/api/uploads', uploadRoutes);
 app.use('/api/workers', workerModeRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/heatmap', heatmapRoutes);
+app.use('/api/safety', safetyRoutes);
+app.use('/api/gov/safety', safetyAdminRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

@@ -20,6 +20,24 @@
    The app finds the backend (3000) and AI service (8000) on the laptop running Metro;
    set `EXPO_PUBLIC_API_BASE_URL` / `EXPO_PUBLIC_AI_BASE_URL` for other setups.
 
+## Sisterhood Shield (women's safety)
+
+Open it from the red **SOS** button above the app's tab bar. While the shield is on, the phone
+reports its position, the backend keeps a safety score for every ~38 × 19 m block of the city,
+and an SOS (button, *Call 112*, saying "help"/"bachao", three volume-key presses, or the
+notification) is shown to shield users within 2.5 km and to officials on the portal
+(`/gov/safety`). Voice notes are recorded during an SOS and triaged by Gemini.
+
+- **Mobile:** set `GOOGLE_MAPS_API_KEY` (Maps SDK for Android) in `client-native/.env` or the
+  EAS environment, then rebuild the dev client — the shield adds native modules (maps, background
+  location, notifications, audio, volume keys). iOS uses Apple Maps.
+- **Backend:** Cloudinary must be configured (voice notes upload there). Run `npm run dispatcher`
+  for voice-note triage and to close abandoned shields; triage needs the Vertex AI settings
+  (`npm run llm:check`). Night-time reports weigh more, in `SAFETY_TIMEZONE` (default `Asia/Kolkata`).
+
+Code: `backend/services/safety*.js`, `backend/routes/safety*.js`, `client-native/src/app/sisterhood.js`,
+`client-native/src/services/shield.js`, `client/src/pages/gov/SafetyAlerts.jsx`.
+
 ## Tests
 
 ```bash

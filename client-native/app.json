@@ -56,26 +56,50 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Sahayak uses your location to show jobs and workers near you."
+          "locationWhenInUsePermission": "Sahayak uses your location to show jobs and workers near you, and for the Sisterhood Shield.",
+          "locationAlwaysAndWhenInUsePermission": "While the Sisterhood Shield is on, Sahayak uses your location in the background so your SOS still works with the screen off.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true,
+          "isIosBackgroundLocationEnabled": true
+        }
+      ],
+      "expo-task-manager",
+      [
+        "expo-notifications",
+        {
+          "color": "#B42318"
         }
       ],
       [
         "expo-speech-recognition",
         {
-          "microphonePermission": "Sahayak uses the microphone so you can answer questions by speaking.",
-          "speechRecognitionPermission": "Sahayak converts your speech to text to fill in your registration.",
+          "microphonePermission": "Sahayak uses the microphone so you can answer questions by speaking, and to record voice notes from the Sisterhood Shield.",
+          "speechRecognitionPermission": "Sahayak converts your speech to text to fill in your registration, and listens for “help” while the Sisterhood Shield is open.",
           "androidSpeechServicePackages": [
             "com.google.android.googlequicksearchbox"
           ]
         }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Sahayak uses the microphone so you can answer questions by speaking, and to record voice notes from the Sisterhood Shield."
+        }
       ]
     ],
     "scheme": "sihconnect",
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/c7171d32-e6f0-4865-a126-a44b8a7e45c4"
+    },
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "5a71188d-d500-45ce-944d-a0dcabd344c6"
+        "projectId": "c7171d32-e6f0-4865-a126-a44b8a7e45c4"
       }
-    }
+    },
+    "owner": "ishwar156"
   }
 }

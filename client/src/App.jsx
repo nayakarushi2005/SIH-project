@@ -15,6 +15,7 @@ import { lazy, Suspense } from 'react';
 
 // Google Maps + deck.gl are heavy — only officials opening the map load them.
 const DemandMap = lazy(() => import('./pages/gov/DemandMap'));
+import SafetyAlerts from './pages/gov/SafetyAlerts';
 
 function Dashboard() {
   return (
@@ -58,6 +59,7 @@ function App() {
                   </Suspense>
                 }
               />
+              <Route path="/gov/safety" element={<SafetyAlerts />} />
               <Route path="/dashboard" element={<Dashboard />} />
             </Route>
           </Route>

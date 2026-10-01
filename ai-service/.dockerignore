@@ -1,0 +1,12 @@
+.venv
+.env
+.env.*
+keys
+tests
+**/__pycache__
+*.pyc
+.pytest_cache
+.ruff_cache
+.git
+Dockerfile
+*.md

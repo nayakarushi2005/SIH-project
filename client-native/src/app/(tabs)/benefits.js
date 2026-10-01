@@ -10,12 +10,13 @@ import { colors, radius, spacing, typography } from '../../constants/theme';
 import { useUser } from '../../context/UserContext';
 import api from '../../services/api';
 function DetailRow({ label, value, last, onPress }) {
+  const { t } = useTranslation();
   const content = (
     <>
       <Text style={styles.rowLabel}>{label}</Text>
       <View style={styles.rowRight}>
         <Text style={[styles.rowValue, !value && styles.rowValueEmpty]}>
-          {value || 'Not Added'}
+          {value || t('common.notAdded')}
         </Text>
         {onPress ? <Ionicons name="chevron-forward" size={18} color={colors.textMuted} /> : null}
       </View>
@@ -65,21 +66,21 @@ export default function BenefitsTab() {
           const { packages, applications } = res.data;
           const approved = applications.filter(a => a.status === 'approved');
           const enriched = approved.map(app => {
-            const pkg = packages.find(p => p._id == app.packageId || p.id == app.packageId);
-            return { ...app, packageName: pkg?.name || 'Insurance' };
+            const pkg = packages.find((p) => String(p._id ?? p.id) === String(app.packageId));
+            return { ...app, packageName: pkg?.name || t('insurance.title') };
           });
           setApprovedInsurances(enriched);
         })
         .catch(err => console.log('Failed to fetch insurance', err));
     }
-  }, [user?.federation?.status]);
+  }, [user?.federation?.status, t]);
 
   if (!user?.isWorker) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <ScreenHeader title="Benefits & Federation" />
+        <ScreenHeader title={t('benefits.title')} showBack={false} />
         <View style={styles.centered}>
-          <Text style={styles.errorText}>You must be a worker to access this section.</Text>
+          <Text style={styles.errorText}>{t('benefits.workersOnly')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -87,12 +88,12 @@ export default function BenefitsTab() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScreenHeader title="Benefits & Federation" />
+      <ScreenHeader title={t('benefits.title')} showBack={false} />
       <ScrollView contentContainerStyle={styles.content}>
         
-        <Section title="My Federation">
+        <Section title={t('benefits.myFederation')}>
           <DetailRow
-            label="Federation Status"
+            label={t('benefits.federationStatus')}
             value={
               user.federation
                 ? `${user.federation.name} · ${t(STATUS_KEYS[user.federation.status] ?? 'federation.statusNone')}`
@@ -103,26 +104,26 @@ export default function BenefitsTab() {
           />
         </Section>
 
-        <Section title="Social Security">
+        <Section title={t('benefits.socialSecurity')}>
           {approvedInsurances.length > 0 ? (
             approvedInsurances.map((ins, index) => (
               <DetailRow
                 key={ins._id}
-                label="Active Policy"
+                label={t('benefits.activePolicy')}
                 value={ins.packageName}
                 last={index === approvedInsurances.length - 1}
               />
             ))
           ) : (
             <DetailRow
-              label="Active Policy"
-              value="None"
+              label={t('benefits.activePolicy')}
+              value={t('benefits.noPolicy')}
               last={false}
             />
           )}
           <DetailRow
-            label="Explore Plans"
-            value="View Offers & Status"
+            label={t('benefits.explorePlans')}
+            value={t('benefits.explorePlansValue')}
             onPress={() => router.push('/insurance')}
             last={true}
           />
@@ -131,7 +132,7 @@ export default function BenefitsTab() {
         <View style={styles.infoBox}>
           <Ionicons name="information-circle-outline" size={24} color={colors.primary} />
           <Text style={styles.infoText}>
-            Join a verified federation to unlock social security benefits, zero-paperwork insurance, and priority support.
+            {t('benefits.info')}
           </Text>
         </View>
 
@@ -147,7 +148,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: spacing.lg,
-    paddingBottom: spacing.xxl,
+    paddingBottom: spacing.xl * 2,
   },
   centered: {
     flex: 1,
@@ -164,7 +165,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: colors.primary + '10',
     padding: spacing.lg,
-    borderRadius: radius.lg,
+    borderRadius: radius.md,
     marginTop: spacing.xl,
     gap: spacing.md,
   },

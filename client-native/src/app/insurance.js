@@ -1,62 +1,61 @@
 import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert, Pressable, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import ScreenHeader from '../components/ScreenHeader';
 import Button from '../components/Button';
 import { colors, radius, spacing, typography } from '../constants/theme';
-import api from '../services/api';
+import api, { getErrorMessage } from '../services/api';
+
+const STATUS_STYLES = {
+  pending: { badge: { backgroundColor: 'rgba(245, 158, 11, 0.1)' }, text: { color: colors.warning } },
+  approved: { badge: { backgroundColor: colors.primarySoft }, text: { color: colors.primary } },
+  rejected: { badge: { backgroundColor: colors.dangerSoft }, text: { color: colors.danger } },
+};
 
 export default function Insurance() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [data, setData] = useState({ packages: [], applications: [] });
 
   useEffect(() => {
-    fetchInsurance();
-  }, []);
+    let active = true;
+    api
+      .get('/worker/insurance')
+      .then((res) => active && setData(res.data))
+      .catch((err) => active && setError(getErrorMessage(err, t('insurance.loadError'))))
+      .finally(() => active && setLoading(false));
+    return () => {
+      active = false;
+    };
+  }, [t]);
 
-  const fetchInsurance = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await api.get('/worker/insurance');
-      setData(res.data);
-    } catch (err) {
-      if (err.response?.status === 403) {
-        setError(err.response.data.message || 'You must be a verified member of a federation to access insurance.');
-      } else {
-        setError('Could not load insurance data. Please try again.');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleApply = async (pkgId) => {
-    Alert.alert('Apply for Insurance', 'You will be redirected to the insurance provider to complete the application.', [
-      { text: 'Cancel', style: 'cancel' },
+  const handleApply = (pkgId) => {
+    Alert.alert(t('insurance.applyTitle'), t('insurance.applyBody'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Proceed',
+        text: t('insurance.proceed'),
         onPress: async () => {
           try {
             await api.post(`/worker/insurance/${pkgId}/apply`);
             router.push('/insurance-success');
           } catch (err) {
-            Alert.alert('Error', err.response?.data?.message || 'Failed to apply.');
+            Alert.alert(t('common.error'), getErrorMessage(err, t('insurance.applyError')));
           }
-        }
-      }
+        },
+      },
     ]);
   };
 
   if (loading) {
     return (
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-        <ScreenHeader title="Insurance" />
+        <ScreenHeader title={t('insurance.title')} />
         <View style={styles.centered}>
           <ActivityIndicator color={colors.primary} size="large" />
         </View>
@@ -67,11 +66,11 @@ export default function Insurance() {
   if (error) {
     return (
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-        <ScreenHeader title="Insurance" />
+        <ScreenHeader title={t('insurance.title')} />
         <View style={styles.centered}>
           <Ionicons name="shield-outline" size={64} color={colors.textMuted} style={styles.emptyIcon} />
           <Text style={styles.errorText}>{error}</Text>
-          <Button label="Go Back" variant="secondary" onPress={() => router.back()} style={{ marginTop: spacing.lg }} />
+          <Button label={t('common.goBack')} variant="secondary" onPress={() => router.back()} style={styles.backBtn} />
         </View>
       </SafeAreaView>
     );
@@ -81,15 +80,14 @@ export default function Insurance() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScreenHeader title="Insurance Collaboration" />
+      <ScreenHeader title={t('insurance.title')} />
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.headerSubtitle}>
-          Secure your future with zero-paperwork insurance provided through your Federation.
-        </Text>
+        <Text style={styles.headerSubtitle}>{t('insurance.intro')}</Text>
 
         {packages.map((pkg) => {
           const pkgId = pkg._id || pkg.id;
-          const app = applications.find(a => a.packageId == pkgId);
+          const app = applications.find((a) => String(a.packageId) === String(pkgId));
+          const statusStyle = app ? STATUS_STYLES[app.status] ?? STATUS_STYLES.pending : null;
 
           return (
             <View key={pkgId} style={styles.card}>
@@ -98,57 +96,45 @@ export default function Insurance() {
                   <Text style={styles.providerText}>{pkg.provider}</Text>
                 </View>
                 {app && (
-                  <View style={[
-                    styles.statusBadge, 
-                    app.status === 'approved' ? styles.statusApproved :
-                    app.status === 'rejected' ? styles.statusRejected : styles.statusPending
-                  ]}>
-                    <Text style={[
-                      styles.statusText,
-                      app.status === 'approved' ? styles.statusTextApproved :
-                      app.status === 'rejected' ? styles.statusTextRejected : styles.statusTextPending
-                    ]}>
-                      {app.status.toUpperCase()}
+                  <View style={[styles.statusBadge, statusStyle.badge]}>
+                    <Text style={[styles.statusText, statusStyle.text]}>
+                      {t(`insurance.status.${app.status}`, { defaultValue: app.status })}
                     </Text>
                   </View>
                 )}
               </View>
-              
+
               <Text style={styles.packageName}>{pkg.name}</Text>
-              
+
               <View style={styles.detailsRow}>
-                <Text style={styles.detailLabel}>Coverage:</Text>
+                <Text style={styles.detailLabel}>{t('insurance.coverage')}</Text>
                 <Text style={styles.detailValue}>{pkg.coverage}</Text>
               </View>
               <View style={styles.detailsRow}>
-                <Text style={styles.detailLabel}>Premium:</Text>
+                <Text style={styles.detailLabel}>{t('insurance.premium')}</Text>
                 <Text style={styles.detailValue}>{pkg.premium}</Text>
               </View>
               <View style={styles.detailsRow}>
-                <Text style={styles.detailLabel}>Interest:</Text>
+                <Text style={styles.detailLabel}>{t('insurance.interest')}</Text>
                 <Text style={styles.detailValue}>{pkg.interest}</Text>
               </View>
               <View style={styles.detailsRow}>
-                <Text style={styles.detailLabel}>Paperwork:</Text>
-                <Text style={[styles.detailValue, { color: colors.success }]}>
+                <Text style={styles.detailLabel}>{t('insurance.paperwork')}</Text>
+                <Text style={[styles.detailValue, styles.detailGood]}>
                   <Ionicons name="checkmark-circle" size={14} /> {pkg.paperwork}
                 </Text>
               </View>
 
-              {!app ? (
-                <Button 
-                  label="Apply Now" 
-                  onPress={() => handleApply(pkgId)}
-                  style={styles.applyBtn}
-                />
-              ) : (
+              {app ? (
                 <View style={styles.appliedMsg}>
                   <Text style={styles.appliedMsgText}>
-                    {app.status === 'pending' ? 'Application sent to Federation for verification.' :
-                     app.status === 'approved' ? 'Your insurance is active.' :
-                     'Application was rejected by Federation.'}
+                    {t(`insurance.statusNote.${app.status}`, { defaultValue: '' })}
                   </Text>
                 </View>
+              ) : pkg.status === 'paused' ? (
+                <Button label={t('insurance.onHold')} variant="secondary" disabled style={styles.applyBtn} />
+              ) : (
+                <Button label={t('insurance.apply')} onPress={() => handleApply(pkgId)} style={styles.applyBtn} />
               )}
             </View>
           );
@@ -177,7 +163,7 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.textMuted,
     marginBottom: spacing.lg,
-    textAlign: 'center'
+    textAlign: 'center',
   },
   emptyIcon: {
     marginBottom: spacing.md,
@@ -187,6 +173,9 @@ const styles = StyleSheet.create({
     color: colors.text,
     textAlign: 'center',
     lineHeight: 22,
+  },
+  backBtn: {
+    marginTop: spacing.lg,
   },
   card: {
     backgroundColor: colors.surface,
@@ -203,7 +192,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   providerBadge: {
-    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    backgroundColor: colors.primarySoft,
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
     borderRadius: radius.sm,
@@ -218,15 +207,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: radius.sm,
   },
-  statusPending: { backgroundColor: 'rgba(245, 158, 11, 0.1)' },
-  statusApproved: { backgroundColor: 'rgba(16, 185, 129, 0.1)' },
-  statusRejected: { backgroundColor: 'rgba(239, 68, 68, 0.1)' },
-  
   statusText: { ...typography.label, fontWeight: '700' },
-  statusTextPending: { color: colors.warning },
-  statusTextApproved: { color: colors.success },
-  statusTextRejected: { color: colors.danger },
-
   packageName: {
     ...typography.title,
     fontWeight: '700',
@@ -247,6 +228,9 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontWeight: '600',
   },
+  detailGood: {
+    color: colors.primary,
+  },
   applyBtn: {
     marginTop: spacing.md,
   },
@@ -255,11 +239,11 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
     borderTopWidth: 1,
     borderTopColor: colors.border,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   appliedMsgText: {
     ...typography.label,
     color: colors.textMuted,
-    fontStyle: 'italic'
-  }
+    fontStyle: 'italic',
+  },
 });

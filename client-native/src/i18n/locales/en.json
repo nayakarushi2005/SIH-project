@@ -149,7 +149,8 @@
     "home": "Home",
     "bookings": "Bookings",
     "messages": "Messages",
-    "profile": "Profile"
+    "profile": "Profile",
+    "benefits": "Benefits"
   },
   "landing": {
     "heading": "<b>Every Skill,</b>\nOne <b>App</b>",
@@ -589,11 +590,33 @@
     "rate_limited": "Too many requests. Please slow down.",
     "backend_unavailable": "The app server is not reachable right now. Please try again.",
     "unauthorized": "Please sign in again.",
+    "safety_location_invalid": "We couldn’t read your location. Please allow location access.",
+    "safety_location_required": "We need your location to send an SOS.",
+    "safety_outcome_invalid": "Choose whether it was a false alarm or a real emergency.",
+    "safety_load_failed": "Could not load the safety shield.",
+    "safety_location_failed": "Could not update your location.",
+    "safety_end_failed": "Could not close the safety shield.",
+    "sos_start_failed": "Could not send your SOS. Call 112 if you are in danger.",
+    "sos_stop_failed": "Could not turn off your SOS.",
+    "sos_outcome_not_found": "That SOS was not found or is already answered.",
+    "sos_outcome_failed": "Could not save your answer.",
+    "voice_upload_unavailable": "Voice notes can’t be uploaded right now.",
+    "voice_note_url_invalid": "Upload the recording before sending it.",
+    "voice_note_duration_invalid": "That recording length doesn’t look right.",
+    "voice_note_failed": "Could not save your voice note.",
+    "voice_notes_load_failed": "Could not load your voice notes.",
     "job_withdraw_reason_required": "Choose why you’re cancelling.",
     "job_withdraw_note_required": "Tell us briefly why you’re cancelling.",
     "job_withdraw_note_length": "Keep it under {{max}} characters.",
     "job_withdraw_window_over": "The time to cancel this job is over. Please go and do the job, or call the client.",
-    "job_cannot_retry": "Only a job nobody accepted can be searched again."
+    "job_cannot_retry": "Only a job nobody accepted can be searched again.",
+    "insurance_not_member": "You must be a verified member of a federation to access insurance.",
+    "insurance_load_failed": "Could not load insurance data.",
+    "insurance_package_not_found": "Insurance package not found.",
+    "insurance_package_paused": "This insurance package is currently on hold and cannot be applied for.",
+    "insurance_package_closed": "This insurance package is no longer available.",
+    "insurance_already_applied": "You have already applied for this insurance package.",
+    "insurance_apply_failed": "Could not submit insurance application."
   },
   "durations": {
     "m30": "30 min",
@@ -799,6 +822,150 @@
       "good": "Worked safely",
       "bad": "Unsafe practices",
       "improve": "Safe work practices"
+    }
+  },
+  "shield": {
+    "starting": "Turning on your shield…",
+    "backgroundTitle": "Keep the shield on in the background",
+    "backgroundBody": "Choose “Allow all the time” for location so the shield keeps working when your screen is off. Without it, it only works while this screen is open.",
+    "mode": {
+      "still": "Watching your area",
+      "moving": "Following your route",
+      "sos": "SOS is on"
+    },
+    "companions": "Shield users near you: {{count}}",
+    "triggerHint": "Say “help” or press a volume key 3 times for SOS",
+    "triggerHintNoVoice": "Press a volume key 3 times for SOS",
+    "safety": "Safety",
+    "safetyA11y": "Safety score here: {{score}} out of 10",
+    "recenter": "Show my location",
+    "call": "Call {{number}}",
+    "callCountdownA11y": "Calling {{number}} in {{count}}. Tap to cancel.",
+    "marker": {
+      "title": "SOS"
+    },
+    "sos": {
+      "button": "SOS",
+      "active": "SOS ON",
+      "tapToStop": "Tap to stop",
+      "buttonA11y": "Send an SOS",
+      "activeA11y": "Your SOS is on. Tap to turn it off.",
+      "countdownA11y": "Sending SOS in {{count}}. Tap to cancel.",
+      "stopTitle": "Turn off your SOS?",
+      "stopBody": "People nearby and officials will stop seeing your location.",
+      "keepOn": "Keep it on",
+      "stop": "Turn off",
+      "notice": "Your SOS is on. People nearby and officials can see where you are."
+    },
+    "record": {
+      "start": "Record",
+      "stop": "Stop",
+      "sending": "Sending",
+      "startA11y": "Record a voice note",
+      "stopA11y": "Stop recording and send it"
+    },
+    "banner": {
+      "title": "SOS nearby",
+      "distance": "About {{distance}} away",
+      "hint": "Tap to see it on the map",
+      "dismiss": "Hide this alert",
+      "a11y": "Someone about {{distance}} away needs help. Tap to see where."
+    },
+    "resolution": {
+      "title": "SOS turned off",
+      "question": "Was it a false alarm?",
+      "body": "Your answer keeps the safety map accurate.",
+      "falseAlarm": "Yes, it was a false alarm",
+      "falseAlarmHint": "I sent it by mistake",
+      "real": "No, it was a real emergency",
+      "realHint": "I needed help"
+    },
+    "exit": {
+      "title": "Close the shield?",
+      "body": "Your location will stop being shared.",
+      "bodySos": "This also turns off your SOS.",
+      "stay": "Keep it on",
+      "confirm": "Close shield"
+    },
+    "safeWalk": {
+      "title": "Safe walk",
+      "bonus": "You finished five safe walks in a row. Your trust score went up."
+    },
+    "access": {
+      "title": "Turn on location",
+      "body": "The shield uses your location to show how safe the area around you is, and to send your SOS to people nearby and to officials.",
+      "privacy": "Your location is shared only while the shield is on. Others see exactly where you are only when you send an SOS.",
+      "allow": "Allow location",
+      "settings": "Open settings",
+      "notNow": "Not now"
+    },
+    "fab": {
+      "label": "SOS",
+      "a11y": "Open Sisterhood Shield and send an SOS"
+    },
+    "service": {
+      "title": "Sisterhood Shield is on",
+      "body": "Sharing your location for your safety"
+    },
+    "notification": {
+      "channel": "Safety shield",
+      "title": "Sisterhood Shield is on",
+      "body": "Tap SOS if you need help.",
+      "bodySos": "SOS is on. Your location is being shared.",
+      "sos": "SOS",
+      "call": "Call {{number}}",
+      "close": "Close shield"
+    },
+    "errors": {
+      "start": "Couldn’t turn on the shield. Check your internet connection.",
+      "sosTitle": "SOS not sent",
+      "sos": "We couldn’t send your SOS. Call {{number}} if you are in danger.",
+      "stop": "Couldn’t turn off your SOS. Please try again.",
+      "voiceUpload": "Your voice note couldn’t be sent.",
+      "micDenied": "Allow microphone access in Settings to record voice notes."
+    }
+  },
+  "benefits": {
+    "title": "Benefits & federation",
+    "workersOnly": "This section is for registered workers.",
+    "myFederation": "My federation",
+    "federationStatus": "Federation",
+    "socialSecurity": "Social security",
+    "activePolicy": "Active policy",
+    "noPolicy": "None",
+    "explorePlans": "Insurance plans",
+    "explorePlansValue": "View plans and status",
+    "info": "Join a verified federation to unlock social security benefits, zero-paperwork insurance and priority support."
+  },
+  "insurance": {
+    "title": "Insurance",
+    "intro": "Zero-paperwork insurance through your federation.",
+    "coverage": "Coverage",
+    "premium": "Premium",
+    "interest": "Interest",
+    "paperwork": "Paperwork",
+    "apply": "Apply now",
+    "onHold": "On hold",
+    "applyTitle": "Apply for insurance",
+    "applyBody": "You’ll be taken to the insurance provider to finish your application.",
+    "proceed": "Continue",
+    "loadError": "Could not load insurance plans. Please try again.",
+    "applyError": "Could not submit your application.",
+    "status": {
+      "pending": "Pending",
+      "approved": "Active",
+      "rejected": "Rejected"
+    },
+    "statusNote": {
+      "pending": "Sent to your federation for verification.",
+      "approved": "Your insurance is active.",
+      "rejected": "Your federation did not approve this application."
+    },
+    "success": {
+      "title": "Insurance active",
+      "body": "Your insurance request was sent. Because you applied through your verified federation, your policy is pre-approved and active.",
+      "demoNote": "Demo page — it stands in for the insurance provider’s own website.",
+      "back": "Back to benefits"
     }
   }
 }
