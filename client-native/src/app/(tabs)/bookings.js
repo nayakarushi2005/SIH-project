@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +11,11 @@ import EmptyState from '../../components/EmptyState';
 import JobCard from '../../components/JobCard';
 import { colors, spacing, typography } from '../../constants/theme';
 import { getErrorMessage, listJobs } from '../../services/api';
+
+// While a job is still being matched or a worker is on the way, refresh so
+// the client sees the worker accept, or the search end, without pulling.
+const LIVE_POLL_MS = 10 * 1000;
+const LIVE_STATUSES = ['SEARCHING', 'ASSIGNED', 'IN_PROGRESS'];
 
 export default function Bookings() {
   const router = useRouter();
@@ -28,11 +33,31 @@ export default function Bookings() {
     }
   }, [t]);
 
-  // Reload whenever the tab comes into view, e.g. right after posting a job.
+  // Reload whenever the tab comes into view, e.g. right after posting a job,
+  // and keep reloading while it's in view and some job is still live.
+  const [focused, setFocused] = useState(false);
   useFocusEffect(
     useCallback(() => {
+      setFocused(true);
       load();
+      return () => setFocused(false);
     }, [load])
+  );
+
+  const live = !!jobs?.some((job) => LIVE_STATUSES.includes(job.status));
+  useEffect(() => {
+    if (!focused || !live) return undefined;
+    const poll = setInterval(load, LIVE_POLL_MS);
+    return () => clearInterval(poll);
+  }, [focused, live, load]);
+
+  // A card cancelled or retried its job: show the new state right away.
+  const jobChanged = useCallback(
+    (next) => {
+      if (next) setJobs((list) => list?.map((job) => (job.id === next.id ? next : job)) ?? list);
+      else load();
+    },
+    [load]
   );
 
   const onRefresh = useCallback(async () => {
@@ -75,7 +100,7 @@ export default function Bookings() {
       <FlatList
         data={jobs}
         keyExtractor={(job) => String(job.id)}
-        renderItem={({ item }) => <JobCard job={item} onRate={rateJob} />}
+        renderItem={({ item }) => <JobCard job={item} onRate={rateJob} onChanged={jobChanged} />}
         contentContainerStyle={styles.list}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         refreshControl={

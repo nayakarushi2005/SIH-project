@@ -1,17 +1,23 @@
-// app.json plus settings that must not be committed. Expo loads .env before
-// reading this file, so put the key in client-native/.env (or the EAS
-// environment):
-//   GOOGLE_MAPS_API_KEY=...   Maps SDK for Android key, for the Sisterhood Shield map.
-// iOS uses Apple Maps and needs no key.
+// Extends app.json with settings that come from the environment, so keys
+// stay out of git. Put them in client-native/.env (git-ignored) or the EAS
+// environment, e.g.
+//   GOOGLE_MAPS_API_KEY=AIza…   (Maps SDK for Android, restricted to this app)
+// Used by the heatmap and the Sisterhood Shield map.
 module.exports = ({ config }) => {
-  const key = process.env.GOOGLE_MAPS_API_KEY;
-  if (!key) {
-    console.warn('GOOGLE_MAPS_API_KEY is not set: the Sisterhood Shield map will be blank on Android.');
+  const mapsKey = process.env.GOOGLE_MAPS_API_KEY || '';
+  if (!mapsKey) {
+    console.warn('GOOGLE_MAPS_API_KEY is not set: maps are left out of the app on Android.');
   }
   return {
     ...config,
-    plugins: [...config.plugins, ['react-native-maps', { androidGoogleMapsApiKey: key }]],
-    // Without a key Google Maps crashes the app, so the shield leaves the map out.
-    extra: { ...config.extra, googleMapsConfigured: !!key },
+    plugins: [
+      ...config.plugins,
+      ['react-native-maps', { androidGoogleMapsApiKey: mapsKey, iosGoogleMapsApiKey: mapsKey }],
+    ],
+    extra: {
+      ...config.extra,
+      // Without a key the native map crashes, so screens leave the map out.
+      googleMapsConfigured: mapsKey !== '',
+    },
   };
 };

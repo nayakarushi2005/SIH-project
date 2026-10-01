@@ -10,6 +10,10 @@ function jobPhotoFolder(userId) {
   return `sih/jobs/${userId}`;
 }
 
+function federationWorkerPhotoFolder(federationId) {
+  return `sih/federations/${federationId}/workers`;
+}
+
 /**
  * Credentials from CLOUDINARY_CLOUD_NAME / _API_KEY / _API_SECRET, or from the
  * single CLOUDINARY_URL (cloudinary://<key>:<secret>@<cloud>) the dashboard shows.
@@ -76,6 +80,13 @@ function signJobPhotoUpload(userId) {
   });
 }
 
+function signFederationWorkerPhotoUpload(federationId) {
+  return signUpload({
+    folder: federationWorkerPhotoFolder(federationId),
+    timestamp: Math.floor(Date.now() / 1000),
+  });
+}
+
 function voiceNoteFolder(userId) {
   return `sih/voice/${userId}`;
 }
@@ -89,7 +100,7 @@ function signVoiceNoteUpload(userId) {
 }
 
 /** True if `url` is a `resourceType` upload of ours inside `folder`. */
-function isOwnedUpload(url, resourceType, folder) {
+function isUploadedToFolder(url, folder, resourceType = 'image') {
   if (typeof url !== 'string') return false;
 
   const { cloudName } = getConfig();
@@ -98,26 +109,37 @@ function isOwnedUpload(url, resourceType, folder) {
   const prefix = `https://res.cloudinary.com/${cloudName}/${resourceType}/upload/`;
   if (!url.startsWith(prefix)) return false;
 
-  const path = url.slice(prefix.length).replace(/^v\d+\//, ''); // drop version
-  return path.startsWith(`${folder}/`) && !path.includes('..') && !/[?#\s]/.test(path);
+  const pathWithoutVersion = url.slice(prefix.length).replace(/^v\d+\//, '');
+  return (
+    pathWithoutVersion.startsWith(`${folder}/`) &&
+    !pathWithoutVersion.includes('..') &&
+    !/[?#\s]/.test(pathWithoutVersion)
+  );
 }
 
 /** True if `url` is an image this user uploaded through signJobPhotoUpload. */
 function isOwnedJobPhoto(url, userId) {
-  return isOwnedUpload(url, 'image', jobPhotoFolder(userId));
+  return isUploadedToFolder(url, jobPhotoFolder(userId));
+}
+
+function isOwnedFederationWorkerPhoto(url, federationId) {
+  return isUploadedToFolder(url, federationWorkerPhotoFolder(federationId));
 }
 
 /** True if `url` is audio this user uploaded through signVoiceNoteUpload. */
 function isOwnedVoiceNote(url, userId) {
-  return isOwnedUpload(url, 'video', voiceNoteFolder(userId));
+  return isUploadedToFolder(url, voiceNoteFolder(userId), 'video');
 }
 
 module.exports = {
   jobPhotoFolder,
+  federationWorkerPhotoFolder,
   signJobPhotoUpload,
+  signFederationWorkerPhotoUpload,
   signUpload,
   signVoiceNoteUpload,
   isOwnedJobPhoto,
+  isOwnedFederationWorkerPhoto,
   isOwnedVoiceNote,
   voiceNoteFolder,
 };

@@ -22,7 +22,8 @@ const safety = require('./services/safety');
 const voiceNotes = require('./services/voiceNotes');
 
 const SWEEP_INTERVAL_MS = 60 * 1000;
-const STALE_JOB_AFTER_MS = Math.max(60 * 1000, 2 * dispatch.CONFIG.offerTimeoutMs);
+const STALE_JOB_AFTER_MS = Math.max(60 * 1000, 2 * dispatch.CONFIG.roundIntervalMs);
+const OVERDUE_GRACE_MS = 30 * 1000; // past its deadline this long = its expiring round was lost
 const STALE_FEEDBACK_AFTER_MS = 60 * 1000;
 const STALE_VOICE_NOTE_AFTER_MS = 2 * 60 * 1000;
 
@@ -39,9 +40,15 @@ const IDLE_OPTIONS = {
 // Redis restarted, …) gets re-queued. Every task is idempotent, so this is
 // harmless if nothing was lost.
 async function sweepStalledJobs() {
+  const now = Date.now();
   const stalled = await Job.find({
     status: 'SEARCHING',
-    updatedAt: { $lt: new Date(Date.now() - STALE_JOB_AFTER_MS) },
+    $or: [
+      { updatedAt: { $lt: new Date(now - STALE_JOB_AFTER_MS) } },
+      // Searches past their deadline, so a client is never left waiting on
+      // a job that should have expired.
+      { 'dispatch.searchDeadline': { $lt: new Date(now - OVERDUE_GRACE_MS) } },
+    ],
   })
     .select('_id dispatch.round')
     .limit(100);

@@ -3,9 +3,18 @@ const {
   decideRequest,
   listRequests,
   memberCount,
+  memberCounts,
   removeMember,
   sendMembershipError,
 } = require('../services/membership');
+const {
+  addWorker,
+  importWorkers,
+  listWorkers,
+  removeWorker,
+  sendWorkerError,
+  signWorkerPhoto,
+} = require('../services/federationWorkers');
 
 // City and PIN decide which workers see this federation, so both are required.
 function readLocation(body) {
@@ -22,7 +31,7 @@ function readLocation(body) {
 // the caller's own record — never one looked up from the request body.
 const registerFederation = async (req, res) => {
   try {
-    const { name, amount, noOfWorkers, area } = req.body;
+    const { name, amount, area } = req.body;
     const { city, pincode, fields } = readLocation(req.body);
     if (Object.keys(fields).length > 0) {
       return res.status(400).json({ message: 'Please fix the highlighted fields.', fields });
@@ -35,7 +44,6 @@ const registerFederation = async (req, res) => {
 
     federation.name = name || federation.name;
     federation.amount = Number(amount) || federation.amount;
-    federation.noOfWorkers = Number(noOfWorkers) || federation.noOfWorkers;
     federation.area = area || federation.area;
     federation.city = city;
     federation.pincode = pincode;
@@ -116,10 +124,11 @@ const getAllFederations = async (req, res) => {
     }
 
     const federations = await Federation.find(filter).sort({ createdAt: -1 });
+    const counts = await memberCounts(federations.map((f) => f._id));
 
     return res.status(200).json({
       count: federations.length,
-      federations,
+      federations: federations.map((f) => ({ ...f.toJSON(), memberCount: counts.get(String(f._id)) || 0 })),
     });
   } catch (error) {
     console.error('Get Federations Error:', error);
@@ -217,14 +226,165 @@ const removeMyMember = async (req, res) => {
   }
 };
 
+const listMyWorkers = async (req, res) => {
+  try {
+    const workers = await listWorkers(req.user.userId);
+    return res.status(200).json({ workers });
+  } catch (err) {
+    return sendWorkerError(res, err);
+  }
+};
+
+const addMyWorker = async (req, res) => {
+  try {
+    const worker = await addWorker(req.user.userId, req.body);
+    return res.status(201).json({ worker });
+  } catch (err) {
+    return sendWorkerError(res, err);
+  }
+};
+
+const importMyWorkers = async (req, res) => {
+  try {
+    const result = await importWorkers(req.user.userId, req.body?.rows);
+    return res.status(200).json(result);
+  } catch (err) {
+    return sendWorkerError(res, err);
+  }
+};
+
+const removeMyWorker = async (req, res) => {
+  try {
+    const worker = await removeWorker(req.user.userId, req.params.id);
+    return res.status(200).json({ worker });
+  } catch (err) {
+    return sendWorkerError(res, err);
+  }
+};
+
+const signMyWorkerPhoto = async (req, res) => {
+  try {
+    return res.status(200).json(await signWorkerPhoto(req.user.userId));
+  } catch (err) {
+    return sendWorkerError(res, err);
+  }
+};
+
+const getInsurancePackages = async (req, res) => {
+  try {
+    const InsurancePackage = require('../models/InsurancePackage');
+    const packages = await InsurancePackage.find({ federationId: req.user.userId }).sort({ createdAt: -1 });
+    return res.status(200).json({ packages });
+  } catch (err) {
+    return res.status(500).json({ message: 'Error fetching insurance packages' });
+  }
+};
+
+const addInsurancePackage = async (req, res) => {
+  try {
+    const InsurancePackage = require('../models/InsurancePackage');
+    const { name, provider, coverage, premium, interest, paperwork } = req.body;
+    
+    // Generate unique ID based on federationId and timestamp
+    const count = await InsurancePackage.countDocuments({ federationId: req.user.userId });
+    const fedPrefix = req.user.userId.toString().slice(-6).toUpperCase();
+    const policyId = `FED-${fedPrefix}-POL-${count + 1}`;
+
+    const newPackage = new InsurancePackage({
+      policyId,
+      federationId: req.user.userId,
+      name, provider, coverage, premium, interest, paperwork,
+      status: 'active'
+    });
+
+    await newPackage.save();
+    return res.status(201).json({ message: 'Package added successfully', package: newPackage });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Error adding insurance package' });
+  }
+};
+
+const updateInsurancePackage = async (req, res) => {
+  try {
+    const InsurancePackage = require('../models/InsurancePackage');
+    const { id } = req.params;
+    const { status } = req.body; // 'active', 'paused', 'deprecated'
+
+    const pkg = await InsurancePackage.findOneAndUpdate(
+      { _id: id, federationId: req.user.userId },
+      { $set: { status } },
+      { new: true }
+    );
+
+    if (!pkg) {
+      return res.status(404).json({ message: 'Package not found' });
+    }
+
+    return res.status(200).json({ message: 'Package updated', package: pkg });
+  } catch (err) {
+    return res.status(500).json({ message: 'Error updating insurance package' });
+  }
+};
+
+const applyInsurance = async (req, res) => {
+  try {
+    // In a real application, we would save this application to the database 
+    // and notify the insurance provider.
+    return res.status(200).json({ message: 'Insurance application submitted successfully to provider.' });
+  } catch (err) {
+    return res.status(500).json({ message: 'Error applying for insurance' });
+  }
+};
+
+const getInsuranceApplications = async (req, res) => {
+  try {
+    const apps = await require('../models/InsuranceApplication').find({ federationId: req.user.userId }).populate('workerId', 'name city pincode').sort({ appliedAt: -1 }).lean();
+    return res.status(200).json({ applications: apps });
+  } catch (err) {
+    return res.status(500).json({ message: 'Error fetching insurance applications' });
+  }
+};
+
+const verifyInsuranceApplication = async (req, res) => {
+  try {
+    const { appId } = req.params;
+    const { action } = req.body; // 'approve' or 'reject'
+    if (!['approve', 'reject'].includes(action)) {
+      return res.status(400).json({ message: 'Action must be approve or reject.' });
+    }
+    const InsuranceApplication = require('../models/InsuranceApplication');
+    const application = await InsuranceApplication.findOne({ _id: appId, federationId: req.user.userId });
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' });
+    }
+    application.status = action === 'approve' ? 'approved' : 'rejected';
+    await application.save();
+    return res.status(200).json({ message: 'Application status updated', application });
+  } catch (err) {
+    return res.status(500).json({ message: 'Error verifying insurance application' });
+  }
+};
+
 module.exports = {
   registerFederation,
   updateMyLocation,
   listMyRequests,
   decideMyRequest,
   removeMyMember,
+  listMyWorkers,
+  addMyWorker,
+  importMyWorkers,
+  removeMyWorker,
+  signMyWorkerPhoto,
   checkFederationByEmail,
   getAllFederations,
   getFederationById,
   verifyFederation,
+  getInsurancePackages,
+  addInsurancePackage,
+  updateInsurancePackage,
+  applyInsurance,
+  getInsuranceApplications,
+  verifyInsuranceApplication,
 };

@@ -11,6 +11,7 @@
     "test": "jest --runInBand",
     "seed:categories": "node scripts/seedCategories.js",
     "seed:jobs": "node scripts/seed-jobs.js",
+    "seed:heatmap": "node scripts/seed-heatmap.js",
     "llm:check": "node scripts/llm-check.js",
     "graph:reprocess": "node scripts/graph-reprocess.js"
   },
@@ -27,7 +28,9 @@
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^7.6.0",
     "mongoose": "^8.4.1",
-    "ngeohash": "^0.6.4"
+    "ngeohash": "^0.6.4",
+    "pdfkit": "^0.20.2",
+    "razorpay": "^2.9.8"
   },
   "devDependencies": {
     "jest": "^30.5.2",

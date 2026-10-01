@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import Avatar from '../../components/Avatar';
 import BannerCarousel from '../../components/BannerCarousel';
 import EmptyState from '../../components/EmptyState';
+import HeatmapCard from '../../components/HeatmapCard';
 import LocationSheet from '../../components/LocationSheet';
 import { colors, radius, spacing, typography } from '../../constants/theme';
 import { BANNERS, MOST_BOOKED_SLUGS } from '../../constants/services';
@@ -128,6 +129,9 @@ export default function Home() {
           <Ionicons name="mic" size={20} color={colors.primary} />
           <Text style={styles.voiceCtaText}>{t('home.postByVoice')}</Text>
         </Pressable>
+
+        {/* ── Workers near you (availability heatmap) ────────────────── */}
+        <HeatmapCard mode="availability" />
 
         {/* ── Most booked ────────────────────────────────────────────── */}
         <SectionTitle>{t('home.mostBooked')}</SectionTitle>

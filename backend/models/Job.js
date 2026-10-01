@@ -6,8 +6,11 @@ const { LANGUAGES } = require('../services/profile');
  * job's lifecycle; the dispatcher only ever carries its id.
  *
  *   SEARCHING → ASSIGNED → IN_PROGRESS → COMPLETED
- *       ↓           ↓
- *    EXPIRED    CANCELLED
+ *     ↑   ↓   ←─────┘ (worker withdraws within the cancellation window)
+ *     │ EXPIRED (no taker before the search deadline)
+ *     └───┘ (client retries: same details, a higher price, or edited)
+ *
+ *   SEARCHING and ASSIGNED can also go to CANCELLED (by the client).
  */
 const jobSchema = new mongoose.Schema(
   {
@@ -136,6 +139,10 @@ const jobSchema = new mongoose.Schema(
         type: Number, // round the current search started at — moves on when an assigned worker withdraws
         default: 0,
       },
+      searchDeadline: {
+        type: Date, // the current search expires the job at this time — see services/dispatch.js
+        default: null,
+      },
       offers: [
         {
           _id: false,
@@ -151,6 +158,10 @@ const jobSchema = new mongoose.Schema(
             default: null,
           },
           respondedAt: { type: Date, default: null },
+          // Why the worker withdrew (services/job.js WITHDRAW_REASONS), plus
+          // their own words when the reason is 'other'.
+          withdrawReason: { type: String, default: null },
+          withdrawNote: { type: String, default: null },
         },
       ],
     },
@@ -163,5 +174,6 @@ const jobSchema = new mongoose.Schema(
 jobSchema.index({ location: '2dsphere' });
 jobSchema.index({ client: 1, createdAt: -1 });
 jobSchema.index({ 'dispatch.offers.worker': 1, status: 1 }); // a worker's open offers
+jobSchema.index({ status: 1, 'dispatch.searchDeadline': 1 }); // the dispatcher's overdue-search sweep
 
 module.exports = mongoose.model('Job', jobSchema);
