@@ -9,6 +9,7 @@ const KEYS = {
 
 // Outside KEYS on purpose: the app language should survive sign-out.
 const LANGUAGE_KEY = 'appLanguage';
+const LANGUAGE_CHOSEN_KEY = 'appLanguageChosen';
 
 async function readJSON(key) {
   const raw = await SecureStore.getItemAsync(key);
@@ -32,6 +33,14 @@ export function getLanguage() {
 
 export function saveLanguage(code) {
   return SecureStore.setItemAsync(LANGUAGE_KEY, code);
+}
+
+export async function hasChosenLanguage() {
+  return (await SecureStore.getItemAsync(LANGUAGE_CHOSEN_KEY)) === '1';
+}
+
+export function markLanguageChosen() {
+  return SecureStore.setItemAsync(LANGUAGE_CHOSEN_KEY, '1');
 }
 
 export function getUser() {

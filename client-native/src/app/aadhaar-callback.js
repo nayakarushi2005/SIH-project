@@ -91,7 +91,7 @@ export default function AadhaarCallback() {
         </View>
       ) : (
         <View style={styles.card}>
-          <ActivityIndicator color="#0B7A4B" size="large" />
+          <ActivityIndicator color="#097D4C" size="large" />
           <Text style={styles.title}>{t('aadhaar.verifying')}</Text>
           <Text style={styles.message}>{t('aadhaar.verifyingBody')}</Text>
         </View>
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
   primaryButton: {
     alignSelf: 'stretch',
     alignItems: 'center',
-    backgroundColor: '#0B7A4B',
+    backgroundColor: '#097D4C',
     borderRadius: 14,
     paddingVertical: 15,
     marginTop: 12,

@@ -1,29 +1,24 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  Image,
+  Animated,
   Pressable,
   StyleSheet,
   Text,
   View,
   useWindowDimensions,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Redirect, useRouter } from 'expo-router';
-import { Trans, useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
+import LanguagePrompt from '../components/LanguagePrompt';
+import LoadingScreen from '../components/LoadingScreen';
 import { colors, radius, spacing, typography } from '../constants/theme';
-import { getToken } from '../services/session';
+import { useUser } from '../context/UserContext';
+import { setAppLanguage } from '../i18n/language';
+import { getToken, hasChosenLanguage } from '../services/session';
 
-const subjectImage = require('../../assets/images/subject.webp');
-// Derived from the bundled file so swapping the image never distorts it.
-const { width: subjectW, height: subjectH } =
-  Image.resolveAssetSource(subjectImage);
-const SUBJECT_ASPECT_RATIO = subjectW / subjectH;
-
-// Placeholder until the app name is decided.
-const BRAND_WORD = 'NAME';
+const SUBTEXT_COLOR = '#F2F2F2';
 
 // Caps OS-level font scaling so large accessibility sizes stay usable
 // without breaking the layout.
@@ -31,32 +26,49 @@ const MAX_FONT_SCALE = 1.4;
 
 export default function Landing() {
   const { t } = useTranslation();
-  const { width } = useWindowDimensions();
+  const { height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const [cardProgress] = useState(() => new Animated.Value(0));
   // null while we check SecureStore, then the route to send the user to
   // (or false to show the landing screen).
   const [sessionRoute, setSessionRoute] = useState(null);
+  const [askLanguage, setAskLanguage] = useState(false);
+  const { setUser } = useUser();
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       let route = false;
+      let ask = false;
       try {
         // Signed-in users go straight home; unverified ones are nudged to
         // verify from their profile rather than blocked at launch.
-        if (await getToken()) route = '/home';
+        if (await getToken()) {
+          route = '/home';
+          ask = !(await hasChosenLanguage());
+        }
       } catch {
         // Unreadable storage — fall through to the landing screen.
       }
-      if (!cancelled) setSessionRoute(route);
+      if (!cancelled) {
+        setAskLanguage(ask);
+        setSessionRoute(route);
+      }
     })();
     return () => {
       cancelled = true;
     };
   }, []);
 
-  // Scale the decorative word with screen width so it fits on small phones
-  // and doesn't look tiny on tablets.
-  const brandWordSize = Math.min(width * 0.34, 180);
+  useEffect(() => {
+    if (sessionRoute !== false) return;
+    Animated.timing(cardProgress, {
+      toValue: 1,
+      duration: 450,
+      delay: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [sessionRoute, cardProgress]);
 
   const router = useRouter();
 
@@ -66,155 +78,93 @@ export default function Landing() {
     router.replace('/auth');
   }, [router]);
 
-  if (sessionRoute) return <Redirect href={sessionRoute} />;
+  const handleLanguageConfirm = async (code) => {
+    const updated = await setAppLanguage(code);
+    setUser(updated);
+    setAskLanguage(false);
+  };
 
-  if (sessionRoute === null) {
+  if (sessionRoute && askLanguage) {
     return (
-      <View style={styles.checking}>
-        <ActivityIndicator color={colors.primary} />
+      <View style={styles.container}>
+        <LoadingScreen />
+        <LanguagePrompt onConfirm={handleLanguageConfirm} onSkip={() => setAskLanguage(false)} />
       </View>
     );
   }
 
+  if (sessionRoute) return <Redirect href={sessionRoute} />;
+
+  if (sessionRoute === null) {
+    return <LoadingScreen />;
+  }
+
+  const cardTranslate = cardProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [height, 0],
+  });
+
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <StatusBar style="dark" />
+    <View style={styles.container}>
+      <LoadingScreen />
 
-      <View style={styles.hero}>
-        <Text
-          style={[
-            styles.brandWord,
-            { fontSize: brandWordSize, lineHeight: brandWordSize * 1.1 },
-          ]}
-          numberOfLines={1}
-          allowFontScaling={false}
-          accessible={false}
-          importantForAccessibility="no-hide-descendants"
-        >
-          {BRAND_WORD}
-        </Text>
-        <Image
-          source={subjectImage}
-          style={styles.subject}
-          resizeMode="contain"
-          accessibilityIgnoresInvertColors
-          accessible={false}
-        />
-      </View>
-
-      <View style={styles.copy}>
-        <Text
-          style={styles.heading}
-          accessibilityRole="header"
-          maxFontSizeMultiplier={MAX_FONT_SCALE}
-        >
-          <Trans i18nKey="landing.heading" components={{ b: <Text style={styles.headingBold} /> }} />
-        </Text>
+      <Animated.View
+        style={[
+          styles.card,
+          { paddingBottom: insets.bottom + spacing.lg },
+          { transform: [{ translateY: cardTranslate }] },
+        ]}
+      >
         <Text style={styles.subText} maxFontSizeMultiplier={MAX_FONT_SCALE}>
           {t('landing.subtitle')}
         </Text>
-      </View>
 
-      <Pressable
-        onPress={handleGetStarted}
-        accessibilityRole="button"
-        accessibilityLabel={t('landing.cta')}
-        hitSlop={spacing.sm}
-        style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed]}
-      >
-        <View style={styles.ctaButton}>
+        <Pressable
+          onPress={handleGetStarted}
+          accessibilityRole="button"
+          accessibilityLabel={t('landing.cta')}
+          hitSlop={spacing.sm}
+          style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed]}
+        >
           <Text style={styles.ctaText} maxFontSizeMultiplier={MAX_FONT_SCALE}>
             {t('landing.cta')}
           </Text>
-        </View>
-        <View style={styles.arrow} />
-      </Pressable>
-    </SafeAreaView>
+        </Pressable>
+      </Animated.View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  checking: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.background,
-  },
   container: {
     flex: 1,
-    backgroundColor: colors.background,
-    paddingHorizontal: spacing.lg - spacing.xs,
-    paddingBottom: spacing.md,
+    backgroundColor: colors.primary,
   },
-  hero: {
-    flex: 1,
-    minHeight: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  brandWord: {
+  card: {
     position: 'absolute',
-    top: '28%',
-    width: '100%',
-    textAlign: 'center',
-    fontWeight: '900',
-    letterSpacing: 4,
-    color: colors.decorative,
-  },
-  subject: {
-    height: '100%',
-    maxWidth: '100%',
-    aspectRatio: SUBJECT_ASPECT_RATIO,
-  },
-  copy: {
-    marginTop: spacing.md,
-    marginBottom: spacing.lg,
-  },
-  heading: {
-    ...typography.heading,
-    fontWeight: '400',
-    color: colors.text,
-  },
-  headingBold: {
-    fontWeight: '800',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: spacing.lg,
   },
   subText: {
     ...typography.body,
-    marginTop: spacing.sm,
-    color: colors.text,
+    textAlign: 'left',
+    color: SUBTEXT_COLOR,
   },
   cta: {
-    flexDirection: 'row',
+    marginTop: spacing.lg,
     alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1.5,
-    borderColor: colors.border,
+    backgroundColor: colors.background,
+    paddingVertical: spacing.md,
     borderRadius: radius.md,
-    padding: 5,
-    paddingRight: 18,
   },
   ctaPressed: {
     opacity: 0.85,
   },
-  ctaButton: {
-    backgroundColor: colors.primary,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    borderRadius: radius.sm,
-  },
   ctaText: {
     ...typography.button,
-    color: colors.textOnPrimary,
+    color: colors.primary,
     fontWeight: '600',
-  },
-  arrow: {
-    width: 0,
-    height: 0,
-    borderTopWidth: 7,
-    borderBottomWidth: 7,
-    borderLeftWidth: 11,
-    borderTopColor: 'transparent',
-    borderBottomColor: 'transparent',
-    borderLeftColor: colors.text,
   },
 });

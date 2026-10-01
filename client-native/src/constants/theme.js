@@ -2,8 +2,8 @@
 // hard-coding values in screens so the brand can be changed in one place.
 
 export const colors = {
-  primary: '#0B7A4B',
-  primarySoft: '#E7F3ED',
+  primary: '#097D4C',
+  primarySoft: '#E6F2ED',
   background: '#FFFFFF',
   surface: '#F6F6F6',
   text: '#000000',
@@ -15,6 +15,10 @@ export const colors = {
   warningSoft: '#FFF4E0',
   danger: '#B42318',
   dangerSoft: '#FDECEA',
+};
+
+export const fonts = {
+  brand: 'CenturyGothic-Bold',
 };
 
 export const spacing = {

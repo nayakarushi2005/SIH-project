@@ -1,10 +1,12 @@
 import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+
+import { colors } from '../constants/theme';
 
 /**
  * "Looking for work?" — asks signed-in users whether to register as a
- * worker. Same dark card as the DigiLocker screen (aadhaar-verify.js).
+ * worker. Same card as the DigiLocker screen (aadhaar-verify.js).
  */
 export default function WorkerPrompt({ visible, busy, onRegister, onNotWorker, onClose }) {
   const { t } = useTranslation();
@@ -20,11 +22,11 @@ export default function WorkerPrompt({ visible, busy, onRegister, onNotWorker, o
             accessibilityRole="button"
             accessibilityLabel={t('worker.promptClose')}
           >
-            <Ionicons name="close" size={22} color="#8888aa" />
+            <Ionicons name="close" size={22} color={colors.textMuted} />
           </Pressable>
 
           <View style={styles.badge}>
-            <Text style={styles.badgeEmoji}>🧰</Text>
+            <Feather name="briefcase" size={30} color={colors.primary} />
           </View>
           <Text style={styles.title} accessibilityRole="header">
             {t('worker.promptTitle')}
@@ -47,7 +49,7 @@ export default function WorkerPrompt({ visible, busy, onRegister, onNotWorker, o
             accessibilityRole="button"
           >
             {busy ? (
-              <ActivityIndicator color="#8888aa" />
+              <ActivityIndicator color={colors.textMuted} />
             ) : (
               <Text style={styles.secondaryButtonText}>{t('worker.promptNotWorker')}</Text>
             )}
@@ -61,7 +63,7 @@ export default function WorkerPrompt({ visible, busy, onRegister, onNotWorker, o
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(13,13,26,0.85)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 20,
@@ -70,9 +72,9 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 400,
     alignItems: 'center',
-    backgroundColor: '#15152a',
+    backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.09)',
+    borderColor: colors.border,
     borderRadius: 24,
     padding: 24,
     paddingTop: 32,
@@ -82,25 +84,22 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: 'rgba(11,122,75,0.2)',
+    backgroundColor: colors.primarySoft,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(11,122,75,0.4)',
   },
-  badgeEmoji: { fontSize: 32 },
-  title: { fontSize: 22, fontWeight: '800', color: '#ffffff', marginBottom: 8, textAlign: 'center' },
-  body: { fontSize: 14, color: '#9999bb', lineHeight: 20, textAlign: 'center', marginBottom: 24 },
+  title: { fontSize: 22, fontWeight: '800', color: colors.text, marginBottom: 8, textAlign: 'center' },
+  body: { fontSize: 14, color: colors.textMuted, lineHeight: 20, textAlign: 'center', marginBottom: 24 },
   primaryButton: {
     alignSelf: 'stretch',
-    backgroundColor: '#0B7A4B',
+    backgroundColor: '#097D4C',
     borderRadius: 14,
     paddingVertical: 15,
     alignItems: 'center',
   },
   primaryButtonText: { fontSize: 16, fontWeight: '700', color: '#ffffff' },
   secondaryButton: { alignSelf: 'stretch', alignItems: 'center', paddingVertical: 12, marginTop: 8, minHeight: 44, justifyContent: 'center' },
-  secondaryButtonText: { fontSize: 14, color: '#8888aa', fontWeight: '600' },
+  secondaryButtonText: { fontSize: 14, color: colors.textMuted, fontWeight: '600' },
   pressed: { opacity: 0.88 },
 });

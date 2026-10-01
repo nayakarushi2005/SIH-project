@@ -27,7 +27,7 @@ function flatten(obj, prefix = '', out = {}) {
 const vars = (s) => (String(s).match(/\{\{\s*\w+\s*\}\}/g) || []).map((v) => v.replace(/\s/g, '')).sort();
 // Text a translator must write in the target script: drop markup, {{vars}},
 // digits, punctuation and brand words that stay in Latin letters.
-const BRANDS = /DigiLocker|Aadhaar|UIDAI|Meon|eKYC|Google|SIH Connect|PIN|OTP|XXXX/g;
+const BRANDS = /DigiLocker|Aadhaar|UIDAI|Meon|eKYC|Google|Sahayak|PIN|OTP|XXXX/g;
 const needsScript = (s) =>
   /\p{L}/u.test(String(s).replace(/<\/?\w+>/g, '').replace(/\{\{\s*\w+\s*\}\}/g, '').replace(BRANDS, ''));
 
