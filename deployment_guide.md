@@ -184,14 +184,88 @@ Run domain mappings).
 
 ---
 
-## Updating
+## 7. Automatic deploys (CI/CD)
+
+After this one-time setup, a push (or merged PR) to `main` deploys whatever changed — no commands:
+
+| Push to `main` touching | Workflow | What happens |
+|---|---|---|
+| `backend/` | `deploy-backend.yml` | tests → `sih-backend` and `sih-dispatcher` redeployed (same image) → health check |
+| `ai-service/` | `deploy-ai.yml` | tests → `sih-ai` redeployed → health check (Vertex must be on) |
+| `client-native/` | `app.yml` | checks → **JS-only change:** an over-the-air update; installed APKs pick it up the next time they're opened. **Native change** (new native package, `app.json` plugins): a new APK is built on EAS — share it from expo.dev → Builds. |
+
+Pull requests and other branches only run the tests (`ci.yml`). Every workflow also has a
+**Run workflow** button (GitHub → Actions → pick the workflow); the app one has a
+"Build a new APK" checkbox. Deploys only change code: env vars, the Vertex key mount and instance
+settings stay as set in steps 2–4 (change those by hand with `deploy/*.env.yaml`).
+
+### One-time setup — Google Cloud (keyless login for GitHub)
+
+Run in cmd. GitHub proves which repo it is to Google; no key is stored anywhere.
+
+```bat
+gcloud services enable iamcredentials.googleapis.com sts.googleapis.com
+gcloud iam service-accounts create github-deployer --display-name="GitHub Actions deployer"
+
+gcloud projects add-iam-policy-binding project-53b1a724-b975-42d3-86a --member="serviceAccount:github-deployer@project-53b1a724-b975-42d3-86a.iam.gserviceaccount.com" --role=roles/run.sourceDeveloper
+gcloud projects add-iam-policy-binding project-53b1a724-b975-42d3-86a --member="serviceAccount:github-deployer@project-53b1a724-b975-42d3-86a.iam.gserviceaccount.com" --role=roles/run.developer
+gcloud projects add-iam-policy-binding project-53b1a724-b975-42d3-86a --member="serviceAccount:github-deployer@project-53b1a724-b975-42d3-86a.iam.gserviceaccount.com" --role=roles/serviceusage.serviceUsageConsumer
+gcloud iam service-accounts add-iam-policy-binding 976941941129-compute@developer.gserviceaccount.com --member="serviceAccount:github-deployer@project-53b1a724-b975-42d3-86a.iam.gserviceaccount.com" --role=roles/iam.serviceAccountUser
+
+gcloud iam workload-identity-pools create github --location=global --display-name="GitHub"
+gcloud iam workload-identity-pools providers create-oidc github-provider --location=global --workload-identity-pool=github --issuer-uri="https://token.actions.githubusercontent.com" --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository" --attribute-condition="assertion.repository=='nayakarushi2005/SIH-project'"
+gcloud iam service-accounts add-iam-policy-binding github-deployer@project-53b1a724-b975-42d3-86a.iam.gserviceaccount.com --role=roles/iam.workloadIdentityUser --member="principalSet://iam.googleapis.com/projects/976941941129/locations/global/workloadIdentityPools/github/attribute.repository/nayakarushi2005/SIH-project"
+```
+
+Only this repository can use the login (the `attribute-condition`). If the repo is renamed or
+moved, update both `nayakarushi2005/SIH-project` values.
+
+### One-time setup — Expo
+
+expo.dev → your avatar → **Account settings → Access tokens → Create token** (name it `github`).
+Copy the token.
+
+### One-time setup — GitHub
+
+Needs an admin of the repo (the `nayakarushi2005` account). Repo → **Settings → Secrets and
+variables → Actions**:
+
+- **Variables** tab → New repository variable, three times:
+  - `GCP_PROJECT_ID` = `project-53b1a724-b975-42d3-86a`
+  - `GCP_WIF_PROVIDER` = `projects/976941941129/locations/global/workloadIdentityPools/github/providers/github-provider`
+  - `GCP_DEPLOY_SA` = `github-deployer@project-53b1a724-b975-42d3-86a.iam.gserviceaccount.com`
+- **Secrets** tab → New repository secret: `EXPO_TOKEN` = the Expo token.
+
+The workflows live in `.github/workflows/` and only run once they are on `main`.
+
+### First run
+
+1. Merge to `main`. The backend and AI workflows deploy; check the Actions tab.
+2. The app workflow builds a **new APK** the first time (over-the-air updates were just switched on,
+   which is a native change). Install that APK once on every phone. From then on, JS changes arrive
+   on their own.
+
+### Rolling back
+
+- **Backend / AI:** Cloud Console → Cloud Run → service → **Revisions** → pick the previous one →
+  *Manage traffic* → 100%. Or:
+  `gcloud run services update-traffic sih-backend --region asia-south1 --to-revisions=<REVISION>=100`
+- **App update:** `npx eas-cli@latest update:roll-back-to-embedded --branch preview --platform android`
+  (in `client-native`) returns installed apps to the code inside their APK; or revert the commit on
+  `main` and let the workflow publish again.
+
+---
+
+## Updating by hand
+
+Normally the workflows above do this. By hand:
 
 | Changed | Do |
 |---|---|
 | `backend/` | re-run steps 2 **and** 3 (same code) |
 | `ai-service/` | re-run step 4 |
 | an env value | edit the yaml, re-run that service's deploy (or `gcloud run services update <name> --update-env-vars KEY=value`) |
-| `client-native/` | `npx eas-cli@latest build --platform android --profile preview-apk` and share the new APK |
+| `client-native/` | `npx eas-cli@latest update --branch preview --environment preview` (JS only) or `npx eas-cli@latest build --platform android --profile preview-apk` |
 
 Logs: `gcloud run services logs read sih-backend --limit 100` (or Cloud Console → Cloud Run → service → Logs).
 
