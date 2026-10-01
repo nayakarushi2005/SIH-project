@@ -1,0 +1,87 @@
+# Ships client-native/ on every push to main that touches it:
+#   - JS-only change  → EAS Update: installed APKs download it on next launch.
+#   - native change (new native module, app.json plugins, …) → a new APK is
+#     built on EAS (preview-apk profile) and the update is published for it.
+# The "native fingerprint" decides which. From the Actions tab ("Run workflow")
+# you can also force a new APK.
+name: App (EAS update / APK)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'client-native/**'
+      - '.github/workflows/app.yml'
+  workflow_dispatch:
+    inputs:
+      new_apk:
+        description: Build a new APK (even if only JS changed)
+        type: boolean
+        default: false
+
+concurrency:
+  group: app-deploy
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client-native
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: client-native/package-lock.json
+      - run: npm ci
+      - run: npm run test:i18n
+      - run: npm run check:i18n
+      - run: npx expo lint
+
+  deploy:
+    needs: check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write # the fingerprint action comments on PRs; unused on main
+    defaults:
+      run:
+        working-directory: client-native
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: client-native/package-lock.json
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - run: npm ci
+
+      # The fingerprint includes app.config.js output, which depends on
+      # GOOGLE_MAPS_API_KEY. Pull the same EAS "preview" variables the build
+      # servers use, so this runner computes the same fingerprint as the APK.
+      - name: Load EAS preview variables
+        run: eas env:pull --environment preview --non-interactive
+
+      - name: Publish update (or build a new APK if native code changed)
+        if: ${{ inputs.new_apk != true }}
+        uses: expo/expo-github-action/continuous-deploy-fingerprint@main
+        with:
+          working-directory: client-native
+          profile: preview-apk
+          branch: preview
+          environment: preview
+          platform: android
+
+      - name: Build a new APK
+        if: ${{ inputs.new_apk == true }}
+        run: eas build --platform android --profile preview-apk --non-interactive --no-wait

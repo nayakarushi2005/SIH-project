@@ -50,3 +50,7 @@ android
 # Google Cloud service account keys (Vertex AI) — never commit these
 backend/keys/
 *service-account*.json
+
+# Real Cloud Run env files (the *.example.yaml ones are committed)
+deploy/*.env.yaml
+!deploy/*.env.example.yaml

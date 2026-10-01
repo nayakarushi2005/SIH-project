@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { ClipboardCheck, FileText, LayoutDashboard, LogOut, Map as MapIcon, Users } from 'lucide-react';
+import { ClipboardCheck, FileText, LayoutDashboard, LogOut, Map as MapIcon, Siren, Users } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useFederation } from '../context/FederationContext';
 import logo from '../assets/logo sahayak.png';
@@ -15,6 +15,7 @@ const NAV = {
   GovOfficial: [
     { to: '/gov/verify', label: 'Verification', icon: ClipboardCheck },
     { to: '/gov/demand-map', label: 'Skill Demand Map', icon: MapIcon },
+    { to: '/gov/safety', label: 'Safety Alerts', icon: Siren },
   ],
 };
 

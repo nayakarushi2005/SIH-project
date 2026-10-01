@@ -27,6 +27,7 @@
 const Job = require('../models/Job');
 const { findCandidates, rankCandidates } = require('./matching');
 const { getQueue, redisConnection, withTimeout } = require('./queue');
+const { ensureJobVector } = require('./relevance');
 const { recordOffers } = require('./stats');
 
 const QUEUE_NAME = 'dispatch';
@@ -107,10 +108,11 @@ function nextRoundDelay(job, now = Date.now()) {
 }
 
 /**
- * One dispatch round for a job. `schedule` is injectable for tests.
+ * One dispatch round for a job. `schedule` and `options.embed` (the job
+ * embedder, see services/relevance.js) are injectable for tests.
  * Returns what happened: 'offered' | 'empty' | 'expired' | 'stopped' | 'duplicate'.
  */
-async function processRound({ jobId, round }, schedule = scheduleRound) {
+async function processRound({ jobId, round }, schedule = scheduleRound, options = {}) {
   const job = await Job.findById(jobId);
   if (!job || job.status !== 'SEARCHING') return 'stopped';
 
@@ -144,7 +146,10 @@ async function processRound({ jobId, round }, schedule = scheduleRound) {
     limit: CONFIG.candidateLimit,
     exclude: excludedWorkers(job, now),
   });
-  const picked = (await rankCandidates(job, candidates)).slice(0, CONFIG.batchSize);
+  // Embedded once, on the first round with anyone to rank; null if the LLM
+  // is unavailable — ranking then just skips relevance.
+  const jobVector = candidates.length > 0 ? await ensureJobVector(jobId, options) : null;
+  const picked = (await rankCandidates(job, candidates, Date.now(), { jobVector })).slice(0, CONFIG.batchSize);
 
   const offeredAt = new Date(now);
   const offers = picked.map((c) => ({

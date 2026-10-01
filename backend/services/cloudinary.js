@@ -45,12 +45,13 @@ function getConfig() {
 /**
  * Signs upload `params` for Cloudinary: the params sorted by name and joined
  * as k=v&k=v, followed by the API secret. Returns the params plus what the
- * upload request needs alongside them.
+ * upload request needs alongside them. Audio goes up as resourceType 'video'
+ * (Cloudinary's type for audio too).
  */
-function signUpload(params) {
+function signUpload(params, resourceType = 'image') {
   const { cloudName, apiKey, apiSecret } = getConfig();
   if (!cloudName || !apiKey || !apiSecret) {
-    throw new Error('Photo uploads are not configured on the server.');
+    throw new Error('Uploads are not configured on the server.');
   }
 
   const toSign = Object.keys(params)
@@ -60,7 +61,7 @@ function signUpload(params) {
   const signature = crypto.createHash('sha1').update(toSign + apiSecret).digest('hex');
 
   return {
-    uploadUrl: `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+    uploadUrl: `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`,
     apiKey,
     ...params,
     signature,
@@ -86,13 +87,26 @@ function signFederationWorkerPhotoUpload(federationId) {
   });
 }
 
-function isUploadedToFolder(url, folder) {
+function voiceNoteFolder(userId) {
+  return `sih/voice/${userId}`;
+}
+
+/** Signed params for uploading one safety voice note (see signJobPhotoUpload). */
+function signVoiceNoteUpload(userId) {
+  return signUpload(
+    { folder: voiceNoteFolder(userId), timestamp: Math.floor(Date.now() / 1000) },
+    'video'
+  );
+}
+
+/** True if `url` is a `resourceType` upload of ours inside `folder`. */
+function isUploadedToFolder(url, folder, resourceType = 'image') {
   if (typeof url !== 'string') return false;
 
   const { cloudName } = getConfig();
   if (!cloudName) return false;
 
-  const prefix = `https://res.cloudinary.com/${cloudName}/image/upload/`;
+  const prefix = `https://res.cloudinary.com/${cloudName}/${resourceType}/upload/`;
   if (!url.startsWith(prefix)) return false;
 
   const pathWithoutVersion = url.slice(prefix.length).replace(/^v\d+\//, '');
@@ -112,12 +126,20 @@ function isOwnedFederationWorkerPhoto(url, federationId) {
   return isUploadedToFolder(url, federationWorkerPhotoFolder(federationId));
 }
 
+/** True if `url` is audio this user uploaded through signVoiceNoteUpload. */
+function isOwnedVoiceNote(url, userId) {
+  return isUploadedToFolder(url, voiceNoteFolder(userId), 'video');
+}
+
 module.exports = {
   jobPhotoFolder,
   federationWorkerPhotoFolder,
   signJobPhotoUpload,
   signFederationWorkerPhotoUpload,
   signUpload,
+  signVoiceNoteUpload,
   isOwnedJobPhoto,
   isOwnedFederationWorkerPhoto,
+  isOwnedVoiceNote,
+  voiceNoteFolder,
 };

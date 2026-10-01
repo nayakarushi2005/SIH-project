@@ -345,4 +345,78 @@ export async function retryJob(jobId, edits = {}) {
   return res.data;
 }
 
+// ── Safety shield ───────────────────────────────────────────────────────────
+// Most calls answer with the shield status:
+// { trust, session, block, sos, nearby, pendingOutcome } — see backend
+// services/safety.js getStatus.
+
+/** Current status; also the heartbeat that keeps an open shield alive. */
+export async function getShieldStatus() {
+  const res = await api.get('/safety/me');
+  return res.data;
+}
+
+/** Opens the shield at { lat, lng } (safe to call again). */
+export async function openShield(location) {
+  const res = await api.post('/safety/session', { location });
+  return res.data;
+}
+
+export async function sendShieldLocation(location) {
+  const res = await api.post('/safety/session/location', { location });
+  return res.data;
+}
+
+/** Closes the shield → { trust, safeWalk: { streak, bonus } | null, endedAlertId } */
+export async function closeShield() {
+  const res = await api.delete('/safety/session');
+  return res.data;
+}
+
+/** trigger: 'button' | 'call' | 'voice' | 'volume' | 'notification'; location optional. */
+export async function raiseSos({ location, trigger }) {
+  const res = await api.post('/safety/sos', { location, trigger });
+  return res.data;
+}
+
+/** Turns the SOS off → status plus endedAlertId, to ask whether it was real. */
+export async function cancelSos() {
+  const res = await api.delete('/safety/sos');
+  return res.data;
+}
+
+/** outcome: 'false_alarm' | 'real_emergency' → { trust } */
+export async function sendSosOutcome(alertId, outcome) {
+  const res = await api.post(`/safety/sos/${alertId}/outcome`, { outcome });
+  return res.data;
+}
+
+/**
+ * Uploads a recorded voice note straight to Cloudinary (signed by the
+ * backend) and registers it for the officials' triage.
+ */
+export async function uploadVoiceNote({ uri, durationMs, location }) {
+  const { data: sig } = await api.post('/safety/voice/sign');
+
+  const form = new FormData();
+  form.append('file', new File(uri)); // see uploadJobPhoto
+  form.append('api_key', sig.apiKey);
+  form.append('timestamp', String(sig.timestamp));
+  form.append('folder', sig.folder);
+  form.append('signature', sig.signature);
+
+  const upload = await fetch(sig.uploadUrl, { method: 'POST', body: form });
+  const body = await upload.json().catch(() => null);
+  if (!upload.ok || !body?.secure_url) {
+    throw new Error(body?.error?.message || i18n.t('shield.errors.voiceUpload'));
+  }
+
+  const res = await api.post('/safety/voice', {
+    audioUrl: body.secure_url,
+    durationMs: Number.isFinite(durationMs) ? Math.round(durationMs) : undefined,
+    location: location || undefined,
+  });
+  return res.data;
+}
+
 export default api;

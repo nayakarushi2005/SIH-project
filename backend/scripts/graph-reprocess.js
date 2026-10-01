@@ -5,17 +5,35 @@
  *   npm run graph:reprocess -- --all  # everything — after changing the scoring
  *                                     # in services/graph.js (no new LLM calls
  *                                     # for feedback already extracted)
+ *   npm run graph:reprocess -- --vectors  # only the ranking's job embeddings:
+ *                                     # embeds completed jobs that have none and
+ *                                     # rebuilds every worker's vectors
  */
 const path = require('path');
 const mongoose = require('mongoose');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const Feedback = require('../models/Feedback');
+const Job = require('../models/Job');
 const { processFeedback } = require('../services/graph');
 const llm = require('../services/llm');
+const { rebuildWorkerVectors } = require('../services/relevance');
+
+async function rebuildVectors() {
+  if (!llm.isConfigured()) throw new Error('LLM not configured — set VERTEX_* in backend/.env to embed jobs.');
+  const workers = await Job.distinct('assignedWorker', { status: 'COMPLETED' });
+  console.log(`Rebuilding job vectors for ${workers.length} workers…`);
+  for (const worker of workers) {
+    const trades = await rebuildWorkerVectors(worker);
+    console.log(`  ${worker}  ${trades} trade${trades === 1 ? '' : 's'}`);
+  }
+  console.log('\nDone.');
+}
 
 async function main() {
   await mongoose.connect(process.env.MONGODB_URI);
+  if (process.argv.includes('--vectors')) return rebuildVectors();
+
   const all = process.argv.includes('--all');
   if (!llm.isConfigured()) console.warn('⚠️  LLM not configured — rebuilding from rating chips only.');
 

@@ -2,8 +2,11 @@
  * Background process — runs the BullMQ queues:
  *   dispatch — offering jobs to workers in rounds (services/dispatch.js)
  *   graph    — updating the worker knowledge graph from feedback (services/graph.js)
+ *   safety-voice — transcribing and triaging safety voice notes (services/voiceNotes.js)
+ * It also closes abandoned safety shields and expires quiet SOS alerts.
  * Start alongside the API:  npm run dispatcher
  */
+const http = require('http');
 const path = require('path');
 const mongoose = require('mongoose');
 const { Worker } = require('bullmq');
@@ -11,14 +14,18 @@ require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const Feedback = require('./models/Feedback');
 const Job = require('./models/Job');
+const VoiceNote = require('./models/VoiceNote');
 const dispatch = require('./services/dispatch');
 const graph = require('./services/graph');
 const { redisConnection } = require('./services/queue');
+const safety = require('./services/safety');
+const voiceNotes = require('./services/voiceNotes');
 
 const SWEEP_INTERVAL_MS = 60 * 1000;
 const STALE_JOB_AFTER_MS = Math.max(60 * 1000, 2 * dispatch.CONFIG.roundIntervalMs);
 const OVERDUE_GRACE_MS = 30 * 1000; // past its deadline this long = its expiring round was lost
 const STALE_FEEDBACK_AFTER_MS = 60 * 1000;
+const STALE_VOICE_NOTE_AFTER_MS = 2 * 60 * 1000;
 
 // Hosted Redis (Upstash) bills per command, and an idle BullMQ worker keeps
 // polling. These cut idle traffic without slowing anything down: new tasks
@@ -66,6 +73,39 @@ async function sweepUnprocessedFeedback() {
   if (pending.length > 0) console.log(`[dispatcher] sweep re-queued ${pending.length} feedback`);
 }
 
+async function sweepPendingVoiceNotes() {
+  const pending = await VoiceNote.find({
+    'analysis.status': 'pending',
+    createdAt: { $lt: new Date(Date.now() - STALE_VOICE_NOTE_AFTER_MS) },
+  })
+    .select('_id')
+    .limit(100);
+
+  for (const note of pending) {
+    await voiceNotes.enqueueVoiceNote(note._id);
+  }
+  if (pending.length > 0) console.log(`[dispatcher] sweep re-queued ${pending.length} voice note(s)`);
+}
+
+async function sweepSafety() {
+  const closed = await safety.closeQuietSessions();
+  const expired = await safety.expireQuietAlerts();
+  if (closed > 0) console.log(`[dispatcher] closed ${closed} abandoned safety shield(s)`);
+  if (expired > 0) console.log(`[dispatcher] expired ${expired} quiet SOS alert(s)`);
+}
+
+// The last retry failing marks the note failed, so the sweep doesn't retry it forever.
+async function analyzeVoiceNote(task) {
+  try {
+    await voiceNotes.analyzeVoiceNote(task.data.noteId);
+  } catch (err) {
+    if (task.attemptsMade + 1 >= (task.opts.attempts ?? 1)) {
+      await voiceNotes.markAnalysisFailed(task.data.noteId, err.message);
+    }
+    throw err;
+  }
+}
+
 function startWorker(name, processor, concurrency) {
   const worker = new Worker(name, processor, {
     connection: redisConnection({ maxRetriesPerRequest: null }), // required by BullMQ workers
@@ -78,19 +118,36 @@ function startWorker(name, processor, concurrency) {
   return worker;
 }
 
+// Cloud Run (K_SERVICE is set there) only keeps a container that answers
+// HTTP on $PORT, so give it a health endpoint. Elsewhere nothing listens.
+function startHealthServer() {
+  if (!process.env.K_SERVICE) return null;
+  const port = Number(process.env.PORT) || 8080;
+  return http
+    .createServer((req, res) => {
+      res.writeHead(200, { 'Content-Type': 'text/plain' });
+      res.end('dispatcher ok');
+    })
+    .listen(port, () => console.log(`🩺 Health endpoint on port ${port}`));
+}
+
 async function main() {
+  const health = startHealthServer();
   await mongoose.connect(process.env.MONGODB_URI);
   console.log('✅ Dispatcher connected to MongoDB');
 
   const workers = [
     startWorker(dispatch.QUEUE_NAME, (task) => dispatch.processRound(task.data), 10),
     startWorker(graph.QUEUE_NAME, (task) => graph.processFeedback(task.data.feedbackId), 5),
+    startWorker(voiceNotes.QUEUE_NAME, analyzeVoiceNote, 3),
   ];
 
   const sweep = async () => {
     try {
       await sweepStalledJobs();
       await sweepUnprocessedFeedback();
+      await sweepPendingVoiceNotes();
+      await sweepSafety();
     } catch (err) {
       console.error('[dispatcher] sweep error (will retry):', err.message);
     }
@@ -100,6 +157,7 @@ async function main() {
 
   const shutdown = async () => {
     clearInterval(timer);
+    health?.close();
     await Promise.all(workers.map((w) => w.close()));
     await mongoose.disconnect();
     process.exit(0);

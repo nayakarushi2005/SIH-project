@@ -13,7 +13,7 @@ const HINTS = [
   [/ENOENT|no such file/i, 'The key file path in VERTEX_KEY_FILE is wrong (relative paths are relative to backend/).'],
   [/different project/i, 'Set VERTEX_PROJECT_ID to the "project_id" inside the key file.'],
   [/PERMISSION_DENIED|403/i, 'Give the service account the "Vertex AI User" role, and enable the Vertex AI API on the project.'],
-  [/NOT_FOUND|404|not found/i, 'The model or location isn’t available: set LLM_MODEL to a current Gemini model id, or try GOOGLE_CLOUD_LOCATION=global.'],
+  [/NOT_FOUND|404|not found/i, 'The model or location isn’t available: set LLM_MODEL / EMBEDDING_MODEL to a current model id, or try VERTEX_LOCATION=global.'],
   [/invalid_grant|UNAUTHENTICATED|401/i, 'The service account key is invalid or was deleted — create a new key.'],
 ];
 
@@ -42,6 +42,11 @@ async function main() {
   });
   if (result?.ok !== true) throw new Error(`Unexpected reply: ${JSON.stringify(result)}`);
   console.log(`\n✅ Vertex AI works (${Date.now() - started} ms)`);
+
+  console.log(`\nembedding model: ${llm.embeddingModelName()}`);
+  const embedStarted = Date.now();
+  const [vector] = await llm.embed(['Kitchen sink pipe is leaking']);
+  console.log(`✅ Embeddings work (${vector.length} dims, ${Date.now() - embedStarted} ms)`);
 }
 
 main().catch((err) => {

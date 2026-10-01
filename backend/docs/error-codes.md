@@ -96,3 +96,25 @@ heatmap_workers_only — Register as a worker to see where the work is.
 heatmap_bounds_invalid — Map bounds are missing or invalid.
 heatmap_area_too_large — Zoom in to a city to see the map.
 heatmap_load_failed — Could not load the map.
+insurance_not_member — You must be a verified member of a federation to access insurance.
+insurance_load_failed — Could not load insurance data.
+insurance_package_not_found — Insurance package not found.
+insurance_package_paused — This insurance package is currently on hold and cannot be applied for.
+insurance_package_closed — This insurance package is no longer available.
+insurance_already_applied — You have already applied for this insurance package.
+insurance_apply_failed — Could not submit insurance application.
+safety_location_invalid — We couldn’t read your location. Please allow location access.
+safety_location_required — We need your location to send an SOS.
+safety_outcome_invalid — Choose whether it was a false alarm or a real emergency.
+safety_load_failed — Could not load the safety shield.
+safety_location_failed — Could not update your location.
+safety_end_failed — Could not close the safety shield.
+sos_start_failed — Could not send your SOS. Call 112 if you are in danger.
+sos_stop_failed — Could not turn off your SOS.
+sos_outcome_not_found — That SOS was not found or is already answered.
+sos_outcome_failed — Could not save your answer.
+voice_upload_unavailable — Voice notes can’t be uploaded right now.
+voice_note_url_invalid — Upload the recording before sending it.
+voice_note_duration_invalid — That recording length doesn’t look right.
+voice_note_failed — Could not save your voice note.
+voice_notes_load_failed — Could not load your voice notes.
