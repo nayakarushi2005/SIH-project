@@ -59,7 +59,7 @@
   "payment": {
     "title": "পেমেন্ট",
     "openButton": "পেমেন্ট ও রসিদ",
-    "merchantName": "SIH Connect",
+    "merchantName": "Sahayak",
     "amountDue": "দেওয়ার পরিমাণ",
     "worker": "কারিগর: {{name}}",
     "payButton": "{{amount}} পেমেন্ট করুন",
@@ -157,19 +157,18 @@
     "cta": "শুরু করুন"
   },
   "auth": {
-    "brandName": "SIH Connect",
-    "tagline": "যাচাই করা কারিগর, বিশ্বস্ত পরিষেবা",
+    "brandName": "Sahayak",
+    "tagline": "যাচাই করা কারিগর। বিশ্বস্ত পরিষেবা।",
     "login": "লগইন",
     "signup": "সাইন আপ",
-    "loginDescription": "আবার স্বাগতম! চালিয়ে যেতে সাইন ইন করুন।",
+    "loginDescription": "চালিয়ে যেতে সাইন ইন করুন। আমরা পরে Aadhaar দিয়ে আপনার পরিচয় যাচাই করব।",
     "signupDescription": "আপনার অ্যাকাউন্ট তৈরি করুন। আমরা Aadhaar দিয়ে আপনার পরিচয় যাচাই করব।",
     "continueWithGoogle": "Google দিয়ে চালিয়ে যান",
     "signupWithGoogle": "Google দিয়ে সাইন আপ করুন",
     "loginA11y": "Google দিয়ে লগইন করুন",
     "signupA11y": "Google দিয়ে সাইন আপ করুন",
-    "signupNote": "🔐 নতুন অ্যাকাউন্ট DigiLocker দিয়ে পরিচয় যাচাই করে",
-    "loginNote": "🔒 আপনার লগইনের তথ্য সুরক্ষিত এবং কখনও সংরক্ষণ করা হয় না",
-    "terms": "চালিয়ে গেলে আপনি আমাদের <terms>পরিষেবার শর্তাবলী</terms> এবং <privacy>গোপনীয়তা নীতিতে</privacy> সম্মত হচ্ছেন",
+    "signupNote": "নতুন অ্যাকাউন্ট DigiLocker দিয়ে পরিচয় যাচাই করে",
+    "loginNote": "আপনার লগইনের তথ্য সুরক্ষিত এবং কখনও সংরক্ষণ করা হয় না",
     "failedTitle": "লগইন করা যায়নি",
     "inProgress": "একটি সাইন-ইন ইতিমধ্যে চলছে।",
     "playServices": "এই ফোনে Google Play পরিষেবা নেই বা পুরনো।",
@@ -332,7 +331,10 @@
   },
   "language": {
     "title": "অ্যাপের ভাষা",
-    "saveFailed": "ভাষা বদলানো যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।"
+    "saveFailed": "ভাষা বদলানো যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।",
+    "chooseTitle": "আপনার ভাষা বেছে নিন",
+    "chooseBody": "আপনি এটি যেকোনো সময় প্রোফাইল থেকে বদলাতে পারবেন।",
+    "continue": "চালিয়ে যান"
   },
   "worker": {
     "promptTitle": "কাজ খুঁজছেন?",

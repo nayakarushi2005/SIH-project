@@ -1,6 +1,6 @@
 import i18n, { SUPPORTED } from '.';
 import { updateMe } from '../services/api';
-import { getLanguage, getUser, saveLanguage, saveUser } from '../services/session';
+import { getLanguage, getUser, markLanguageChosen, saveLanguage, saveUser } from '../services/session';
 import { languageEpoch, markLocalChangeEnd, markLocalChangeStart, serverMayApply } from './languageGuard';
 
 export { languageEpoch };
@@ -46,6 +46,7 @@ export async function setAppLanguage(code) {
     try {
       const updated = await updateMe({ preferredLanguage: valid(code) });
       await saveUser(updated);
+      await markLanguageChosen().catch(() => {});
       return updated;
     } catch (err) {
       await applyLanguage(previous);

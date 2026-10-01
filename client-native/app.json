@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "SIH Connect",
+    "name": "Sahayak",
     "slug": "sih-connect",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -13,7 +13,7 @@
     "android": {
       "package": "com.sihproject.connect",
       "adaptiveIcon": {
-        "backgroundColor": "#0d0d1a",
+        "backgroundColor": "#ffffff",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -32,7 +32,20 @@
         }
       ],
       "expo-web-browser",
-      "expo-font",
+      [
+        "expo-font",
+        {
+          "fonts": ["./assets/fonts/CenturyGothic-Bold.ttf"]
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#097d4c",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 188
+        }
+      ],
       [
         "expo-image-picker",
         {
@@ -43,14 +56,14 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "SIH Connect uses your location to show jobs and workers near you."
+          "locationWhenInUsePermission": "Sahayak uses your location to show jobs and workers near you."
         }
       ],
       [
         "expo-speech-recognition",
         {
-          "microphonePermission": "SIH Connect uses the microphone so you can answer questions by speaking.",
-          "speechRecognitionPermission": "SIH Connect converts your speech to text to fill in your registration.",
+          "microphonePermission": "Sahayak uses the microphone so you can answer questions by speaking.",
+          "speechRecognitionPermission": "Sahayak converts your speech to text to fill in your registration.",
           "androidSpeechServicePackages": [
             "com.google.android.googlequicksearchbox"
           ]

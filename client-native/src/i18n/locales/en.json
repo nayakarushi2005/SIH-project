@@ -59,7 +59,7 @@
   "payment": {
     "title": "Payment",
     "openButton": "Payment & receipt",
-    "merchantName": "SIH Connect",
+    "merchantName": "Sahayak",
     "amountDue": "Amount to pay",
     "worker": "Worker: {{name}}",
     "payButton": "Pay {{amount}}",
@@ -157,19 +157,18 @@
     "cta": "Get Started"
   },
   "auth": {
-    "brandName": "SIH Connect",
-    "tagline": "Verified professionals, trusted services",
+    "brandName": "Sahayak",
+    "tagline": "Verified professionals. Trusted Services.",
     "login": "Login",
     "signup": "Sign Up",
-    "loginDescription": "Welcome back! Sign in to continue.",
+    "loginDescription": "Sign in to continue. We'll later verify your identity with Aadhaar.",
     "signupDescription": "Create your account. We'll verify your identity with Aadhaar.",
     "continueWithGoogle": "Continue with Google",
     "signupWithGoogle": "Sign up with Google",
     "loginA11y": "Login with Google",
     "signupA11y": "Sign up with Google",
-    "signupNote": "🔐 New accounts verify their identity through DigiLocker",
-    "loginNote": "🔒 Your credentials are secured and never stored",
-    "terms": "By continuing, you agree to our <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>",
+    "signupNote": "New accounts verify their identity through DigiLocker",
+    "loginNote": "Your credentials are secured and never stored.",
     "failedTitle": "Authentication Failed",
     "inProgress": "A sign-in is already in progress.",
     "playServices": "Google Play Services is missing or out of date on this device.",
@@ -332,7 +331,10 @@
   },
   "language": {
     "title": "App language",
-    "saveFailed": "Could not change the language. Please try again."
+    "saveFailed": "Could not change the language. Please try again.",
+    "chooseTitle": "Choose your language",
+    "chooseBody": "You can change this anytime from your Profile.",
+    "continue": "Continue"
   },
   "worker": {
     "promptTitle": "Looking for work?",
